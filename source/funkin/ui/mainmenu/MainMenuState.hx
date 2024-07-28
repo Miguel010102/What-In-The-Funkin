@@ -34,6 +34,7 @@ import Discord.DiscordClient;
 import funkin.ui.NgPrompt;
 import io.newgrounds.NG;
 #end
+import funkin.play.modchartSystem.ModConstants;
 
 class MainMenuState extends MusicBeatState
 {
@@ -168,6 +169,7 @@ class MainMenuState extends MusicBeatState
 
     // This has to come AFTER!
     this.leftWatermarkText.text = Constants.VERSION;
+    this.rightWatermarkText.text = "Mods: " + ModConstants.MODCHART_VERSION;
     // this.rightWatermarkText.text = "blablabla test";
 
     // NG.core.calls.event.logEvent('swag').send();

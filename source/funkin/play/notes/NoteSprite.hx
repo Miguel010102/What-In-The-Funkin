@@ -3,12 +3,19 @@ package funkin.play.notes;
 import funkin.data.song.SongData.SongNoteData;
 import funkin.play.notes.notestyle.NoteStyle;
 import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.FlxSprite;
 import funkin.graphics.FunkinSprite;
 import funkin.graphics.shaders.HSVShader;
+import funkin.play.modchartSystem.NoteData;
+import funkin.graphics.ZProjectSprite_Note;
+import flixel.graphics.frames.FlxFrame;
+import funkin.graphics.ZSprite;
+import flixel.FlxBasic;
 
-class NoteSprite extends FunkinSprite
+class NoteSprite extends ZSprite
 {
+  public var mesh:ZProjectSprite_Note;
+  public var noteModData:NoteData;
+
   static final DIRECTION_COLORS:Array<String> = ['purple', 'blue', 'green', 'red'];
 
   public var holdNoteSprite:SustainTrail;
@@ -127,12 +134,98 @@ class NoteSprite extends FunkinSprite
    */
   public var handledMiss:Bool;
 
+  // Call this to create a mesh
+  public function setupMesh():Void
+  {
+    if (mesh == null)
+    {
+      mesh = new ZProjectSprite_Note();
+      mesh.spriteGraphic = this;
+    }
+    mesh.setUp();
+  }
+
+  @:access(flixel.FlxCamera)
+  override public function draw():Void
+  {
+    if (this.alpha < 0 || !this.visible || !this.alive)
+    {
+      return;
+    }
+
+    if (mesh != null && noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false)
+    {
+      mesh.x = noteModData.x;
+      mesh.y = noteModData.y;
+      mesh.z = noteModData.z;
+
+      mesh.angleX = noteModData.angleX;
+      mesh.angleY = noteModData.angleY;
+      mesh.angleZ = noteModData.angleZ;
+
+      mesh.scaleX = noteModData.scaleX;
+      mesh.scaleY = noteModData.scaleY;
+      mesh.scaleZ = noteModData.scaleZ;
+
+      mesh.skewX = noteModData.skewX;
+      mesh.skewY = noteModData.skewY;
+
+      mesh.offset = this.offset;
+      mesh.cameras = this.cameras;
+
+      mesh.updateTris();
+
+      mesh.drawManual();
+    }
+    else
+    {
+      super.draw();
+      // this.draw_regular();
+    }
+  }
+
+  /*
+    // copy and pasted from FlxSprite XD
+    public function draw_regular():Void
+    {
+      checkEmptyFrame();
+
+      if (alpha == 0 || _frame.type == FlxFrameType.EMPTY) return;
+
+      if (dirty) // rarely
+        calcFrame(useFramePixels);
+
+      for (camera in cameras)
+      {
+        if (!camera.visible || !camera.exists || !isOnScreen(camera)) continue;
+
+        if (isSimpleRender(camera)) drawSimple(camera);
+        else
+          drawComplex(camera);
+
+        #if FLX_DEBUG
+        FlxBasic.visibleCount++;
+        #end
+      }
+
+      #if FLX_DEBUG
+      if (FlxG.debugger.drawDebug) drawDebug();
+      #end
+    }
+   */
+  // for identifying what noteStyle this notesprite is using in hxScript or even lua
+  public var noteStyleName:String = "funkin";
+
   public function new(noteStyle:NoteStyle, direction:Int = 0)
   {
     super(0, -9999);
     this.direction = direction;
 
     this.hsvShader = new HSVShader();
+
+    noteModData = new NoteData();
+
+    noteStyleName = noteStyle.id;
 
     setupNoteGraphic(noteStyle);
 
@@ -148,6 +241,12 @@ class NoteSprite extends FunkinSprite
     updateHitbox();
 
     this.shader = hsvShader;
+    stealthGlow = 0.0;
+    stealthGlowBlue = 1.0;
+    stealthGlowGreen = 1.0;
+    stealthGlowRed = 1.0;
+    updateStealthGlow();
+    if (mesh != null) mesh.updateCol();
   }
 
   #if FLX_DEBUG
@@ -197,6 +296,29 @@ class NoteSprite extends FunkinSprite
     this.hsvShader.hue = 1.0;
     this.hsvShader.saturation = 1.0;
     this.hsvShader.value = 1.0;
+
+    if (mesh != null) mesh.updateCol();
+
+    resetStealthGlow();
+  }
+
+  // call this to reset stealthGlow back to default values
+  public function resetStealthGlow(skipUpdate:Bool = false):Void
+  {
+    this.stealthGlow = 0.0;
+    this.stealthGlowBlue = 1.0;
+    this.stealthGlowGreen = 1.0;
+    this.stealthGlowRed = 1.0;
+    if (!skipUpdate) updateStealthGlow();
+  }
+
+  // call this to update the stealthglow on the hsv shader
+  public function updateStealthGlow():Void
+  {
+    this.hsvShader.stealthGlow = stealthGlow;
+    this.hsvShader.stealthGlowBlue = stealthGlowBlue;
+    this.hsvShader.stealthGlowGreen = stealthGlowGreen;
+    this.hsvShader.stealthGlowRed = stealthGlowRed;
   }
 
   public override function kill():Void

@@ -1,0 +1,289 @@
+package funkin.play.modchartSystem.modifiers;
+
+import funkin.play.notes.Strumline;
+import funkin.play.modchartSystem.NoteData;
+import funkin.play.modchartSystem.modifiers.BaseModifier;
+
+// Contains all the mods related to skewing!
+
+class NoteOffsetXMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.x += currentValue;
+  }
+}
+
+class NoteOffsetYMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.y += currentValue;
+  }
+}
+
+class NoteOffsetZMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.z += currentValue;
+  }
+}
+
+class HoldOffsetXMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isHoldNote) data.x += currentValue;
+  }
+}
+
+class HoldOffsetYMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isHoldNote) data.y += currentValue;
+  }
+}
+
+class HoldOffsetZMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isHoldNote) data.z += currentValue;
+  }
+}
+
+class StrumOffsetXMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.x -= currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.x += currentValue;
+  }
+}
+
+class StrumOffsetYMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.y -= currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.y += currentValue;
+  }
+}
+
+class StrumOffsetZMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.z -= currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.z += currentValue;
+  }
+}
+
+class MeshSkewOffsetX extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    strumsMod = true;
+    notesMod = true;
+    holdsMod = true;
+    pathMod = true;
+    specialMod = false;
+    speedMod = false;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.meshOffsets_SkewX += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.meshOffsets_SkewX += currentValue;
+  }
+}
+
+class MeshSkewOffsetY extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    strumsMod = true;
+    notesMod = true;
+    holdsMod = true;
+    pathMod = true;
+    specialMod = false;
+    speedMod = false;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.meshOffsets_SkewY += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.meshOffsets_SkewY += currentValue;
+  }
+}
+
+class MeshSkewOffsetZ extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    strumsMod = true;
+    notesMod = true;
+    holdsMod = true;
+    pathMod = true;
+    specialMod = false;
+    speedMod = false;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.meshOffsets_SkewZ += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.meshOffsets_SkewZ += currentValue;
+  }
+}
+
+class MeshPivotOffsetX extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    strumsMod = true;
+    notesMod = true;
+    holdsMod = true;
+    pathMod = true;
+    specialMod = false;
+    speedMod = false;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.meshOffsets_PivotX += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.meshOffsets_PivotX += currentValue;
+  }
+}
+
+class MeshPivotOffsetY extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    strumsMod = true;
+    notesMod = true;
+    holdsMod = true;
+    pathMod = true;
+    specialMod = false;
+    speedMod = false;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.meshOffsets_PivotY += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.meshOffsets_PivotY += currentValue;
+  }
+}
+
+class MeshPivotOffsetZ extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    strumsMod = true;
+    notesMod = true;
+    holdsMod = true;
+    pathMod = true;
+    specialMod = false;
+    speedMod = false;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.meshOffsets_PivotZ += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.meshOffsets_PivotZ += currentValue;
+  }
+}

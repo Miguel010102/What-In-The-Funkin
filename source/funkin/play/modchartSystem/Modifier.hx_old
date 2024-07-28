@@ -1,0 +1,2383 @@
+package funkin.play.modchartSystem;
+
+import flixel.FlxG;
+// funkin stuff
+import funkin.play.PlayState;
+import funkin.Conductor;
+import funkin.play.song.Song;
+import funkin.Preferences;
+import funkin.util.Constants;
+import funkin.play.notes.Strumline;
+// Math and utils
+import StringTools;
+import flixel.math.FlxMath;
+import lime.math.Vector2;
+import funkin.graphics.ZSprite;
+import funkin.play.modchartSystem.ModConstants;
+import lime.math.Vector4;
+import funkin.play.modchartSystem.NoteData;
+
+// A lot of math came from here:
+// https://github.com/TheZoroForce240/FNF-Modcharting-Tools/blob/main/source/modcharting/Modifier.hx
+class ModifierSubValue
+{
+  public var value:Float = 0.0;
+  public var baseValue:Float = 0.0;
+
+  public function new(value:Float)
+  {
+    // super("submod");
+    this.value = value;
+    baseValue = value;
+  }
+}
+
+// I would like to be able to do something like this. However, doing something like this makes the game EXPLODE! :sob:
+
+/*
+  class DrunkMod extends Modifier
+  {
+    public function new(value:Float)
+    {
+    super("drunkmod");
+        this.value = value;
+        baseValue = value;
+    }
+  public function strumMath_2(note, lane:Int, strumLine) {
+    note.x += 100;
+  }
+  }
+ */
+class Modifier
+{
+  var songTime:Float = 0;
+  var beatTime:Float = 0;
+  var bpm:Float = 0;
+
+  // lol
+  public function updateTime(bbbb:Float = 0.0):Void
+  {
+    bpm = Conductor.instance.bpm;
+    songTime = Conductor.instance.songPosition;
+    beatTime = bbbb;
+    // beatTime = (songTime / 1000) * (bpm / 60);
+  }
+
+  public var tag:String = "mod";
+  public var baseValue:Float = 0;
+
+  // public var currentValue:Float = 0;
+  public var currentValue(default, set):Float = 0;
+
+  private function set_currentValue(newValue:Float)
+  {
+    currentValue = newValue;
+    if (strumOwner != null) strumOwner.debugNeedsUpdate = true;
+    return currentValue;
+  }
+
+  // public var subValues:Map<String, ModifierSubValue> = new Map<String, ModifierSubValue>(); //stupid stupid, don't work  stupid
+  public var subValues:Map<String, ModifierSubValue>;
+
+  public var targetLane:Int = -1;
+  public var holdMult:Float = 1; // Used for gay/straight holds mod!
+  public var modPriority:Float = 100; // 100 is default. higher priority = done first
+
+  // who owns this mod?
+  public var strumOwner:Strumline = null;
+
+  // Makes certain mods (mainly y mods) get multiplied by -1 for downscroll. Useful for keeping mods consistent between up and downscroll by default.
+  // WARNING, DOES NOT AFFECT MOVE MODS!!!
+  public var flipForDownscroll:Bool = true;
+
+  public function new(tag:String)
+  {
+    // super(tag);
+    this.tag = tag;
+
+    setup(); // called externally cuz I don't even know if this function is being called lmao
+  }
+
+  public function setup():Void
+  {
+    subValues = ["dumb_setup" => new ModifierSubValue(0.0)];
+    subValues.remove("dumb_setup");
+    setupSubValues(tag);
+  }
+
+  public function reset():Void // for the editor
+  {
+    currentValue = baseValue;
+    for (subMod in subValues)
+      subMod.value = subMod.baseValue;
+  }
+
+  public function getSubVal(name):Float
+  {
+    var sub = subValues.get(name);
+    if (sub != null) return sub.value;
+    else
+    {
+      PlayState.instance.modDebugNotif(name + " is not a valid subname!\nReturning 0.0...");
+      return 0.0;
+    }
+  }
+
+  public function setSubVal(name, newval):Void
+  {
+    var sub = subValues.get(name);
+    if (sub != null)
+    {
+      sub.value = newval;
+      if (strumOwner != null) strumOwner.debugNeedsUpdate = true;
+    }
+    else
+    {
+      trace(name + " is not a valid subname!");
+      PlayState.instance.modDebugNotif(name + " is not a valid subname!");
+    }
+  }
+
+  public function setVal(newval):Void
+  {
+    currentValue = newval;
+  }
+
+  public function setDefaultSubVal(name, newval):Void
+  {
+    var sub = subValues.get(name);
+    if (sub != null) sub.baseValue = newval;
+    else
+    {
+      PlayState.instance.modDebugNotif(name + " is not a valid subname!");
+      trace(name + "not valid lol");
+    }
+  }
+
+  public function setDefaultVal(newval):Void
+  {
+    baseValue = newval;
+  }
+
+  public function setupSubValues(tag:String):Void
+  {
+    var fuck:String = tag.toLowerCase();
+
+    var subModArr = null;
+    if (StringTools.contains(fuck, "--"))
+    {
+      subModArr = fuck.split('--');
+      fuck = subModArr[0];
+    }
+
+    switch (fuck)
+    {
+      case "arrowpathred" | "stealthglowred":
+        modPriority = -3;
+      case "arrowpathgreen" | "stealthglowgreen":
+        modPriority = -4;
+      case "arrowpathblue" | "stealthglowblue":
+        modPriority = -5;
+      case "debugx":
+        modPriority = -10;
+      case "debugy":
+        modPriority = -11;
+      case "showzerovalue":
+        modPriority = -13;
+      case "showallmods":
+        modPriority = -10;
+      case "showsubmods":
+        modPriority = -11;
+      case "showlanemods":
+        modPriority = -12;
+
+      case "arrowpathwidth":
+        baseValue = 1; // default value is always 1!
+      case "drunk" | "drunkz" | "drunkangle" | "drunky" | "drunkscale":
+        createSubMod("speed", 1.0);
+        createSubMod("mult", 1.0);
+        createSubMod("desync", 0.2);
+        createSubMod("time_add", 0.0);
+
+      case "bumpyx" | "bumpyangle" | "bumpyy" | "bumpyscale" | "bumpy":
+        createSubMod("mult", 1.0);
+
+      case "tanbumpyx" | "tanbumpyangle" | "tanbumpyy" | "tanbumpyscale" | "tanbumpy":
+        createSubMod("mult", 1.0);
+
+      case "bouncez" | "bouncex" | "bouncey" | "bouncescale" | "bounceangle":
+        createSubMod("mult", 1.0);
+
+      case "bouncespeed":
+        modPriority = 398;
+        createSubMod("mult", 1.0);
+
+      case "bumpyspeed":
+        modPriority = 397;
+        createSubMod("mult", 1.0);
+
+      case "tipsy" | "tipsyx" | "tipsyz" | "tipsyangle" | "tipsyscale":
+        createSubMod("speed", 1.0);
+        createSubMod("time_add", 0.0);
+
+      case "tandrunk" | "tandrunky" | "tandrunkz" | "tandrunkangle":
+        createSubMod("speed", 1.0);
+        createSubMod("mult", 1.0);
+        createSubMod("desync", 0.2);
+        createSubMod("time_add", 0.0);
+      case "tantipsyx" | "tantipsyz" | "tantipsy":
+        createSubMod("speed", 1.0);
+        createSubMod("time_add", 0.0);
+
+      case "beat" | "beaty" | "beatz" | "beatangle" | "beatscale":
+        createSubMod("speed", 1.0);
+        createSubMod("mult", 1.0);
+        createSubMod("offset", 0.0);
+
+      case "beatspeed":
+        createSubMod("speed", 1.0);
+        createSubMod("mult", 1.0);
+        createSubMod("offset", 0.0);
+        modPriority = 399;
+
+      case "spiralx":
+        createSubMod("mult", 0.05);
+        createSubMod("cos", 0.0);
+      case "spiraly":
+        createSubMod("mult", 0.05);
+        createSubMod("cos", 0.0);
+      case "spiralz":
+        createSubMod("mult", 0.05);
+        createSubMod("cos", 0.0);
+
+      case "zigzag" | "zigzagy" | "zigzagz" | "zigzagscale" | "zigzagangle":
+        createSubMod("mult", 1);
+
+      case "zigzag_hitmans":
+        createSubMod("amplitude", 0.5);
+        createSubMod("longitude", 0.5);
+      case "zigzagy_hitmans":
+        createSubMod("amplitude", 0.5);
+        createSubMod("longitude", 0.5);
+      case "zigzagz_hitmans":
+        createSubMod("amplitude", 0.5);
+        createSubMod("longitude", 0.5);
+
+      case "saw" | "sawy" | "sawz" | "sawangle" | "sawscale":
+        createSubMod("mult", 1);
+      case "sawspeed":
+        modPriority = 400;
+        createSubMod("mult", 250);
+
+      case "square" | "squareangle" | "squarey" | "squarez" | "squarescale":
+        createSubMod("xoffset", 0.0);
+        createSubMod("yoffset", 0.0);
+        createSubMod("mult", 1.0);
+
+      case "squarespeed":
+        createSubMod("xoffset", 0.0);
+        createSubMod("yoffset", 0.0);
+        createSubMod("mult", 1.0);
+        modPriority = 401;
+
+      case "digital" | "digitaly" | "digitalz" | "digitalangle" | "digitalscale":
+        createSubMod("mult", 1.0);
+        createSubMod("steps", 4.0);
+
+      case "tornado" | "tornadoz" | "tornadoangle" | "tornadoscale" | "tornadoy":
+        createSubMod("speed", 3.0);
+
+      case "tantornado":
+        createSubMod("speed", 3.0);
+      case "tantornadoz":
+        createSubMod("speed", 3.0);
+
+      case "center":
+        modPriority = 51;
+        createSubMod("oldmath", 0.0);
+      case "centernotes":
+        modPriority = 50;
+
+      case "orient":
+        modPriority = -50; // FUCK IT, YOU LAST NOW
+
+      case "strumrotatex":
+        modPriority = 21 + 6;
+        createSubMod("offset_x", 0.0);
+        createSubMod("offset_y", 0.0);
+        createSubMod("jank", 0.0);
+
+      case "strumrotatey":
+        modPriority = 22 + 6;
+        createSubMod("offset_x", 0.0);
+        createSubMod("offset_y", 0.0);
+
+      case "strumrotatez":
+        modPriority = 23 + 6;
+        createSubMod("offset_x", 0.0);
+        createSubMod("offset_y", 0.0);
+
+      case "rotatey":
+        modPriority = 22;
+        createSubMod("offset_x", 0.0);
+        createSubMod("offset_y", 0.0);
+      case "rotatex":
+        modPriority = 21;
+        createSubMod("offset_x", 0.0);
+        createSubMod("offset_y", 0.0);
+        createSubMod("jank", 1.0);
+      case "rotatez" | "rotatez_old":
+        modPriority = 23;
+        createSubMod("offset_x", 0.0);
+        createSubMod("offset_y", 0.0);
+
+      case "hidden" | "hiddentest":
+        modPriority = 119;
+        createSubMod("noglow", 0.0);
+        createSubMod("start", 500.0);
+        createSubMod("end", 300.0);
+        createSubMod("offset", 0.0);
+      case "sudden":
+        modPriority = 118;
+        createSubMod("noglow", 0.0);
+        createSubMod("start", 500.0);
+        createSubMod("end", 300.0);
+        createSubMod("offset", 0.0);
+
+      case "vanish":
+        modPriority = 117;
+        createSubMod("noglow", 0.0);
+        createSubMod("start", 475.0);
+        createSubMod("size", 195.0);
+        createSubMod("end", 125.0);
+        createSubMod("offset", 0.0);
+      case "blink":
+        modPriority = 116;
+        createSubMod("speed", 1.0);
+        createSubMod("noglow", 0.0);
+        createSubMod("offset", 0.0);
+
+      case "stealth":
+        modPriority = 120;
+        createSubMod("noglow", 0.0);
+        createSubMod("stealthpastreceptors", 1.0);
+
+      case "blacksphere" | "blacksphereflip":
+        createSubMod("variant", 0.0);
+        createSubMod("speedaffect", 1.0);
+        modPriority = 130;
+
+      case "waveyx" | "waveyy" | "waveyz" | "waveyangle" | "waveyscale": // some old math from Inhuman
+        modPriority = 79;
+        createSubMod("desync", 0.2);
+        createSubMod("time_add", 0.0);
+        createSubMod("speed", 1.0);
+
+      // maybe a cool mod to add in future?
+      case "easex" | "easeangle" | "easey" | "easez" | "easescale" | "easespeed":
+        createSubMod("mod", 0.0);
+        createSubMod("mult", 1.0);
+      // createSubMod("ease", 1.0);
+      case "reverse":
+        modPriority = 122;
+      case "speedmod":
+        modPriority = 500;
+      case "custompath":
+        modPriority = 119; // THIS GETS APPLIED FIRST DUE TO IT'S NOTE POS OVERRIDE NATURE
+    }
+  }
+
+  public function createSubMod(name:String, startVal:Float):Void
+  {
+    var newSubMod = new ModifierSubValue(startVal);
+    newSubMod.value = startVal;
+    newSubMod.baseValue = startVal;
+    subValues.set(name, newSubMod);
+  }
+
+  // MATH FOR CONTROLLING NOTESPEED. SEPARATE CUZ FUCK YOU
+  public function speedMath(lane:Int, curPos:Float, strumLine, isHoldNote = false):Float
+  {
+    var retu_val:Float = 1.0;
+
+    if (targetLane != -1 && lane != targetLane) return retu_val;
+
+    var tag_:String = tag.toLowerCase();
+    var subModArr = null;
+    if (StringTools.contains(tag_, "--"))
+    {
+      subModArr = tag.split('--');
+      tag_ = subModArr[0];
+    }
+    switch (tag_.toLowerCase())
+    {
+      case "speedmod":
+        retu_val = currentValue;
+      case "sawspeed":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        retu_val = (Math.abs(curPos) % getSubVal("mult") / 2.0 * currentValue / 100) + 1;
+
+      case "slowdown":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        retu_val = 1 - currentValue + (((Math.abs(curPos) / 100) * currentValue));
+        retu_val *= 0.05; // slow it down to be less insane lmfao
+
+      case "linearspeed":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        retu_val = curPos / 100 * currentValue;
+
+      // case "longholds": // DON'T WORK FOR NOW LOL
+      // if (!isHoldNote || currentValue == 0) return 1; // skip math if mod is 0
+      // retu_val = 1 + currentValue;
+
+      case "reverse":
+        retu_val = (1 - (currentValue * 2));
+
+      case "bumpyspeed":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+
+        var scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+        var modWouldBe:Float = currentValue * 0.025 * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+        retu_val = modWouldBe + 1;
+
+      case "squarespeed":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        retu_val = (squareMath(curPos) * currentValue * 0.005) + 1;
+
+      case "bouncespeed":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        var speed:Float = getSubVal("mult");
+        var modWouldBe:Float = currentValue * 0.025 * ModConstants.strumSize * Math.abs(FlxMath.fastSin(curPos * 0.005 * (speed * 2)));
+        retu_val = modWouldBe + 1;
+
+      case "beatspeed":
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        var modWouldBe:Float = beatMath(curPos) * 0.025;
+        retu_val = modWouldBe + 1;
+
+      case "blacksphere" | "blacksphereflip":
+        currentValue = currentValue % 360;
+        if (currentValue == 0) return 1; // skip math if mod is 0
+        // current value is in degrees!
+
+        var speedAffectM:Float = getSubVal("speedaffect");
+
+        var invertValue:Float = 0;
+        var yValue:Float = 0;
+
+        invertValue = 50 - 50 * FlxMath.fastCos(currentValue * Math.PI / 180);
+        invertValue /= 100;
+
+        yValue = FlxMath.fastSin(currentValue * Math.PI / 180);
+
+        var variant:Float = getSubVal("variant");
+        if (variant >= 100)
+        {
+          if (lane % 4 == 1 || lane % 4 == 2) yValue *= -1;
+        }
+        else
+        {
+          if (lane % 2 == 1) yValue *= -1;
+        }
+        retu_val += yValue * 0.125 * speedAffectM;
+    }
+    return retu_val;
+  }
+
+  // MATH FOR NOTES
+  public function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (targetLane != -1 && data.direction != targetLane) return;
+
+    var tag_:String = tag.toLowerCase();
+    var subModArr = null;
+    if (StringTools.contains(tag_, "--"))
+    {
+      subModArr = tag.split('--');
+      tag_ = subModArr[0];
+    }
+
+    var curPos:Float = data.curPos;
+    var curPos2:Float = data.curPos_unscaled;
+
+    // Curpos2 added! Use this if you want the curPos to always be positive when approaching receptors, and negative when past!
+    // Also removed the speedmod parameter cuz it was never used XD
+    curPos2 *= Preferences.downscroll ? -1 : 1;
+
+    var scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+
+    switch (tag_)
+    {
+      case "arrowpathwidth":
+        if (!isArrowPath) return;
+        var valJank:Float = currentValue; // Current value is fucked? idk?!
+        var scaleX:Float = valJank * 0.25; // make it 0.25 smaller then a regular hold
+        data.scaleX = scaleX;
+        data.scaleY = scaleX; // ?
+        data.scaleZ = scaleX;
+
+      case "arrowpath":
+        if (isArrowPath) data.alpha += currentValue;
+
+      case "arrowpathred":
+        if (isArrowPath)
+        {
+          data.red = currentValue;
+        }
+      case "arrowpathgreen":
+        if (isArrowPath)
+        {
+          data.green = currentValue;
+        }
+      case "arrowpathblue":
+        if (isArrowPath)
+        {
+          data.blue = currentValue;
+        }
+
+      case "notered":
+        if (!isArrowPath)
+        {
+          data.red = currentValue;
+        }
+      case "notegreen":
+        if (!isArrowPath)
+        {
+          data.green = currentValue;
+        }
+      case "noteblue":
+        if (!isArrowPath)
+        {
+          data.blue = currentValue;
+        }
+
+      case "noteskewx":
+        if (isHoldNote || isArrowPath) return;
+        data.skewX = currentValue;
+      case "noteskewy":
+        if (isHoldNote || isArrowPath) return;
+        data.skewY = currentValue;
+
+      case "easex":
+        return;
+
+      // edwhak_kb wanted it I guess? From Hitmans
+      case "custompath":
+        var path = PlayState.instance.customArrowPathModTest;
+        var whichStrumNote = data.whichStrumNote;
+        if (path == null || currentValue == 0 || whichStrumNote == null) return;
+
+        // automatically apply linearY mod to cancel the default y movement
+
+        var strumX:Float = whichStrumNote.x;
+        var strumY:Float = whichStrumNote.y;
+        var strumZ:Float = get_z(whichStrumNote);
+
+        if (data.noteType == "receptor")
+        {
+          strumX = data.strumPosWasHere.x;
+          strumY = data.strumPosWasHere.y;
+          strumZ = data.strumPosWasHere.z;
+        }
+        else
+        {
+          strumX += isHoldNote ? strumLine.mods.getHoldOffsetX(isArrowPath) : strumLine.getNoteXOffset();
+          if (isHoldNote)
+          {
+            if (Preferences.downscroll)
+            {
+              strumY += (Strumline.STRUMLINE_SIZE / 2);
+            }
+            else
+            {
+              strumY += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
+            }
+          }
+          else
+          {
+            strumY += strumLine.getNoteYOffset();
+          }
+        }
+
+        var strumPosition:Vector4 = new Vector4(strumX, strumY, strumZ, 0);
+        var notePosition:Vector4 = new Vector4(data.x, data.y, data.z, 0);
+
+        var newPosition1:Vector4 = PlayState.instance.executePath(beatTime, data.whichStrumNote.strumDistance, data.direction, currentValue, strumPosition);
+        var newPosition2:Vector4 = PlayState.instance.executePath(beatTime, Math.abs(curPos) * -1 / 0.47, data.direction, currentValue, notePosition);
+        // newPosition2.y *= (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+        data.x = notePosition.x + (newPosition1.x - newPosition2.x);
+        data.y = notePosition.y + (newPosition1.y - newPosition2.y);
+        data.z = notePosition.z + (newPosition1.z - newPosition2.z);
+
+        // automatically apply linearY mod to cancel the default y movement
+        var curVal:Float = currentValue * -1;
+        data.y += curPos * curVal;
+
+      case "orient":
+        if (currentValue == 0 || isArrowPath) return;
+        // Oh hey, same math for spiral hold shit lmfao
+        var a:Float = (data.y - data.lastKnownPosition.y) * -1; // height
+        var b:Float = (data.x - data.lastKnownPosition.x); // length
+        var calculateAngleDif:Float = Math.atan(b / a);
+        if (Math.isNaN(calculateAngleDif))
+        {
+          calculateAngleDif = data.lastKnownOrientAngle; // TODO -> Make this less likely to be a NaN in the first place lol
+        }
+        else
+        {
+          calculateAngleDif *= (180 / Math.PI);
+          data.lastKnownOrientAngle = calculateAngleDif;
+        }
+        data.angleZ += (calculateAngleDif * currentValue);
+        data.angleZ -= data.whichStrumNote.orientStrumAngle; // undo the mother fucking strum rotation for orient XD
+
+      // WTF?!
+      case "bangarang":
+        if (currentValue == 0) return;
+
+        var yOffset:Float = 0;
+
+        // var speed = renderer.getCorrectScrollSpeed();
+        var speed = scrollSpeed;
+
+        var fYOffset = -curPos / speed;
+        var fEffectHeight = FlxG.height;
+        var fScale = FlxMath.remapToRange(fYOffset, 0, fEffectHeight, 0, 1); // scale
+        var fNewYOffset = fYOffset * fScale;
+        var fBrakeYAdjust = currentValue * (fNewYOffset - fYOffset);
+        fBrakeYAdjust = FlxMath.bound(fBrakeYAdjust, -400, 400); // clamp
+
+        yOffset -= fBrakeYAdjust * speed;
+
+        // return curPos+yOffset;
+        data.y -= curPos + yOffset;
+
+      case "stealthglowred":
+        if (!isArrowPath)
+        {
+          data.stealthGlowRed = currentValue;
+        }
+      case "stealthglowgreen":
+        if (!isArrowPath)
+        {
+          data.stealthGlowGreen = currentValue;
+        }
+      case "stealthglowblue":
+        if (!isArrowPath)
+        {
+          data.stealthGlowBlue = currentValue;
+        }
+
+      case "stealth":
+        if (!isArrowPath)
+        {
+          var pastReceptors:Float = 1;
+          // if ((Preferences.downscroll && curPos2 > 0) || (!Preferences.downscroll && curPos2 < 0))
+          if (curPos2 < 0)
+          {
+            pastReceptors = getSubVal("stealthpastreceptors");
+          }
+
+          if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+          {
+            data.alpha -= FlxMath.bound(currentValue * pastReceptors, 0, 1); // clamp
+          }
+          else if (getSubVal("noglow") >= 0.5) // if 0.5 -> same logic, just no stealthglow applied
+          {
+            var subtractAlpha:Float = (currentValue - 0.5) * 2;
+            subtractAlpha = FlxMath.bound(subtractAlpha * pastReceptors, 0, 1); // clamp
+            data.alpha -= subtractAlpha;
+          }
+          else // Else, acts like how it would in NotITG with 0.5 modValue being full stealth glow, 0.75 being half opacity, and 1 being fully invisible.
+          {
+            var stealthGlow:Float = currentValue * 2; // so it reaches max at 0.5
+            data.stealth += FlxMath.bound(stealthGlow * pastReceptors, 0, 1); // clamp
+
+            // extra math so alpha doesn't start fading until 0.5
+            var subtractAlpha:Float = (currentValue - 0.5) * 2;
+            subtractAlpha = FlxMath.bound(subtractAlpha * pastReceptors, 0, 1); // clamp
+            data.alpha -= subtractAlpha;
+          }
+        }
+
+      case "alpha":
+        if (!isArrowPath)
+        {
+          data.alpha -= currentValue;
+        }
+      case "alphanote":
+        if (isArrowPath || isHoldNote) return;
+        data.alpha -= currentValue;
+      case "alphahold":
+        if (isArrowPath || !isHoldNote) return;
+        data.alpha -= currentValue;
+
+      case "blink":
+        if (isArrowPath) return;
+
+        var a:Float = FlxMath.fastSin((beatTime + getSubVal("offset")) * getSubVal("speed") * Math.PI) * 2;
+        // f = Quantize(f, 0.3333 f);
+        // var a:Float = FlxMath.remapToRange(f, 0, 1, -1, 0);
+        a = FlxMath.bound(a, 0, 1); // clamp
+
+        if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+        {
+          data.alpha -= a * currentValue;
+          return;
+        }
+        a *= currentValue;
+
+        if (getSubVal("noglow") < 0.5) // if below 0.5 -> then we apply stealth glow.
+        {
+          var stealthGlow:Float = a * 2; // so it reaches max at 0.5
+          data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+        }
+
+        // extra math so alpha doesn't start fading until 0.5
+        var subtractAlpha:Float = FlxMath.bound((a - 0.5) * 2, 0, 1);
+        data.alpha -= subtractAlpha;
+
+      case "hiddentest":
+        if (isArrowPath) return;
+        // if (curPos2 < 0) return;
+        var offsetValue:Float = getSubVal("offset");
+        var start:Float = getSubVal("start") + offsetValue;
+        var end:Float = getSubVal("end") + offsetValue;
+
+        // if (curPos <= start && curPos >= end)
+
+        var multValue:Float = 0;
+        multValue = curPos - start;
+
+        // multValue // multValue = FlxMath.bound(multValue, 0, 1);
+
+        if (!isHoldNote && data.direction == 0) trace(multValue);
+
+        if (curPos <= start && curPos >= end)
+        {
+          var hmult = -(curPos - offsetValue) / 200;
+          data.alpha -= hmult * currentValue;
+        }
+        else
+        {
+          data.alpha -= currentValue;
+        }
+
+      case "hidden":
+        if (isArrowPath) return;
+
+        // Don't do anything if we're past receptors! Maybe disable this if we want stealth past receptors?
+        // if ((Preferences.downscroll && curPos > 0) || (!Preferences.downscroll && curPos < 0)) return;
+        if (curPos2 < 0) return;
+
+        var a:Float = FlxMath.remapToRange(curPos2, getSubVal("start") + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 0, 1);
+        a = FlxMath.bound(a, 0, 1); // clamp
+
+        if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+        {
+          data.alpha -= a * currentValue;
+          return;
+        }
+        a *= currentValue;
+
+        if (getSubVal("noglow") < 0.5) // if below 0.5 -> then we apply stealth glow.
+        {
+          var stealthGlow:Float = a * 2; // so it reaches max at 0.5
+          data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+        }
+
+        // extra math so alpha doesn't start fading until 0.5
+        var subtractAlpha:Float = FlxMath.bound((a - 0.5) * 2, 0, 1);
+        data.alpha -= subtractAlpha;
+
+      case "sudden":
+        if (isArrowPath) return;
+
+        // Don't do anything if we're past receptors! Maybe disable this if we want stealth past receptors?
+        // if ((Preferences.downscroll && curPos > 0) || (!Preferences.downscroll && curPos < 0)) return;
+        if (curPos2 < 0) return;
+
+        var a:Float = FlxMath.remapToRange(curPos2, getSubVal("start") + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 1, 0);
+
+        // var a = FlxMath.remapToRange(curPos * -1, 500, 300, 0, 1); // scale
+
+        a = FlxMath.bound(a, 0, 1); // clamp
+
+        if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+        {
+          data.alpha -= a * currentValue;
+          return;
+        }
+
+        a *= currentValue;
+
+        if (getSubVal("noglow") < 0.5) // if not set to 0.5, then we apply stealth glow.
+        {
+          var stealthGlow:Float = a * 2; // so it reaches max at 0.5
+          data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+        }
+
+        // extra math so alpha doesn't start fading until 0.5
+        var subtractAlpha:Float = FlxMath.bound((a - 0.5) * 2, 0, 1);
+        data.alpha -= subtractAlpha;
+
+      case "vanish":
+        if (isArrowPath) return;
+
+        var midPoint:Float = getSubVal("start") + getSubVal("end");
+        midPoint /= 2;
+
+        var sizeThingy:Float = getSubVal("size") / 2;
+
+        var a:Float = FlxMath.remapToRange(curPos2, getSubVal("start") + getSubVal("offset"), midPoint + sizeThingy + getSubVal("offset"), 0, 1);
+
+        a = FlxMath.bound(a, 0, 1); // clamp
+
+        var b:Float = FlxMath.remapToRange(curPos2, midPoint - sizeThingy + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 0, 1); // scale
+
+        b = FlxMath.bound(b, 0, 1); // clamp
+        var result:Float = a - b;
+
+        if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+        {
+          data.alpha -= result * currentValue;
+          return;
+        }
+
+        result *= currentValue;
+
+        if (getSubVal("noglow") < 0.5) // if not set to 0.5, then we apply stealth glow.
+        {
+          var stealthGlow:Float = result * 2; // so it reaches max at 0.5
+          data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+        }
+
+        // extra math so alpha doesn't start fading until 0.5
+        var subtractAlpha:Float = FlxMath.bound((result - 0.5) * 2, 0, 1);
+        data.alpha -= subtractAlpha;
+
+      case "drunk":
+        if (currentValue == 0) return; // skip math if mod is 0
+        // data.x -= drunkMath(data.direction, data.whichStrumNote?.noteModData?.curPos ?? 0); // undo the strum  movement.
+        data.x -= drunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement.
+        data.x += drunkMath(data.direction, curPos); // re apply but now with notePos
+
+      case "drunky":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var multVal = ((Preferences.downscroll && flipForDownscroll) ? -1 : 1);
+        data.y -= drunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0) * multVal; // undo the strum  movement.
+        data.y += drunkMath(data.direction, curPos) * multVal; // re apply but now with notePos
+
+      case "drunkscale":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        var rrrr:Float = drunkMath(data.direction, curPos);
+        data.scaleX += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+
+      case "tipsyangle":
+        var rrrr:Float = 0;
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        rrrr = currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (data.direction) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+        data.angleZ += rrrr;
+      case "tipsyscale":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        var rrrr:Float = 0;
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        rrrr = currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (data.direction) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+        data.scaleX += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+
+      case "drunkz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z -= drunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0);
+        data.z += drunkMath(data.direction, curPos);
+
+      case "drunkangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ -= drunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement. (doesn't work properly for holds?)
+        data.angleZ += drunkMath(data.direction, curPos); // re apply but now with notePos
+
+      case "tandrunk" | "tandrunky" | "tandrunkz" | "tandrunkangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var mathResult = tanDrunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0) * -1;
+        mathResult += tanDrunkMath(data.direction, curPos);
+        switch (tag)
+        {
+          case "tandrunk":
+            data.x += mathResult;
+          case "tandrunky":
+            data.y += mathResult;
+          case "tandrunkz":
+            data.z += mathResult;
+          case "tandrunkangle":
+            data.angleZ += mathResult;
+        }
+
+      case "beat":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x -= beatMath(data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement. (doesn't work properly for holds?)
+        data.x += beatMath(curPos); // re apply but now with notePos
+      case "beatangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ -= beatMath(data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement. (doesn't work properly for holds?)
+        data.angleZ += beatMath(curPos); // re apply but now with notePos
+
+      case "beatscale":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        var rrrr:Float = beatMath(curPos);
+        data.scaleX += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+
+      case "beaty":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y -= beatMath(data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement. (doesn't work properly for holds?)
+        data.y += beatMath(curPos); // re apply but now with notePos
+
+      case "beatz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z -= beatMath(data.whichStrumNote?.strumDistance ?? 0);
+        data.z += beatMath(curPos);
+
+      case "dizzy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        // note.angle += curPos / 2.0 * currentValue;
+        data.angleZ += curPos2 / 2.0 * currentValue;
+
+      case "dizzy_scaled":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ += curPos / 2.0 * currentValue;
+
+      case "notesconfusionoffset":
+        data.angleZ += currentValue;
+
+      case "notesconfusionxoffset":
+        data.angleX += currentValue;
+
+      case "notesconfusionyoffset":
+        data.angleY += currentValue;
+
+      // lmao, cuz we don't have perspective shit
+      case "twirl":
+        if (currentValue == 0) return; // skip math if mod is 0
+        // var sixe = note.scale.x * FlxMath.fastCos(curPos * currentValue);
+        // note.scale.x = sixe;
+        data.angleY += curPos2 / 2.0 * currentValue;
+
+      case "roll":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleX += curPos2 / 2.0 * currentValue;
+      // var sixe = note.scale.y * FlxMath.fastCos(curPos * currentValue);
+      // note.scale.y = sixe;
+
+      case "mini": // funny math from MT lol
+        return; // broken, fix this later!
+      // var daswitch = 1;
+      // var curVal:Float = 1 - currentValue;
+      // note.scale.y *= curVal;
+      // note.scale.x *= curVal;
+      // note.x -= ((ModConstants.strumSize / 2) * (note.scale.x - ModConstants.noteScale));
+      // note.y += daswitch * ((ModConstants.strumSize / 2) * (note.scale.y - ModConstants.noteScale));
+
+      case "tornado":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += tornadoMath(data.direction, curPos) * currentValue;
+
+      case "tornadoy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y += tornadoMath(data.direction, curPos) * currentValue;
+
+      case "tornadoscale":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        var rrrr:Float = tornadoMath(data.direction, curPos) * currentValue;
+        data.scaleX += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+
+      case "tornadoangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ += tornadoMath(data.direction, curPos) * currentValue;
+
+      case "tornadoz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += tornadoMath(data.direction, curPos) * currentValue;
+
+      case "tantornadoz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z -= tornadoMath(data.direction, data.whichStrumNote?.strumDistance ?? 0) * currentValue;
+        data.z += tornadoMath(data.direction, curPos) * currentValue;
+
+      case "tantornado":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x -= tantornadoMath(data.direction, data.whichStrumNote?.strumDistance ?? 0) * currentValue; // undo strum movement
+        data.x += tantornadoMath(data.direction, curPos) * currentValue;
+
+      // this is so fucking stupid
+      case "zigzag":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += ziggyMath(curPos) * currentValue;
+
+      case "zigzagy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y += ziggyMath(curPos) * currentValue;
+
+      case "zigzagz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += ziggyMath(curPos) * currentValue;
+
+      case "zigzagangle":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        data.angleZ += ziggyMath(curPos) * currentValue;
+
+      case "zigzagscale":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        var result:Float = ziggyMath(curPos) * currentValue;
+        data.scaleX += (result * 0.01);
+        data.scaleY += (result * 0.01);
+        data.scaleZ += (result * 0.01);
+
+      case "zigzag_hitmans":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += zigZagMath(data.direction, curPos) * currentValue;
+      case "zigzagz_hitmans":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += zigZagMath(data.direction, curPos) * currentValue;
+      case "zigzagy_hitmans":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y += zigZagMath(data.direction, curPos) * currentValue;
+
+      case "saw":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var mult:Float = ModConstants.strumSize * getSubVal("mult");
+        data.x += (curPos % mult) * currentValue;
+      case "sawy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var mult:Float = ModConstants.strumSize * getSubVal("mult");
+        data.y += (curPos % mult) * currentValue;
+      case "sawscale":
+        if (currentValue == 0 || isArrowPath) return; // skip math if mod is 0
+        var mult:Float = ModConstants.strumSize * getSubVal("mult");
+        var result:Float = (curPos % mult) * currentValue * -1;
+        data.scaleX += (result * 0.01);
+        data.scaleY += (result * 0.01);
+        data.scaleZ += (result * 0.01);
+      case "sawangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var mult:Float = ModConstants.strumSize * getSubVal("mult");
+        data.angleZ += (curPos % mult) * currentValue;
+      case "sawz":
+        if (currentValue == 0) return; // skip math if mod is 0
+
+        var mult:Float = ModConstants.strumSize * getSubVal("mult");
+        data.z += (curPos % mult) * currentValue;
+
+      case "digital":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var s:Float = getSubVal("steps") / 2;
+
+        var funny:Float = FlxMath.fastSin(curPos * Math.PI * getSubVal("mult") / 250) * s;
+        // trace("1: " + funny);
+        funny = Math.floor(funny);
+        // funny = Math.round(funny); //Why does this not work? no idea :(
+        // trace("2: " + funny);
+        // funny = funny;
+        funny /= s;
+        // trace("3: " + funny);
+        data.x += funny * currentValue * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "digitaly":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var s:Float = getSubVal("steps") / 2;
+        var funny:Float = FlxMath.fastSin(curPos * Math.PI * getSubVal("mult") / 250) * s;
+        funny = Math.floor(funny) / s;
+        data.y += funny * currentValue * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "digitalangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var s:Float = getSubVal("steps") / 2;
+        var funny:Float = FlxMath.fastSin(curPos * Math.PI * getSubVal("mult") / 250) * s;
+        funny = Math.floor(funny) / s;
+        data.angleZ += funny * currentValue;
+
+      case "digitalscale":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var s:Float = getSubVal("steps") / 2;
+        var funny:Float = FlxMath.fastSin(curPos * Math.PI * getSubVal("mult") / 250) * s;
+        funny = Math.floor(funny) / s;
+
+        data.scaleX += (funny * 0.01 * currentValue);
+        data.scaleY += (funny * 0.01 * currentValue);
+        data.scaleZ += (funny * 0.01 * currentValue);
+
+      case "digitalz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var s:Float = getSubVal("steps") / 2;
+        var funny:Float = FlxMath.fastSin(curPos * Math.PI * getSubVal("mult") / 250) * s / 2;
+        funny = Math.floor(funny) / s;
+        data.z += funny * currentValue;
+
+      case "bumpy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        var modOffset:Float = currentValue * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+        data.z += modOffset;
+
+      case "bumpyx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.x += currentValue * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "bumpyy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.y += currentValue * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "bumpyangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.angleZ += currentValue * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "bumpyscale":
+        if (isArrowPath) return;
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyy_Mult:Float = getSubVal("mult");
+        var scaleAmount:Float = currentValue * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3) / scrollSpeed * bumpyy_Mult) * (Strumline.STRUMLINE_SIZE / 2);
+        data.scaleX += scaleAmount * 0.01;
+        data.scaleY += scaleAmount * 0.01;
+        data.scaleZ += scaleAmount * 0.01;
+
+      case "tanbumpy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.z += currentValue * Math.tan(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "tanbumpyx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.x += currentValue * Math.tan(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "tanbumpyy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.y += currentValue * Math.tan(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "tanbumpyangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyx_Mult:Float = getSubVal("mult");
+        data.angleZ += currentValue * Math.tan(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult) * (Strumline.STRUMLINE_SIZE / 2.0);
+
+      case "tanbumpyscale":
+        if (isArrowPath) return;
+        if (currentValue == 0) return; // skip math if mod is 0
+        var bumpyy_Mult:Float = getSubVal("mult");
+        var scaleAmount:Float = currentValue * Math.tan(curPos / (Strumline.STRUMLINE_SIZE / 3) / scrollSpeed * bumpyy_Mult) * (Strumline.STRUMLINE_SIZE / 2);
+        data.scaleX += scaleAmount * 0.01;
+        data.scaleY += scaleAmount * 0.01;
+        data.scaleZ += scaleAmount * 0.01;
+
+      case "bouncez":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var speed:Float = getSubVal("mult");
+        var lolol:Float = currentValue * ModConstants.strumSize * Math.abs(FlxMath.fastSin(curPos * 0.005 * (speed * 2)));
+        data.z += lolol * -1;
+
+      case "bouncex":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var speed:Float = getSubVal("mult");
+        data.x -= currentValue * ModConstants.strumSize * Math.abs(FlxMath.fastSin(curPos * 0.005 * (speed * 2)));
+
+      case "bouncey":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var speed:Float = getSubVal("mult");
+        var curVal:Float = currentValue;
+        curVal *= (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+        data.y += curVal * ModConstants.strumSize * Math.abs(FlxMath.fastSin(curPos * 0.005 * (speed * 2)));
+
+      case "bouncescale":
+        if (isArrowPath) return;
+        if (currentValue == 0) return; // skip math if mod is 0
+        var speed:Float = getSubVal("mult");
+        var v:Float = currentValue * ModConstants.strumSize * Math.abs(FlxMath.fastSin(curPos * 0.005 * (speed * 2)));
+
+        data.scaleX += (v * 0.01);
+        data.scaleY += (v * 0.01);
+        data.scaleZ += (v * 0.01);
+
+      case "bounceangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var speed:Float = getSubVal("mult");
+        data.angleZ -= currentValue * ModConstants.strumSize * Math.abs(FlxMath.fastSin(curPos * 0.005 * (speed * 2)));
+
+      case "square":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x -= squareMath(data.whichStrumNote?.strumDistance ?? 0) * currentValue;
+        data.x += squareMath(curPos) * currentValue;
+
+      case "squarey":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y -= squareMath(data.whichStrumNote?.strumDistance ?? 0) * currentValue;
+        data.y += squareMath(curPos) * currentValue;
+
+      case "squarez":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += squareMath(data.whichStrumNote?.strumDistance ?? 0) * -1 * currentValue;
+        data.z += squareMath(curPos) * currentValue;
+
+      case "squareangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ -= squareMath(data.whichStrumNote?.strumDistance ?? 0) * currentValue;
+        data.angleZ += squareMath(curPos) * currentValue;
+
+      case "squarescale":
+        if (isArrowPath) return;
+        if (currentValue == 0) return; // skip math if mod is 0
+        var squareResult:Float = squareMath(curPos) * currentValue;
+        data.scaleX += squareResult * 0.01;
+        data.scaleY += squareResult * 0.01;
+        data.scaleZ += squareResult * 0.01;
+
+      case "spiralx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var useCos:Bool = getSubVal("cos") >= 0.5;
+        var curPos_:Float = curPos2 * -0.1;
+        if (useCos)
+        {
+          data.x += (FlxMath.fastCos(curPos_ * Math.PI * getSubVal("mult")) * curPos_ * curPos_) * currentValue;
+        }
+        else
+        {
+          data.x += (FlxMath.fastSin(curPos_ * Math.PI * getSubVal("mult")) * curPos_ * curPos_) * currentValue;
+        }
+      case "spiralz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var useCos:Bool = getSubVal("cos") >= 0.5;
+        var curPos_:Float = curPos2 * -0.1;
+        if (useCos)
+        {
+          data.z += (FlxMath.fastCos(curPos_ * Math.PI * getSubVal("mult")) * curPos_ * curPos_) * currentValue;
+        }
+        else
+        {
+          data.z += (FlxMath.fastSin(curPos_ * Math.PI * getSubVal("mult")) * curPos_ * curPos_) * currentValue;
+        }
+
+      case "spiraly":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var curPos_:Float = curPos2 * -0.1;
+        var curVal:Float = currentValue * (Preferences.downscroll ? 1 : -1);
+
+        var useCos:Bool = getSubVal("cos") >= 0.5;
+        var curPos_:Float = curPos2 * -0.1;
+        if (useCos)
+        {
+          data.y += (FlxMath.fastCos(curPos_ * Math.PI * getSubVal("mult")) * curPos_ * curPos_) * curVal;
+        }
+        else
+        {
+          data.y += (FlxMath.fastSin(curPos_ * Math.PI * getSubVal("mult")) * curPos_ * curPos_) * curVal;
+        }
+
+      case "noteoffsetx":
+        data.x += currentValue;
+      case "noteoffsety":
+        data.y += currentValue;
+      case "noteoffsetz":
+        data.z += currentValue;
+      case "holdoffsetx":
+        if (isHoldNote) data.x += currentValue;
+      case "holdoffsety":
+        if (isHoldNote) data.y += currentValue;
+      case "holdoffsetz":
+        if (isHoldNote) data.z += currentValue;
+
+      case "linearx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += curPos * currentValue;
+
+      case "lineary":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var curVal:Float = currentValue;
+        curVal *= (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+        data.y += curPos2 * curVal;
+
+      case "linearz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var curVal:Float = currentValue;
+        // add_z(note, curPos * curVal);
+        data.z += curPos * curVal;
+
+      case "circz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += curPos2 * curPos2 * currentValue * -0.001;
+      // add_z(note, curPos2 * curPos2 * currentValue * -0.001);
+
+      case "circx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += curPos2 * curPos2 * currentValue * -0.001;
+
+      case "circy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var curVal:Float = currentValue;
+        curVal *= (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+        data.y += curPos2 * curPos2 * curVal * -0.001;
+
+      case "tinyx":
+        if (isArrowPath || currentValue == 0) return;
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+
+      case "tinyy":
+        if (isArrowPath || currentValue == 0) return;
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+
+      case "tinyz":
+        if (isArrowPath || currentValue == 0) return;
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+
+      case "tinyhold":
+        if (isArrowPath || currentValue == 0) return;
+        if (isHoldNote)
+        {
+          data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+          data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+          data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+        }
+
+      case "tinynote":
+        if (isArrowPath || currentValue == 0 || isHoldNote) return;
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+
+      case "tinynotex":
+        if (isArrowPath || currentValue == 0 || isHoldNote) return;
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+
+      case "tinynotey":
+        if (isArrowPath || currentValue == 0 || isHoldNote) return;
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+
+      case "tinynotez":
+        if (isArrowPath || currentValue == 0 || isHoldNote) return;
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+
+      case "tiny":
+        if (isArrowPath || currentValue == 0) return;
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+
+      case "scalelinear":
+        if (isArrowPath || currentValue == 0) return;
+        var p:Float = curPos2 * -1;
+        data.scaleX = FlxMath.lerp(data.scaleX, currentValue, p / 1000 * 2);
+        data.scaleY = FlxMath.lerp(data.scaleY, currentValue, p / 1000 * 2);
+        data.scaleZ = FlxMath.lerp(data.scaleZ, currentValue, p / 1000 * 2);
+
+      case "waveyangle": // some old math from Inhuman
+        return; // we copy angle from strum
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+        data.angleZ += currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (data.direction * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+
+      case "waveyscale": // some old math from Inhuman
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+
+        var fuck:Float = currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (data.direction * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+        data.scaleX += fuck * 0.01;
+        data.scaleY += fuck * 0.01;
+        data.scaleZ += fuck * 0.01;
+
+      case "rotatey":
+        currentValue = currentValue % 360;
+        if (currentValue == 0) return; // skip math if mod is 0
+        // this is dumb lmfao
+        var xrot:Float = (FlxMath.fastSin(currentValue * Math.PI / 180.0));
+        var yrot:Float = (FlxMath.fastCos(currentValue * Math.PI / 180.0));
+
+        // grab the current x
+        var beforeShit_x:Float = data.x;
+        var beforeShit_z:Float = data.z;
+
+        // grab strum x
+
+        var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
+        var strumX:Float = whichStrumNote.x;
+        var strumZ:Float = get_z(whichStrumNote);
+        if (data.noteType == "receptor")
+        {
+          strumX = data.strumPosWasHere.x;
+          strumZ = data.strumPosWasHere.z;
+        }
+        else
+        {
+          strumX += isHoldNote ? strumLine.mods.getHoldOffsetX(isArrowPath) : strumLine.getNoteXOffset();
+        }
+
+        // figure out difference
+        var lolx:Float = beforeShit_x - strumX;
+        var lolz:Float = beforeShit_z - strumZ;
+
+        var lolx_2:Float = lolz;
+        var lolz_2:Float = lolx;
+
+        lolx_2 *= xrot;
+        lolz_2 *= xrot;
+
+        lolx *= yrot;
+        lolz *= yrot;
+
+        data.x = strumX + lolx - lolx_2;
+        data.z = strumZ + lolz + lolz_2;
+
+      case "rotatex":
+        if (currentValue == 0) return; // skip math if mod is 0
+        // this is dumb lmfao
+        var xrot:Float = (FlxMath.fastSin(currentValue * Math.PI / 180));
+        var yrot:Float = (FlxMath.fastCos(currentValue * Math.PI / 180));
+
+        // grab the current x
+        var beforeShit_y:Float = data.y;
+        var beforeShit_z:Float = data.z;
+
+        // grab strum x
+        var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
+        var yyyy:Float = whichStrumNote.y;
+        var strumZ:Float = get_z(whichStrumNote);
+
+        if (data.noteType != "receptor")
+        {
+          if (isHoldNote)
+          {
+            if (Preferences.downscroll)
+            {
+              yyyy += (Strumline.STRUMLINE_SIZE / 2);
+            }
+            else
+            {
+              yyyy += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
+            }
+          }
+          else
+          {
+            yyyy += strumLine.getNoteYOffset();
+          }
+        }
+        else
+        {
+          yyyy = data.strumPosWasHere.y;
+          strumZ = data.strumPosWasHere.z;
+        }
+
+        // figure out difference
+        var lolx:Float = beforeShit_y - yyyy;
+        var lolz:Float = beforeShit_z - strumZ;
+
+        var lolx_2:Float = lolz;
+        var lolz_2:Float = lolx;
+
+        lolx_2 *= xrot;
+        lolz_2 *= xrot;
+
+        lolx *= yrot;
+        lolz *= yrot;
+
+        data.y = yyyy + lolx - lolx_2;
+        data.z = strumZ + lolz - lolz_2;
+
+      case "rotatez":
+        currentValue = currentValue % 360;
+        if (currentValue == 0) return; // skip math if mod is 0
+        // this is dumb lmfao
+        // var xrot = currentValue ;// *(Math.PI / 180);
+        var xrot:Float = (FlxMath.fastSin(currentValue * Math.PI / 180.0));
+        var yrot:Float = (FlxMath.fastCos(currentValue * Math.PI / 180.0));
+
+        // grab the current x
+        var beforeShit_x:Float = data.x;
+        var beforeShit_y:Float = data.y;
+
+        // grab strum x
+        var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
+        var strumX:Float = whichStrumNote.x;
+        var strumY:Float = whichStrumNote.y;
+
+        if (data.noteType != "receptor")
+        {
+          if (isHoldNote)
+          {
+            strumX += strumLine.mods.getHoldOffsetX(isArrowPath);
+
+            if (Preferences.downscroll)
+            {
+              strumY += (Strumline.STRUMLINE_SIZE / 2);
+            }
+            else
+            {
+              strumY += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
+            }
+          }
+          else
+          {
+            strumX += strumLine.getNoteXOffset();
+            strumY += strumLine.getNoteYOffset();
+          }
+        }
+        else
+        {
+          strumX = data.strumPosWasHere.x;
+          strumY = data.strumPosWasHere.y;
+        }
+
+        // figure out difference
+        var lolx:Float = beforeShit_x - strumX;
+        var loly:Float = beforeShit_y - strumY;
+
+        // if (lane == 0) trace("xdif " + lolx);
+
+        var lolx_2:Float = loly;
+        var loly_2:Float = lolx;
+
+        lolx_2 *= xrot;
+        loly_2 *= xrot;
+
+        lolx *= yrot;
+        loly *= yrot;
+
+        data.x = strumX + lolx - lolx_2;
+        data.y = strumY + loly + loly_2;
+
+      case "rotatez_old": // OLD, REDO THIS!
+        if (currentValue % 360 == 0) return; // skip math if mod is 0
+        var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
+        // this is dumb lmfao
+        var xrot:Float = currentValue; // *(Math.PI / 180);
+        var yrot:Float = (FlxMath.fastCos(currentValue * Math.PI / 180));
+
+        if (isHoldNote)
+        {
+          data.x -= (curPos * (FlxMath.fastSin(currentValue * Math.PI / 180))); // X
+          data.y = (FlxMath.lerp(whichStrumNote.y - Strumline.INITIAL_OFFSET, data.y, yrot));
+        }
+        else
+        {
+          data.x -= (curPos * (FlxMath.fastSin(currentValue * Math.PI / 180))); // X
+          data.y = (FlxMath.lerp(whichStrumNote.y - Strumline.INITIAL_OFFSET, data.y, yrot));
+        }
+
+      case "centernotes": // same as reverse but, half and doesn't affect scroll speed at all
+        if (currentValue == 0) return; // skip math if mod is 0
+        var screenCenter:Float = (FlxG.height / 2) - (ModConstants.strumSize / 2) + strumLine.getNoteYOffset();
+        var differenceBetween:Float = data.y - screenCenter;
+        data.y -= currentValue * differenceBetween;
+    }
+  }
+
+  public function specialMath(lane:Int, strumLine:Strumline):Void
+  {
+    if (targetLane != -1 && lane != targetLane) return;
+    var tag_:String = tag.toLowerCase();
+    var subModArr = null;
+    if (StringTools.contains(tag_, "--"))
+    {
+      subModArr = tag.split('--');
+      tag_ = subModArr[0];
+    }
+    switch (tag_)
+    {
+      case "drive2": // useful for driven drop stuff
+        // if (currentValue == 0 || data.whichStrumNote == null) return; // skip math if mod is 0
+        if (currentValue == 0) return; // skip math if mod is 0
+        var scrollSpeed:Float = PlayState.instance.currentChart.scrollSpeed;
+        var funny:Float = Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * currentValue;
+        strumLine.mods.strumPos[lane] = funny;
+      // data.y += Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * currentValue;
+      // data.whichStrumNote.strumDistance = Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * currentValue;
+      case "zsort":
+        if (currentValue > 0.5)
+        {
+          PlayState.instance.noteRenderMode = true;
+          strumLine.zSortMode = true; // Doesn't really matter what it's set too here, right?
+        }
+        else if (currentValue < 0.0)
+        {
+          PlayState.instance.noteRenderMode = false;
+          strumLine.zSortMode = true;
+        }
+        else
+        {
+          PlayState.instance.noteRenderMode = false;
+          strumLine.zSortMode = false;
+        }
+      case "debugx":
+        strumLine.mods.debugTxtOffsetX = currentValue;
+      case "debugy":
+        strumLine.mods.debugTxtOffsetY = currentValue;
+      case "strumx":
+        return; // temp
+      case "strumy":
+        return; // temp
+      case "strumz":
+        return; // temp
+      case "mathcutoff":
+        strumLine.mods.mathCutOff[lane] = currentValue;
+      case "noholdmathshortcut":
+        strumLine.mods.noHoldMathShortcut[lane] = currentValue;
+      case "invertmodvalues":
+        strumLine.mods.invertValues = currentValue < 0.5 ? false : true;
+      case "showzerovalue":
+        strumLine.hideZeroValueMods = currentValue > 0.5 ? false : true;
+      case "showsubmods":
+        strumLine.hideSubMods = currentValue > 0.5 ? false : true;
+      case "showlanemods":
+        strumLine.debugHideLane = currentValue > 0.5 ? false : true;
+      case "showextra":
+        strumLine.debugHideUtil = currentValue > 0.5 ? false : true;
+      case "showallmods":
+        strumLine.debugShowALL = currentValue > 0.5 ? true : false;
+    }
+  }
+
+  // MATH FOR STRUMS
+  public function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (targetLane != -1 && data.direction != targetLane) return;
+
+    var lane = data.direction;
+    var curPos = data.curPos;
+    // var curPos = data.strumPosition;
+
+    var tag_:String = tag.toLowerCase();
+    var subModArr = null;
+    if (StringTools.contains(tag_, "--"))
+    {
+      subModArr = tag.split('--');
+      tag_ = subModArr[0];
+    }
+
+    switch (tag_)
+    {
+      // SPECIAL MODS
+
+      case "custompath":
+        var path = PlayState.instance.customArrowPathModTest;
+        if (path == null || currentValue == 0) return;
+
+        var newPosition = PlayState.instance.executePath(beatTime, 0.0, data.direction, currentValue, new Vector4(data.x, data.y, data.z, 0));
+        data.x = newPosition.x;
+        data.y = newPosition.y;
+        data.z = newPosition.z;
+
+      case "straightholds":
+        strumLine.mods.straightHolds[lane] = currentValue;
+      case "longholds":
+        strumLine.mods.longHolds[lane] = currentValue;
+      case "spiralholds":
+        strumLine.mods.spiralHolds[lane] = (currentValue > 0.5 ? true : false);
+      case "grain":
+        strumLine.mods.holdGrain_Lane[lane] = currentValue;
+
+      case "drawdistanceback":
+        strumLine.mods.drawdistanceBack_Lane[lane] = currentValue;
+      case "drawdistance":
+        strumLine.mods.drawdistanceForward_Lane[lane] = currentValue;
+
+      case "arrowpath_notitg": // not lane supported... for now
+        strumLine.notitgStyledPath = currentValue > 0.5 ? true : false;
+      case "arrowpath":
+        strumLine.arrowPathAlpha[lane] = currentValue;
+      case "arrowpathstraighthold":
+        strumLine.mods.arrowpathStraightHold[lane] = currentValue;
+      case "arrowpathgrain":
+        strumLine.mods.pathGrain_Lane[lane] = currentValue;
+      case "arrowpathbacklength":
+        strumLine.arrowpathBackwardsLength[lane] = currentValue;
+      case "arrowpathlength":
+        strumLine.arrowpathLength[lane] = currentValue;
+      /*
+        case "arrowpathwidth":
+          strumLine.mods.pathGrain_Lane[lane] = currentValue;
+        case "arrowpath":
+          strumLine.arrowPaths.members[lane].alpha = 1 - currentValue;
+       */
+
+      case "noteskewx" | "strumskewx":
+        data.skewX = currentValue;
+      case "noteskewy" | "strumskewy":
+        data.skewY = currentValue;
+
+      case "orient":
+        if (currentValue == 0)
+        {
+          strumLine.orientExtraMath[lane] = false;
+          return;
+        }
+
+        strumLine.orientExtraMath[lane] = true;
+        var a:Float = (data.y - data.lastKnownPosition.y) * -1; // height
+        var b:Float = (data.x - data.lastKnownPosition.x); // length
+        var calculateAngleDif:Float = Math.atan(b / a);
+        if (Math.isNaN(calculateAngleDif))
+        {
+          calculateAngleDif = data.lastKnownOrientAngle; // TODO -> Make this less likely to be a NaN in the first place lol
+        }
+        else
+        {
+          calculateAngleDif *= (180 / Math.PI);
+          data.lastKnownOrientAngle = calculateAngleDif;
+        }
+        var orientAngleAmount:Float = (calculateAngleDif * currentValue);
+        data.angleZ += orientAngleAmount;
+        strumLine.orientStrumAngle[lane] = orientAngleAmount;
+
+      case "mini": // funny math from MT lol
+        return; // broken, fix this later!
+      // var daswitch = 1;
+      // var curVal:Float = 1 - currentValue;
+      // note.scale.y *= curVal;
+      // note.scale.x *= curVal;
+      // note.x -= ((ModConstants.strumSize / 2) * (note.scale.x - ModConstants.noteScale));
+      // note.y += daswitch * ((ModConstants.strumSize / 2) * (note.scale.y - ModConstants.noteScale));
+
+      case "strumstealth": // lmao, why not?
+        var stealthGlow:Float = currentValue * 2; // so it reaches max at 0.5
+        data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+
+        // extra math so alpha doesn't start fading until 0.5
+        var subtractAlpha:Float = (currentValue - 0.5) * 2;
+        subtractAlpha = FlxMath.bound(subtractAlpha, 0, 1); // clamp
+        data.alpha -= subtractAlpha;
+
+      case "stealthglowred":
+        data.stealthGlowRed = currentValue;
+
+      case "stealthglowgreen":
+        data.stealthGlowGreen = currentValue;
+
+      case "stealthglowblue":
+        data.stealthGlowBlue = currentValue;
+
+      case "dark":
+        // will only start fading the arrow at 50%
+        if (currentValue < 0.5) return;
+        data.alpha -= (currentValue - 0.5) * 2;
+      case "alphastrum":
+        data.alpha -= currentValue;
+      case "alpha":
+        data.alpha -= currentValue;
+      case "reverse":
+        if (currentValue == 0) return; // skip math if mod is 0
+        // close enough XD
+        var height:Float = 112.0;
+        height -= 2.4; // magic number ~
+        if (Preferences.downscroll)
+        {
+          data.y -= currentValue * ((FlxG.height - height) - (Constants.STRUMLINE_Y_OFFSET * 4));
+        }
+        else
+        {
+          data.y += currentValue * ((FlxG.height - height) - (Constants.STRUMLINE_Y_OFFSET * 4));
+        }
+
+      case "drive": // useful for driven drop stuff
+        if (currentValue == 0) return; // skip math if mod is 0
+        var scrollSpeed = PlayState.instance.currentChart.scrollSpeed;
+        data.y += Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * currentValue;
+
+      /*
+        case "drive2": // useful for driven drop stuff
+          if (currentValue == 0 || data.whichStrumNote == null) return; // skip math if mod is 0
+          var scrollSpeed = PlayState.instance.currentChart.scrollSpeed;
+          // data.y += Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * currentValue;
+          data.whichStrumNote.strumDistance = Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * currentValue;
+       */
+
+      case "center": // same as reverse but, half and doesn't affect scroll speed at all
+        if (currentValue == 0) return; // skip math if mod is 0
+
+        if (getSubVal("oldmath") > 0.5)
+        {
+          var valchange = currentValue * 0.5;
+          var height:Float = 112.0;
+          height -= 2.4; // magic number ~
+          if (Preferences.downscroll)
+          {
+            data.y -= valchange * ((FlxG.height - height) - (Constants.STRUMLINE_Y_OFFSET * 4));
+          }
+          else
+          {
+            data.y += valchange * ((FlxG.height - height) - (Constants.STRUMLINE_Y_OFFSET * 4));
+          }
+        }
+        else
+        {
+          var screenCenter:Float = (FlxG.height / 2) - (ModConstants.strumSize / 2);
+          var differenceBetween:Float = data.y - screenCenter;
+          data.y -= currentValue * differenceBetween;
+        }
+
+      case "tantornadoz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += tantornadoMath(lane, curPos) * currentValue;
+      case "tantornado":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += tantornadoMath(lane, curPos) * currentValue;
+
+      case "tandrunk" | "tandrunky" | "tandrunkz" | "tandrunkangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var mathResult = tanDrunkMath(lane, curPos);
+        switch (tag)
+        {
+          case "tandrunk":
+            data.x += mathResult;
+          case "tandrunky":
+            data.y += mathResult;
+          case "tandrunkz":
+            data.z += mathResult;
+          case "tandrunkangle":
+            data.angleZ += mathResult;
+        }
+
+      case "drunk":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += drunkMath(lane, curPos);
+
+      case "drunkscale":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var rrrr:Float = drunkMath(lane, curPos);
+        data.scaleX += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+
+      case "drunky":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var multVal = ((Preferences.downscroll && flipForDownscroll) ? -1 : 1);
+        data.y += drunkMath(lane, curPos) * multVal;
+
+      case "drunkz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += drunkMath(lane, curPos);
+
+      case "drunkangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ += drunkMath(lane, curPos);
+
+      case "square":
+        if (currentValue == curPos) return; // skip math if mod is 0
+        data.x += squareMath(curPos) * currentValue;
+
+      case "squarey":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y += squareMath(curPos) * currentValue;
+
+      case "squarez":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += squareMath(curPos) * currentValue;
+
+      case "squareangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ += squareMath(curPos) * currentValue;
+
+      case "squarescale":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var squareResult:Float = squareMath(curPos) * currentValue;
+        data.scaleX += squareResult * 0.01;
+        data.scaleY += squareResult * 0.01;
+        data.scaleZ += squareResult * 0.01;
+
+      case "beat":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += beatMath(curPos);
+
+      case "beaty":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.y -= beatMath(curPos); // undo the strum  movement. (doesn't work properly for holds?)
+
+      case "beatz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.z += beatMath(curPos);
+
+      case "beatangle":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.angleZ += beatMath(curPos);
+
+      case "beatscale":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var rrrr:Float = beatMath(curPos);
+        data.scaleX += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+
+      case "tantipsy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        data.y += currentValue * (Math.tan(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) + tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+
+      case "tantipsyz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        var tipsyval:Float = currentValue * (Math.tan(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+        data.z += tipsyval;
+
+      case "tantipsyx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        data.x += currentValue * (Math.tan(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) + tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+
+      case "tipsyx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        data.x += currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+
+      case "tipsy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        data.y += currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+
+      case "tipsyangle":
+        var rrrr:Float = 0;
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        rrrr = currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+        data.angleZ += rrrr;
+
+      case "tipsyscale":
+        if (currentValue == 0) return; // skip math if mod is 0
+
+        var rrrr:Float = 0;
+
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        rrrr = currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+
+        data.scaleX += rrrr * 0.01;
+        data.scaleZ += rrrr * 0.01;
+        data.scaleY += rrrr * 0.01;
+
+      case "tipsyz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var tipsyTimeMult = getSubVal("speed");
+        var tipsyTimeAdd = getSubVal("time_add");
+        var tipsyval = currentValue * (FlxMath.fastCos(songTime * tipsyTimeMult * 0.001 * (1.2) + (lane) * (2.0) +
+          tipsyTimeAdd * (0.2)) * (ModConstants.strumSize / 2));
+        data.z += tipsyval;
+
+      case "confusionoffset":
+        data.angleZ += currentValue;
+
+      case "confusionxoffset":
+        data.angleX += currentValue;
+
+      case "confusionyoffset":
+        data.angleY += currentValue;
+
+      case "confusion":
+        data.angleZ += beatTime * currentValue; // lol
+
+      case "flip":
+        if (currentValue == 0) return; // skip math if mod is 0
+        var nd = lane % Strumline.KEY_COUNT;
+        var newPos = FlxMath.remapToRange(nd, 0, Strumline.KEY_COUNT, Strumline.KEY_COUNT, -Strumline.KEY_COUNT);
+        data.x += ModConstants.strumSize * newPos * currentValue;
+        data.x -= ModConstants.strumSize * currentValue;
+
+      case "invert":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.x += ModConstants.strumSize * (lane % 2 == 0 ? 1 : -1) * currentValue;
+
+      // LMFAO
+      case "blacksphereflip":
+        currentValue = currentValue % 360;
+        if (currentValue == 0) return; // skip math if mod is 0
+        // current value is in degrees!
+
+        var invertValue:Float = 0;
+        var yValue:Float = 0;
+
+        invertValue = 50 - 50 * FlxMath.fastCos(currentValue * Math.PI / 180);
+        invertValue /= 100;
+
+        yValue = 0.5 * FlxMath.fastSin(currentValue * Math.PI / 180);
+
+        var variant:Float = getSubVal("variant");
+        if (variant >= 100)
+        {
+          if (lane % 4 == 1 || lane % 4 == 2) yValue *= -1;
+        }
+        else
+        {
+          if (lane % 2 == 1) yValue *= -1;
+        }
+
+        var nd = lane % 4;
+        var newPos = FlxMath.remapToRange(nd, 0, 4, 4, -4);
+        data.x += ModConstants.strumSize * newPos * invertValue;
+        data.x -= ModConstants.strumSize * invertValue;
+
+        // y movement, doesn't use reverse for now! -UPDATE, NOW CHANGES SPEED AS WELL
+        data.y += ModConstants.strumSize * yValue;
+
+      case "blacksphere":
+        currentValue = currentValue % 360;
+        if (currentValue == 0) return; // skip math if mod is 0
+        // current value is in degrees!
+
+        var invertValue:Float = 0;
+        var yValue:Float = 0;
+
+        invertValue = 50 - 50 * FlxMath.fastCos(currentValue * Math.PI / 180);
+        invertValue /= 100;
+
+        yValue = 0.5 * FlxMath.fastSin(currentValue * Math.PI / 180);
+
+        var variant:Float = getSubVal("variant");
+        if (variant >= 100)
+        {
+          if (lane % 4 == 1 || lane % 4 == 2) yValue *= -1;
+        }
+        else
+        {
+          if (lane % 2 == 1) yValue *= -1;
+        }
+
+        data.x += ModConstants.strumSize * (lane % 2 == 0 ? 1 : -1) * invertValue;
+        // y movement, doesn't use reverse for now! -UPDATE, NOW CHANGES SPEED AS WELL
+        data.y += ModConstants.strumSize * yValue;
+
+      // move based on arrowsize like NotITG (so 1.0 movex means move right by 1 arrowsize)
+      case "movex":
+        data.x += ModConstants.strumSize * currentValue;
+      case "movey":
+        data.y += ModConstants.strumSize * currentValue;
+      case "movez":
+        data.z += ModConstants.strumSize * currentValue;
+
+      // move by pixels
+      case "x":
+        data.x += currentValue;
+      case "y":
+        data.y += currentValue;
+      case "z":
+        data.z += currentValue;
+
+      case "tinyx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+
+      case "tinyy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+
+      case "tinyz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+      case "tinystrum":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+      case "tinystrumx":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+      case "tinystrumz":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+      case "tinystrumy":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+
+      case "tiny":
+        if (currentValue == 0) return; // skip math if mod is 0
+        data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
+        data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
+        data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
+
+      case "waveyx": // some old math from Inhuman
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+        data.x += currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (lane * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+
+      case "waveyangle": // some old math from Inhuman
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+        data.angleZ += currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (lane * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+
+      case "waveyscale": // some old math from Inhuman
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+        var fuck:Float = currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (lane * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+        data.scaleX += fuck * 0.01;
+        data.scaleY += fuck * 0.01;
+        data.scaleZ += fuck * 0.01;
+
+      case "waveyy": // some old math from Inhuman
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+        data.y += currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (lane * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+
+      case "waveyz": // some old math from Inhuman
+        var waveyX_timeMult:Float = getSubVal("speed");
+        var waveyX_timeAdd:Float = getSubVal("time_add");
+        var waveyX_desync:Float = getSubVal("desync");
+        var fuck:Float = currentValue * (FlxMath.fastSin((((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult)
+          + (lane * waveyX_desync)) * Math.PI) * ModConstants.strumSize / 2);
+        data.z += fuck;
+
+      // hmmm yes, this is totally how you rotate math.
+      case "rotatex" | "strumrotatex":
+        if (currentValue % 360 == 0) return; // skip math if mod is 0
+        var rotateModPivotPoint:Vector2 = new Vector2(0, 0);
+        rotateModPivotPoint.x = 0;
+        // rotateModPivotPoint.x = get_z(note);
+        rotateModPivotPoint.x += getSubVal("offset_x");
+        // rotateModPivotPoint.y = strumLine.y;
+        rotateModPivotPoint.y = (FlxG.height / 2) - (ModConstants.strumSize / 2);
+        rotateModPivotPoint.y += getSubVal("offset_y");
+        if (!Preferences.downscroll) // make it more like downscroll if upscroll (so 180 rotatex is like reverse 100%)
+        {
+          rotateModPivotPoint.y += -23;
+        }
+
+        var thing:Vector2 = rotateAround(rotateModPivotPoint, new Vector2(data.z, data.y), currentValue);
+        data.y = thing.y;
+        data.z = thing.x;
+
+      case "rotatey" | "strumrotatey":
+        if (currentValue % 360 == 0) return; // skip math if mod is 0
+
+        var rotateModPivotPoint:Vector2 = new Vector2(0, 0);
+        rotateModPivotPoint.x = strumLine.x + Strumline.INITIAL_OFFSET + (Strumline.NOTE_SPACING * 1.5);
+        rotateModPivotPoint.x += getSubVal("offset_x");
+        rotateModPivotPoint.y = data.z;
+        rotateModPivotPoint.y += getSubVal("offset_y");
+
+        var thing:Vector2 = rotateAround(rotateModPivotPoint, new Vector2(data.x, data.z), currentValue);
+        data.x = thing.x;
+        data.z = thing.y;
+
+      case "rotatez" | "strumrotatez" | "strumrotatez_old":
+        if (currentValue % 360 == 0) return; // skip math if mod is 0
+        var rotateModPivotPoint:Vector2 = new Vector2(0, 0);
+        rotateModPivotPoint.x = strumLine.x + Strumline.INITIAL_OFFSET + (Strumline.NOTE_SPACING * 1.5);
+        rotateModPivotPoint.x += getSubVal("offset_x");
+        rotateModPivotPoint.y = strumLine.y;
+        rotateModPivotPoint.y = (FlxG.height / 2) - (ModConstants.strumSize / 2);
+        rotateModPivotPoint.y += getSubVal("offset_y");
+        var thing:Vector2 = rotateAround(rotateModPivotPoint, new Vector2(data.x, data.y), currentValue);
+        data.x = thing.x;
+        data.y = thing.y;
+    }
+  }
+
+  // used functions because previously used _cosAngle. Here in case z functionality gets changed
+  function set_z(thing:ZSprite, value:Float)
+  {
+    thing.z = value;
+    // @:privateAccess thing._cosAngle = value;
+  }
+
+  function add_z(thing:ZSprite, value:Float)
+  {
+    thing.z += value;
+    // @:privateAccess thing._cosAngle += value;
+  }
+
+  function get_z(thing:ZSprite):Float
+  {
+    return thing.z;
+    // return (@:privateAccess thing._cosAngle);
+  }
+
+  public static function rotateAround(origin:Vector2, point:Vector2, degrees:Float):Vector2
+  {
+    // public function rotateAround(origin, point, degrees):FlxBasePoint{
+    // public function rotateAround(origin, point, degrees){
+    var angle:Float = degrees * (Math.PI / 180);
+    var ox = origin.x;
+    var oy = origin.y;
+    var px = point.x;
+    var py = point.y;
+
+    var qx = ox + FlxMath.fastCos(angle) * (px - ox) - FlxMath.fastSin(angle) * (py - oy);
+    var qy = oy + FlxMath.fastSin(angle) * (px - ox) + FlxMath.fastCos(angle) * (py - oy);
+
+    // point.x = qx;
+    // point.y = qy;
+
+    return (new Vector2(qx, qy));
+    // return FlxBasePoint.weak(qx, qy);
+    // return qx, qy;
+  }
+
+  function beatMath(curPos:Float):Float
+  {
+    var fAccelTime = 0.2;
+    var fTotalTime = 0.5;
+
+    var timmy:Float = (beatTime + getSubVal("offset")) * getSubVal("speed");
+
+    var posMult:Float = getSubVal("mult") * 2; // Multiplied by 2 to make the effect more pronounced instead of being like drunk-lite lmao
+
+    var fBeat = timmy + fAccelTime;
+    var bEvenBeat = (Math.floor(fBeat) % 2) != 0;
+
+    if (fBeat < 0) return 0;
+
+    fBeat -= Math.floor(fBeat);
+    fBeat += 1;
+    fBeat -= Math.floor(fBeat);
+
+    if (fBeat >= fTotalTime) return 0;
+
+    var fAmount:Float;
+
+    if (fBeat < fAccelTime)
+    {
+      fAmount = FlxMath.remapToRange(fBeat, 0.0, fAccelTime, 0.0, 1.0);
+      fAmount *= fAmount;
+    }
+    else
+      /* fBeat < fTotalTime */ {
+      fAmount = FlxMath.remapToRange(fBeat, fAccelTime, fTotalTime, 1.0, 0.0);
+      fAmount = 1 - (1 - fAmount) * (1 - fAmount);
+    }
+
+    if (bEvenBeat) fAmount *= -1;
+
+    var fShift = 20.0 * fAmount * FlxMath.fastSin((curPos * 0.01 * posMult) + (Math.PI / 2.0));
+    return fShift * currentValue;
+  }
+
+  function ziggyMath(curPos:Float):Float
+  {
+    var mult:Float = ModConstants.strumSize * getSubVal("mult");
+    var mm:Float = mult * 2;
+    var ppp:Float = Math.abs(curPos) + (mult / 2);
+    var funny:Float = (ppp + mult) % mm;
+    var result:Float = funny - mult;
+    if (ppp % mm * 2 >= mm)
+    {
+      result *= -1;
+    }
+    result -= mult / 2;
+    return result;
+  }
+
+  function squareMath(curPos:Float):Float
+  {
+    var mult:Float = getSubVal("mult") / (ModConstants.strumSize * 2);
+    var timeOffset:Float = getSubVal("yoffset");
+    var xOffset:Float = getSubVal("xoffset");
+    var xVal:Float = FlxMath.fastSin((curPos + timeOffset) * Math.PI * mult);
+    xVal = Math.floor(xVal) + 0.5 + xOffset;
+    return xVal * ModConstants.strumSize;
+  }
+
+  function tanDrunkMath(noteDir:Int, curPos:Float):Float
+  {
+    var time:Float = songTime;
+    var screenHeight:Float = FlxG.height;
+
+    var drunk_desync:Float = getSubVal("desync");
+
+    var returnValue:Float = 0.0;
+    time *= 0.001 * getSubVal("speed");
+    var mult:Float = getSubVal("mult");
+    returnValue = currentValue * (Math.tan((time) + (((noteDir) % Strumline.KEY_COUNT) * drunk_desync) +
+      (curPos * 0.45) * (10.0 / screenHeight) * mult) /* * (subValues.get('speed').value*0.2) */) * (ModConstants.strumSize * 0.5);
+
+    return returnValue;
+  }
+
+  function drunkMath(noteDir:Int, curPos:Float, useSin:Bool = false):Float
+  {
+    var time:Float = songTime + getSubVal("time_add");
+    time *= 0.001 * getSubVal("speed");
+    var screenHeight:Float = FlxG.height;
+    var drunk_desync:Float = getSubVal("desync");
+    var returnValue:Float = 0.0;
+    var mult:Float = getSubVal("mult");
+
+    if (useSin) returnValue = currentValue * (FlxMath.fastSin((time) + (((noteDir) % Strumline.KEY_COUNT) * drunk_desync)
+      + (curPos * 0.45) * (10.0 / screenHeight) * mult) /* * (subValues.get('speed').value*0.2) */) * (ModConstants.strumSize * 0.5);
+    else
+      returnValue = currentValue * (FlxMath.fastCos((time) + (((noteDir) % Strumline.KEY_COUNT) * drunk_desync)
+        + (curPos * 0.45) * (10.0 / screenHeight) * mult) /* * (subValues.get('speed').value*0.2) */) * (ModConstants.strumSize * 0.5);
+
+    return returnValue;
+  }
+
+  function mod(a:Float, b:Float):Float
+  {
+    return (a / b);
+  }
+
+  // math from hitmans?
+  // I think the math is wrong lol, gonna redo later. I rarely use zigzag anyway.
+  function zigZagMath(lane:Int, curPos:Float):Float
+  {
+    var d = getSubVal("amplitude");
+    var c = getSubVal("longitude");
+
+    var a = c * (-1 + 2 * mod(Math.floor((d * curPos)), 2));
+    var b = -c * mod(Math.floor((d * curPos)), 2);
+    var x = ((d * curPos) - Math.floor((d * curPos))) * a + b + (c / 2);
+
+    return x;
+  }
+
+  function tornadoMath(lane:Int, curPos:Float):Float
+  {
+    var swagWidth:Float = ModConstants.strumSize;
+
+    var playerColumn:Float = lane % Strumline.KEY_COUNT;
+    var columnPhaseShift = playerColumn * Math.PI / 3;
+    var phaseShift = (curPos / 135) * getSubVal("speed") * 0.2;
+    var returnReceptorToZeroOffsetX = (-FlxMath.fastCos(-columnPhaseShift) + 1) / 2 * swagWidth * 3;
+    var offsetX = (-FlxMath.fastCos((phaseShift - columnPhaseShift)) + 1) / 2 * swagWidth * 3 - returnReceptorToZeroOffsetX;
+
+    return offsetX;
+  }
+
+  function tantornadoMath(lane:Int, curPos:Float):Float
+  {
+    var swagWidth:Float = ModConstants.strumSize;
+
+    var playerColumn:Float = lane % Strumline.KEY_COUNT;
+    var columnPhaseShift = playerColumn * Math.PI / 3;
+    var phaseShift = (curPos / 135) * getSubVal("speed") * 0.2;
+    var returnReceptorToZeroOffsetX = (-Math.tan(-columnPhaseShift) + 1) / 2 * swagWidth * 3;
+    var offsetX = (-Math.tan((phaseShift - columnPhaseShift)) + 1) / 2 * swagWidth * 3 - returnReceptorToZeroOffsetX;
+
+    return offsetX;
+  }
+}

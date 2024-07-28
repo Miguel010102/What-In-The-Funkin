@@ -68,6 +68,35 @@ import openfl.Lib;
 #if discord_rpc
 import Discord.DiscordClient;
 #end
+import funkin.play.modchartSystem.ModHandler;
+import funkin.play.modchartSystem.ModEventHandler;
+import funkin.play.modchartSystem.HazardAFT;
+import funkin.play.modchartSystem.HazardAFTSpriteTest;
+import funkin.play.modchartSystem.HazardModLuaTest;
+import sys.FileSystem;
+import sys.io.File;
+import funkin.modding.PolymodHandler;
+import lime.math.Vector4;
+import funkin.graphics.ZSprite;
+import flixel.FlxSprite;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import flixel.util.FlxSort;
+import funkin.play.notes.StrumlineNote;
+
+class TimeVector extends Vector4
+{
+  public var startDist:Float;
+  public var endDist:Float;
+  public var next:TimeVector;
+
+  public function new(x:Float = 0, y:Float = 0, z:Float = 0, w:Float = 0)
+  {
+    super(x, y, z, w);
+    startDist = 0.0;
+    endDist = 0.0;
+    next = null;
+  }
+}
 
 /**
  * Parameters used to initialize the PlayState.
@@ -575,6 +604,193 @@ class PlayState extends MusicBeatSubState
     return FlxG?.sound?.music?.length;
   }
 
+  // HAZARD MODCHART VARS
+  public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
+  public var customLuaSprites:Map<String, FlxSprite> = new Map<String, FlxSprite>();
+
+  public var perframeFunctions:Array<Float->Void> = [];
+
+  public var allStrumSprites:FlxTypedSpriteGroup<ZSprite>;
+
+  public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
+
+  /**
+   * an array containg every strumline! Used for easy reference to different players!
+   */
+  public var allStrumLines:Array<Strumline> = [];
+
+  /**
+   * For custom playfields!
+   */
+  public var customStrumLines:Array<Strumline> = [];
+
+  public var modchartTweenList:FlxText;
+
+  function updateTweenList():Void
+  {
+    if (modchartTweenList == null) return;
+
+    if (modchartTweenList.visible == false) return;
+    modchartTweenList.text = "Tween List:\n";
+    for (key in modchartEventHandler.modchartTweens.keys())
+    {
+      modchartTweenList.text += "'" + Std.string(key) + "', ";
+    }
+    modchartTweenList.screenCenter();
+  }
+
+  // public var modDebugHelperTXT:FlxText;
+  public var modDebugNotificationTXT:FlxText;
+
+  function setUpModTXT():Void
+  {
+    if (modchartTweenList != null) return; // We already have it created!
+
+    modchartTweenList = new FlxText(0, 0, FlxG.width / 2, '', 20);
+    modchartTweenList.setFormat(Paths.font('vcr.ttf'), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    modchartTweenList.scrollFactor.set();
+    modchartTweenList.zIndex = 927;
+    add(modchartTweenList);
+    modchartTweenList.cameras = [camHUD];
+
+    modDebugNotificationTXT = new FlxText(0, 0, FlxG.width / 4, '', 20);
+    modDebugNotificationTXT.setFormat(Paths.font('vcr.ttf'), 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    modDebugNotificationTXT.scrollFactor.set();
+    modDebugNotificationTXT.zIndex = 928;
+    add(modDebugNotificationTXT);
+    modDebugNotificationTXT.cameras = [camHUD];
+    modDebugNotificationTXT.alpha = 0;
+  }
+
+  public var modchartEventHandler:ModEventHandler;
+  public var luaArray:Array<HazardModLuaTest> = [];
+
+  var isModchartSong:Bool = true;
+
+  public var luaAFT_sprite:HazardAFTSpriteTest;
+  public var luaAFT_Capture:HazardAFT;
+
+  public function setUpLuaAft():Void
+  {
+    if (luaAFT_Capture != null || luaAFT_sprite != null) return; // already exists!
+    luaAFT_Capture = new HazardAFT(camNotes);
+
+    luaAFT_sprite = new HazardAFTSpriteTest(luaAFT_Capture);
+    luaAFT_sprite.cameras = [camNotes];
+    // luaAFT_sprite.setGraphicSize(Std.int(luaAFT_Capture.w * 0.95));
+    luaAFT_sprite.zIndex = -9999;
+    add(luaAFT_sprite);
+  }
+
+  var modDebugNotifTween:FlxTween;
+  var modDebugNotifTimer:FlxTimer;
+
+  function compareZSprites(order:Int, a:ZSprite, b:ZSprite):Int
+  {
+    // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
+    return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+  }
+
+  /*
+   * Changes the way notes are rendered (kinda) so now all the sprites are in one big group for them to have their z's sorted properly!
+   */
+  public var noteRenderMode(default, set):Bool = false;
+
+  function set_noteRenderMode(v:Bool):Bool
+  {
+    if (v == noteRenderMode) return v; // skip, it's already set to this value
+    noteRenderMode = v;
+
+    if (allStrumSprites != null)
+    {
+      for (strumLine in allStrumLines)
+      {
+        strumLine.notes.visible = !v;
+        strumLine.holdNotes.visible = !v;
+        strumLine.strumlineNotes.visible = !v;
+        strumLine.arrowPaths.visible = !v;
+
+        // Grab everything and throw it into the spritegroup!
+        if (noteRenderMode)
+        {
+          strumLine.strumlineNotes.forEach(function(note:ZSprite) {
+            allStrumSprites.add(note);
+          });
+          strumLine.notes.forEach(function(note:ZSprite) {
+            allStrumSprites.add(note);
+          });
+          strumLine.holdNotes.forEach(function(note:ZSprite) {
+            allStrumSprites.add(note);
+          });
+          strumLine.arrowPaths.forEach(function(note:ZSprite) {
+            allStrumSprites.add(note);
+          });
+        }
+        else
+        {
+          allStrumSprites.clear();
+        }
+      }
+      allStrumSprites.visible = v;
+      trace(noteRenderMode ? "ZSort Render Method enabled!" : "ZSort Render Method disabled!");
+    }
+    return v;
+  }
+
+  public function modDebugNotif(txtToShow:String = "", color:FlxColor = FlxColor.WHITE):Void
+  {
+    if (modDebugNotifTween != null) modDebugNotifTween.cancel();
+    if (modDebugNotifTimer != null) modDebugNotifTimer.cancel();
+
+    trace("\n" + txtToShow);
+
+    modDebugNotificationTXT.color = color;
+
+    modDebugNotificationTXT.alpha = 0;
+    modDebugNotificationTXT.text = txtToShow;
+    modDebugNotificationTXT.x = 4;
+    modDebugNotificationTXT.y = FlxG.height - modDebugNotificationTXT.height;
+
+    modDebugNotifTween = FlxTween.tween(modDebugNotificationTXT, {alpha: 1}, 0.25, {ease: FlxEase.linear});
+    modDebugNotifTimer = new FlxTimer().start(5 + 0.25, function(tmr) {
+      if (modDebugNotifTween != null) modDebugNotifTween.cancel();
+      modDebugNotifTween = FlxTween.tween(modDebugNotificationTXT, {alpha: 0}, 1, {ease: FlxEase.linear});
+      modDebugNotifTimer = null;
+    });
+  }
+
+  function updateHazModchartSystem(elapsed:Float):Void
+  {
+    if (isModchartSong)
+    {
+      modchartEventHandler.update(elapsed);
+      updateTweenList();
+
+      if (allStrumSprites.members.length > 1 && allStrumSprites.visible) allStrumSprites.members.insertionSort(compareZSprites.bind(FlxSort.ASCENDING));
+
+      if (customZspritesGroup.members.length > 1 && customZspritesGroup.visible)
+      {
+        customZspritesGroup.members.insertionSort(compareZSprites.bind(FlxSort.ASCENDING));
+      }
+    }
+    if (luaAFT_Capture != null) luaAFT_Capture.update(elapsed);
+
+    for (fun in perframeFunctions)
+    {
+      fun(elapsed);
+    }
+  }
+
+  /**
+   * The camera which contains, and controls visibility of, the strumlines!
+   */
+  public var camNotes:FlxCamera;
+
+  /**
+   * The camera which contains, and controls visibility of, errr... unused for now lol
+   */
+  public var camAFT:FlxCamera;
+
   // TODO: Refactor or document
   var generatedMusic:Bool = false;
   var perfectMode:Bool = false;
@@ -680,6 +896,8 @@ class PlayState extends MusicBeatSubState
     Conductor.instance.mapTimeChanges(currentChart.timeChanges);
     Conductor.instance.update((Conductor.instance.beatLengthMs * -5) + startTimestamp);
 
+    scanForModchart();
+
     // The song is now loaded. We can continue to initialize the play state.
     initCameras();
     initHealthBar();
@@ -692,6 +910,7 @@ class PlayState extends MusicBeatSubState
     {
       initMinimalMode();
     }
+    initHazardModchart();
     initStrumlines();
 
     // Initialize the judgements and combo meter.
@@ -879,14 +1098,15 @@ class PlayState extends MusicBeatSubState
 
       if (currentStage != null) currentStage.resetStage();
 
-      if (!fromDeathState)
+      for (strumLine in allStrumLines)
       {
-        playerStrumline.vwooshNotes();
-        opponentStrumline.vwooshNotes();
+        if (!fromDeathState)
+        {
+          strumLine.vwooshNotes();
+        }
+        strumLine.clean();
       }
-
-      playerStrumline.clean();
-      opponentStrumline.clean();
+      if (allStrumSprites != null) allStrumSprites.clear();
 
       // Delete all notes and reset the arrays.
       regenNoteData();
@@ -1080,6 +1300,7 @@ class PlayState extends MusicBeatSubState
     }
 
     processSongEvents();
+    updateHazModchartSystem(elapsed);
 
     // Handle keybinds.
     processInputQueue();
@@ -1095,8 +1316,10 @@ class PlayState extends MusicBeatSubState
   function moveToGameOver():Void
   {
     // Reset and update a bunch of values in advance for the transition back from the game over substate.
-    playerStrumline.clean();
-    opponentStrumline.clean();
+    for (strumLine in allStrumLines)
+    {
+      strumLine.clean();
+    }
 
     songScore = 0;
     updateScoreText();
@@ -1485,8 +1708,12 @@ class PlayState extends MusicBeatSubState
       });
     }
 
-    if (playerStrumline != null) playerStrumline.onBeatHit();
-    if (opponentStrumline != null) opponentStrumline.onBeatHit();
+    // if (playerStrumline != null) playerStrumline.onBeatHit();
+    // if (opponentStrumline != null) opponentStrumline.onBeatHit();
+    for (strumLine in allStrumLines)
+    {
+      strumLine.onBeatHit();
+    }
 
     // Make the characters dance on the beat
     danceOnBeat();
@@ -1533,7 +1760,20 @@ class PlayState extends MusicBeatSubState
     camCutscene = new FlxCamera();
     camCutscene.bgColor.alpha = 0; // Show the game scene behind the camera.
 
+    if (isModchartSong)
+    {
+      camNotes = new FlxCamera();
+      camNotes.bgColor.alpha = 0; // Show the game scene behind the camera.
+      camAFT = new FlxCamera();
+      camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
+    }
+
     FlxG.cameras.reset(camGame);
+    if (isModchartSong)
+    {
+      FlxG.cameras.add(camNotes, false);
+      FlxG.cameras.add(camAFT, false);
+    }
     FlxG.cameras.add(camHUD, false);
     FlxG.cameras.add(camCutscene, false);
 
@@ -1754,6 +1994,328 @@ class PlayState extends MusicBeatSubState
     }
   }
 
+  function calculatePathDistances(path:List<TimeVector>):Float
+  {
+    @:privateAccess
+    var iterator_head = path.h;
+    var val = iterator_head.item;
+    iterator_head = iterator_head.next;
+    var last = val;
+    last.startDist = 0;
+    var dist = 0.0;
+    while (iterator_head != null)
+    {
+      var val = iterator_head.item;
+      iterator_head = iterator_head.next;
+      var current = val;
+      var result = new Vector4();
+      result.x = current.x - last.x;
+      result.y = current.y - last.y;
+      result.z = current.z - last.z;
+      var differential = result;
+      dist += Math.sqrt(differential.x * differential.x + differential.y * differential.y + differential.z * differential.z);
+      current.startDist = dist;
+      last.next = current;
+      last.endDist = current.startDist;
+      last = current;
+    }
+    return dist;
+  }
+
+  public function getPointAlongPath(distance:Float):TimeVector
+  {
+    @:privateAccess
+    var _g_head = this._path.h;
+    while (_g_head != null)
+    {
+      var val = _g_head.item;
+      _g_head = _g_head.next;
+      var vec = val;
+      var Min = vec.startDist;
+      var Max = vec.endDist;
+      // looks like a FlxMath function could be that
+      if ((Min == 0 || distance >= Min) && (Max == 0 || distance <= Max) && vec.next != null)
+      {
+        var ratio = distance - vec.startDist;
+        var _this = vec.next;
+        var result = new Vector4();
+        result.x = _this.x - vec.x;
+        result.y = _this.y - vec.y;
+        result.z = _this.z - vec.z;
+        var ratio1 = ratio / Math.sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
+        var vec2 = vec.next;
+        var out1 = new Vector4(vec.x, vec.y, vec.z, vec.w);
+        var s = 1 - ratio1;
+        out1.x *= s;
+        out1.y *= s;
+        out1.z *= s;
+        var out2 = new Vector4(vec2.x, vec2.y, vec2.z, vec2.w);
+        out2.x *= ratio1;
+        out2.y *= ratio1;
+        out2.z *= ratio1;
+        var result1 = new Vector4();
+        result1.x = out1.x + out2.x;
+        result1.y = out1.y + out2.y;
+        result1.z = out1.z + out2.z;
+        return new TimeVector(result1.x, result1.y, result1.z, result1.w);
+      }
+    }
+    return _path.first();
+  }
+
+  public function executePath(currentBeat:Float, strumTimeDiff:Float, column:Int, modValue:Float, pos:Vector4):Vector4
+  {
+    if (_path == null)
+    {
+      return pos;
+    }
+    var path = getPointAlongPath(strumTimeDiff / -1500.0 * _pathDistance);
+    // var a = new Vector4(FlxG.width / 2, FlxG.height / 2 + 280, column % 4 * getOtherPercent("arrowshapeoffset", player) + pos.z);
+    var a = new Vector4(FlxG.width / 2, FlxG.height / 2 + 280, column % 4 * 1 + pos.z);
+    var result = new Vector4();
+    result.x = path.x + a.x;
+    result.y = path.y + a.y;
+    result.z = path.z + a.z;
+    var vec2 = result;
+    // var lerp = getPercent(player);
+    var lerp = modValue;
+    var out1 = new Vector4(pos.x, pos.y, pos.z, pos.w);
+    var s = 1 - lerp;
+    out1.x *= s;
+    out1.y *= s;
+    out1.z *= s;
+    var out2 = new Vector4(vec2.x, vec2.y, vec2.z, vec2.w);
+    out2.x *= lerp;
+    out2.y *= lerp;
+    out2.z *= lerp;
+    var result = new Vector4();
+    result.x = out1.x + out2.x;
+    result.y = out1.y + out2.y;
+    result.z = out1.z + out2.z;
+    return result;
+  }
+
+  var _path:List<TimeVector> = null;
+  var _pathDistance:Float = 0;
+
+  public var customArrowPathModTest:String = null;
+
+  // Call this to clear out any custom sprites created in the lua file!
+  public function clearOutCustomLuaSprites():Void
+  {
+    if (customLuaSprites == null) return;
+    for (key in customLuaSprites.keys())
+    {
+      var spr = customLuaSprites.get(key);
+      remove(spr);
+      spr.destroy();
+      customLuaSprites.remove(key);
+    }
+  }
+
+  // Call this to scan and reload the modchart lua file!
+  public function scanForModchart(showNotif:Bool = true):Void
+  {
+    if (isMinimalMode) return; // DON'T LOAD MODCHARTS FOR MINIMAL MODE!
+
+    // clear out all custom sprites!
+    clearOutCustomLuaSprites();
+
+    perframeFunctions = [];
+
+    // cleanup
+    for (lua in luaArray)
+    {
+      // lua.call('onDestroy', []);
+      lua.stop();
+    }
+    luaArray = [];
+
+    // scan for lua file for modchart!
+    var filesPushed:Array<String> = [];
+    var songna:String = (currentSong?.id ?? '').toLowerCase();
+    var firstCheckTest:String = 'assets/data/modchart/' + currentChart.songName.toLowerCase() + "/";
+    var secondCheckTest:String = 'assets/data/modchart/' + songna + "/";
+    var foldersToCheck:Array<String> = [firstCheckTest, secondCheckTest];
+
+    customArrowPathModTest = null;
+
+    // fuck it, we just check every mod lmfao
+    for (modid in PolymodHandler.loadedModIds)
+    {
+      var lmfao:String = 'mods/' + modid + '/data/modchart/' + songna + "/";
+      foldersToCheck.insert(0, lmfao);
+      lmfao = 'mods/' + modid + '/data/modchart/' + currentChart.songName.toLowerCase() + "/";
+      foldersToCheck.insert(0, lmfao);
+    }
+
+    for (folder in foldersToCheck)
+    {
+      trace("Looking into - " + folder);
+      if (FileSystem.exists(folder))
+      {
+        trace("Folder exists...");
+        for (file in FileSystem.readDirectory(folder))
+        {
+          trace("file : " + file);
+          if (file.endsWith('.lua') && !filesPushed.contains(file))
+          {
+            trace("New Lua spotted, adding!!");
+            luaArray.push(new HazardModLuaTest(folder + file, folder, file));
+            filesPushed.push(file);
+          }
+          else if (file.endsWith('path.txt') && customArrowPathModTest == null)
+          {
+            customArrowPathModTest = folder + file;
+            trace("Oh shit, we found somethin? " + customArrowPathModTest);
+            // var file = sys.io.File.getContent(customArrowPathModTest);
+            var file_part1 = funkin.util.FileUtil.readStringFromPath(customArrowPathModTest);
+
+            var filePath:Array<String> = [];
+            filePath = file_part1.trim().split('\n');
+
+            for (i in 0...filePath.length)
+            {
+              filePath[i] = filePath[i].trim();
+            }
+            filePath.reverse(); // lmao, the points are reversed when used in my system
+
+            if (filePath != null)
+            {
+              var path = new List<TimeVector>();
+              var _g = 0;
+              while (_g < filePath.length)
+              {
+                var line = filePath[_g];
+                // trace("line: " + line);
+                _g++;
+                var coords = line.split(";");
+                // trace((_g - 1) + "split: " + coords);
+                var vec = new TimeVector(Std.parseFloat(coords[0]), Std.parseFloat(coords[1]) * (Preferences.downscroll ? -1 : 1), Std.parseFloat(coords[2]),
+                  Std.parseFloat(coords[3]));
+                vec.x *= 200;
+                vec.y *= 200;
+                vec.z *= 200;
+                path.add(vec);
+
+                //  trace("x: " + vec.x);
+                // trace("y: " + vec.y);
+                // trace("z: " + vec.z);
+                // trace("-------");
+              }
+
+              _pathDistance = calculatePathDistances(path);
+              _path = path;
+            }
+            else
+            {
+              trace("nvm, file is fucked");
+              customArrowPathModTest == null;
+            }
+          }
+        }
+      }
+    }
+
+    // IF WE ARE RELOADING THIS MIDSONG!
+    if (playerStrumline != null && modchartEventHandler != null)
+    {
+      modchartEventHandler.clearEvents();
+      for (lua in luaArray)
+      {
+        lua.call('modsTimeline', []);
+      }
+      // check if displayNotif already displaying something in case of an error!
+      if (modDebugNotifTimer == null && showNotif)
+      {
+        modDebugNotif("Reloaded modchart...");
+      }
+
+      // cuz we cleared the timeline, we need to grab the timelines from the hxscripts again
+      dispatchEvent(new ScriptEvent(MODCHART_TIMELINE));
+
+      for (strumLine in allStrumLines)
+      {
+        if (!strumLine.isPlayer)
+        {
+          strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
+        }
+      }
+
+      modchartEventHandler.setupEvents();
+      dispatchEvent(new ScriptEvent(MODCHART_RESET));
+
+      // trigger reset funcs
+      modchartEventHandler.triggerResetFuncs();
+    }
+    else
+    {
+      isModchartSong = (filesPushed.length > 0);
+      trace("Is modchartsong? - " + isModchartSong);
+    }
+  }
+
+  function initHazardModchart():Void
+  {
+    if (isModchartSong)
+    {
+      customZspritesGroup = new FlxTypedSpriteGroup<ZSprite>();
+      customZspritesGroup.zIndex = -500;
+      customZspritesGroup.cameras = [camNotes];
+      add(customZspritesGroup);
+
+      allStrumSprites = new FlxTypedSpriteGroup<ZSprite>();
+
+      allStrumSprites.zIndex = 69;
+      allStrumSprites.cameras = [camNotes];
+      add(allStrumSprites);
+      allStrumSprites.visible = false;
+    }
+  }
+
+  /**
+   * Call this to construct a newStrumLine!
+   * @param playerControlled If true, then the player can control this strumLine
+   * @param noteStyle Do funny
+   */
+  public function constructNewStrumLine(playerControlled:Bool, ?noteStyleName:String):Strumline
+  {
+    var noteStyle:NoteStyle = null;
+
+    if (modchartEventHandler.customPlayfieldsOLD)
+    {
+      trace("CANNOT USE LEGACY CUSTOM STRUMMERS WITH NEW CUSTOM STRUMMERS");
+      return null;
+    }
+
+    if (noteStyleName != null)
+    {
+      noteStyle = NoteStyleRegistry.instance.fetchEntry(noteStyleName);
+    }
+
+    if (noteStyle == null)
+    {
+      var noteStyleId:String = currentChart.noteStyle;
+      noteStyle = NoteStyleRegistry.instance.fetchEntry(noteStyleId);
+      if (noteStyle == null) noteStyle = NoteStyleRegistry.instance.fetchDefault();
+    }
+    var newStrummer:Strumline = new Strumline(noteStyle, playerControlled ? !isBotPlayMode : false, isModchartSong);
+    newStrummer.onNoteIncoming.add(onStrumlineNoteIncoming);
+    add(newStrummer);
+
+    newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2);
+    newStrummer.y = Preferences.downscroll ? FlxG.height - newStrummer.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+    newStrummer.zIndex = 1003 + allStrumLines.length + 1;
+    newStrummer.cameras = playerStrumline.cameras;
+
+    newStrummer.mods.customTweenerName = Std.string(allStrumLines.length + 1);
+
+    customStrumLines.push(newStrummer);
+    allStrumLines.push(newStrummer);
+
+    return newStrummer;
+  }
+
   /**
    * Constructs the strumlines for each player.
    */
@@ -1763,12 +2325,14 @@ class PlayState extends MusicBeatSubState
     var noteStyle:NoteStyle = NoteStyleRegistry.instance.fetchEntry(noteStyleId);
     if (noteStyle == null) noteStyle = NoteStyleRegistry.instance.fetchDefault();
 
-    playerStrumline = new Strumline(noteStyle, !isBotPlayMode);
+    playerStrumline = new Strumline(noteStyle, !isBotPlayMode, isModchartSong);
     playerStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
-    opponentStrumline = new Strumline(noteStyle, false);
+    opponentStrumline = new Strumline(noteStyle, false, isModchartSong);
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     add(playerStrumline);
     add(opponentStrumline);
+
+    allStrumLines = [playerStrumline, opponentStrumline];
 
     // Position the player strumline on the right half of the screen
     playerStrumline.x = FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET; // Classic style
@@ -1783,8 +2347,76 @@ class PlayState extends MusicBeatSubState
     opponentStrumline.zIndex = 1000;
     opponentStrumline.cameras = [camHUD];
 
+    if (isModchartSong)
+    {
+      playerStrumline.cameras = [camNotes];
+      opponentStrumline.cameras = [camNotes];
+
+      modchartEventHandler = new ModEventHandler();
+      customStrumLines = [];
+
+      for (lua in luaArray)
+      {
+        lua.call('setUp', []);
+      }
+
+      dispatchEvent(new ScriptEvent(MODCHART_SETUP));
+
+      // For now, they all act like opponent strums lol
+      if (modchartEventHandler.customPlayfieldsOLD)
+      {
+        for (i in 0...modchartEventHandler.customPlayfields)
+        {
+          var isPlayer:Bool = !isBotPlayMode;
+          isPlayer = false;
+          var newStrummer:Strumline = new Strumline(noteStyle, isPlayer, isModchartSong);
+          newStrummer.onNoteIncoming.add(onStrumlineNoteIncoming);
+          add(newStrummer);
+
+          newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2);
+          newStrummer.y = Preferences.downscroll ? FlxG.height - newStrummer.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+          newStrummer.zIndex = 1003 + i;
+          newStrummer.cameras = playerStrumline.cameras;
+
+          newStrummer.mods.customTweenerName = Std.string(i);
+
+          if (!modchartEventHandler.invertForOpponent)
+          {
+            newStrummer.mods.invertValues = false;
+          }
+
+          customStrumLines.push(newStrummer);
+          allStrumLines.push(newStrummer);
+        }
+      }
+
+      for (lua in luaArray)
+      {
+        lua.call('modsTimeline', []);
+      }
+
+      dispatchEvent(new ScriptEvent(MODCHART_TIMELINE));
+
+      for (strumLine in allStrumLines)
+      {
+        if (!strumLine.isPlayer)
+        {
+          strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
+        }
+      }
+
+      modchartEventHandler.setupEvents();
+      setUpModTXT();
+
+      dispatchEvent(new ScriptEvent(MODCHART_RESET));
+    }
+
     if (!PlayStatePlaylist.isStoryMode)
     {
+      for (customStrummer in customStrumLines)
+      {
+        customStrummer.fadeInArrows();
+      }
       playerStrumline.fadeInArrows();
       opponentStrumline.fadeInArrows();
     }
@@ -1903,6 +2535,10 @@ class PlayState extends MusicBeatSubState
 
     playerStrumline.applyNoteData(playerNoteData);
     opponentStrumline.applyNoteData(opponentNoteData);
+    for (customStrummer in customStrumLines)
+    {
+      customStrummer.applyNoteData(customStrummer.isActuallyPlayerStrum ? playerNoteData : opponentNoteData);
+    }
   }
 
   function onStrumlineNoteIncoming(noteSprite:NoteSprite):Void
@@ -1928,6 +2564,12 @@ class PlayState extends MusicBeatSubState
 
     // TODO: Maybe tween in the camera after any cutscenes.
     camHUD.visible = true;
+
+    modchartEventHandler?.resetMods();
+    for (lua in luaArray)
+    {
+      lua.call('onCountdownStart', []);
+    }
   }
 
   /**
@@ -2093,11 +2735,180 @@ class PlayState extends MusicBeatSubState
   }
 
   /**
+   * Copy and paste from process notes, for custom strum lines!
+   */
+  function processNotesCUSTOM(elapsed:Float):Void
+  {
+    for (strummer in customStrumLines)
+    {
+      // if (strummer?.notes?.members == null || strummer?.skipmeforcontrolslol) continue;
+      if (strummer?.notes?.members == null) continue;
+
+      // IS OPPONENT-IFIED
+      if (!strummer.isActuallyPlayerStrum)
+      {
+        for (note in strummer.notes.members)
+        {
+          if (note == null) continue;
+          // TODO: Are offsets being accounted for in the correct direction?
+          var hitWindowStart = note.strumTime + Conductor.instance.inputOffset - Constants.HIT_WINDOW_MS;
+          var hitWindowCenter = note.strumTime + Conductor.instance.inputOffset;
+          var hitWindowEnd = note.strumTime + Conductor.instance.inputOffset + Constants.HIT_WINDOW_MS;
+          if (Conductor.instance.songPosition > hitWindowEnd)
+          {
+            if (note.hasMissed || note.hasBeenHit) continue;
+
+            note.tooEarly = false;
+            note.mayHit = false;
+            note.hasMissed = true;
+
+            if (note.holdNoteSprite != null)
+            {
+              note.holdNoteSprite.missedNote = true;
+            }
+          }
+          else if (Conductor.instance.songPosition > hitWindowCenter)
+          {
+            if (note.hasBeenHit) continue;
+
+            // Call an event to allow canceling the note hit.
+            // NOTE: This is what handles the character animations!
+            // var event:NoteScriptEvent = new HitNoteScriptEvent(note, 0.0, 0, 'perfect', 0);
+            var event:NoteScriptEvent = new HitNoteScriptEvent(note, 0.0, 0, 'perfect', false, 0);
+            dispatchEvent(event);
+
+            // Calling event.cancelEvent() skips all the other logic! Neat!
+            if (event.eventCanceled) continue;
+
+            // Command the opponent to hit the note on time.
+            // NOTE: This is what handles the strumline and cleaning up the note itself!
+            strummer.hitNote(note);
+
+            if (note.holdNoteSprite != null)
+            {
+              strummer.playNoteHoldCover(note.holdNoteSprite);
+            }
+          }
+          else if (Conductor.instance.songPosition > hitWindowStart)
+          {
+            if (note.hasBeenHit || note.hasMissed) continue;
+
+            note.tooEarly = false;
+            note.mayHit = true;
+            note.hasMissed = false;
+            if (note.holdNoteSprite != null) note.holdNoteSprite.missedNote = false;
+          }
+          else
+          {
+            note.tooEarly = true;
+            note.mayHit = false;
+            note.hasMissed = false;
+            if (note.holdNoteSprite != null) note.holdNoteSprite.missedNote = false;
+          }
+        }
+
+        // Process hold notes on the opponent's side.
+        for (holdNote in strummer.holdNotes.members)
+        {
+          if (holdNote == null || !holdNote.alive) continue;
+          if (holdNote.missedNote && !holdNote.handledMiss)
+          {
+            // When the opponent drops a hold note.
+            holdNote.handledMiss = true;
+          }
+        }
+      }
+      else
+      {
+        // Process notes on the player's side.
+        for (note in strummer.notes.members)
+        {
+          if (note == null) continue;
+
+          if (note.hasBeenHit)
+          {
+            note.tooEarly = false;
+            note.mayHit = false;
+            note.hasMissed = false;
+            continue;
+          }
+
+          var hitWindowStart = note.strumTime - Constants.HIT_WINDOW_MS;
+          var hitWindowCenter = note.strumTime;
+          var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
+
+          if (Conductor.instance.songPosition > hitWindowEnd)
+          {
+            if (note.hasMissed || note.hasBeenHit) continue;
+            note.tooEarly = false;
+            note.mayHit = false;
+            note.hasMissed = true;
+            if (note.holdNoteSprite != null)
+            {
+              note.holdNoteSprite.missedNote = true;
+            }
+          }
+          else if (isBotPlayMode && Conductor.instance.songPosition > hitWindowCenter)
+          {
+            if (note.hasBeenHit) continue;
+
+            // Command the bot to hit the note on time.
+            // NOTE: This is what handles the strumline and cleaning up the note itself!
+            strummer.hitNote(note);
+
+            if (note.holdNoteSprite != null)
+            {
+              strummer.playNoteHoldCover(note.holdNoteSprite);
+            }
+          }
+          else if (Conductor.instance.songPosition > hitWindowStart)
+          {
+            note.tooEarly = false;
+            note.mayHit = true;
+            note.hasMissed = false;
+            if (note.holdNoteSprite != null) note.holdNoteSprite.missedNote = false;
+          }
+          else
+          {
+            note.tooEarly = true;
+            note.mayHit = false;
+            note.hasMissed = false;
+            if (note.holdNoteSprite != null) note.holdNoteSprite.missedNote = false;
+          }
+
+          // This becomes true when the note leaves the hit window.
+          // It might still be on screen.
+          if (note.hasMissed && !note.handledMiss)
+          {
+            note.handledMiss = true;
+          }
+        }
+
+        // Process hold notes on the player's side.
+        for (holdNote in strummer.holdNotes.members)
+        {
+          if (holdNote == null || !holdNote.alive) continue;
+
+          if (holdNote.missedNote && !holdNote.handledMiss)
+          {
+            holdNote.handledMiss = true;
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Handles opponent note hits and player note misses.
    */
   function processNotes(elapsed:Float):Void
   {
     if (playerStrumline?.notes?.members == null || opponentStrumline?.notes?.members == null) return;
+
+    if (isModchartSong)
+    {
+      processNotesCUSTOM(elapsed);
+    }
 
     // Process notes on the opponent's side.
     for (note in opponentStrumline.notes.members)
@@ -2331,9 +3142,130 @@ class PlayState extends MusicBeatSubState
       }
     }
 
+    // allStrumSprites.clear();
+
     // Respawns notes that were b
     playerStrumline.handleSkippedNotes();
     opponentStrumline.handleSkippedNotes();
+
+    for (customStrummer in customStrumLines)
+    {
+      for (note in customStrummer.notes.members)
+      {
+        if (note == null || note.hasBeenHit) continue;
+        var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
+
+        if (Conductor.instance.songPosition > hitWindowEnd)
+        {
+          // We have passed this note.
+          // Flag the note for deletion without actually penalizing the player.
+          note.handledMiss = true;
+        }
+      }
+      customStrummer.handleSkippedNotes();
+    }
+  }
+
+  // same as processInputQueue but for custom strummers
+  function processInputQueueCustom():Void
+  {
+    for (customStrummer in customStrumLines)
+    {
+      if (!customStrummer.isPlayer) continue; // is bot controlled... NEXT!
+      // Generate a list of notes within range.
+      var notesInRange:Array<NoteSprite> = customStrummer.getNotesMayHit();
+      var holdNotesInRange:Array<SustainTrail> = customStrummer.getHoldNotesHitOrMissed();
+
+      var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
+
+      for (note in notesInRange)
+        notesByDirection[note.direction].push(note);
+
+      for (i in 0...inputPressQueue.length)
+      {
+        var input:PreciseInputEvent = inputPressQueue[0]; // return first input but don't pop it!
+
+        customStrummer.pressKey(input.noteDirection);
+
+        var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
+
+        if (!Constants.GHOST_TAPPING && notesInDirection.length == 0)
+        {
+          // Pressed a wrong key with no notes nearby.
+          // Perform a ghost miss (anti-spam).
+          // ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
+
+          // Play the strumline animation.
+          customStrummer.playPress(input.noteDirection);
+          // trace('PENALTY Score: ${songScore}');
+        }
+        else if (Constants.GHOST_TAPPING && (!customStrummer.mayGhostTap()) && notesInDirection.length == 0)
+        {
+          // Pressed a wrong key with notes visible on-screen.
+          // Perform a ghost miss (anti-spam).
+          // ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
+
+          // Play the strumline animation.
+          customStrummer.playPress(input.noteDirection);
+          // trace('PENALTY Score: ${songScore}');
+        }
+        else if (notesInDirection.length == 0)
+        {
+          // Press a key with no penalty.
+
+          // Play the strumline animation.
+          customStrummer.playPress(input.noteDirection);
+        }
+        else
+        {
+          // Choose the first note, deprioritizing low priority notes.
+          var targetNote:Null<NoteSprite> = notesInDirection.find((note) -> !note.lowPriority);
+          if (targetNote == null) targetNote = notesInDirection[0];
+          if (targetNote == null) continue;
+
+          notesInDirection.remove(targetNote);
+
+          // all this shit, just to figure out if the note was a combo break note (to be removed or to be desaturated?)
+          var inputLatencyNs:Int64 = PreciseInputManager.getCurrentTimestamp() - input.timestamp;
+          var inputLatencyMs:Float = inputLatencyNs.toFloat() / Constants.NS_PER_MS;
+          var noteDiff:Int = Std.int(Conductor.instance.songPosition - targetNote.noteData.time - inputLatencyMs);
+
+          var daRating = Scoring.judgeNote(noteDiff, PBOT1);
+          var isComboBreak = false;
+          switch (daRating)
+          {
+            case 'sick':
+              isComboBreak = Constants.JUDGEMENT_SICK_COMBO_BREAK;
+            case 'good':
+              isComboBreak = Constants.JUDGEMENT_GOOD_COMBO_BREAK;
+            case 'bad':
+              isComboBreak = Constants.JUDGEMENT_BAD_COMBO_BREAK;
+            case 'shit':
+              isComboBreak = Constants.JUDGEMENT_SHIT_COMBO_BREAK;
+            default:
+              FlxG.log.error('Wuh? Buh? Guh? Note hit judgement was $daRating!');
+          }
+          customStrummer.hitNote(targetNote, !isComboBreak);
+
+          if (targetNote.isHoldNote && targetNote.holdNoteSprite != null)
+          {
+            customStrummer.playNoteHoldCover(targetNote.holdNoteSprite);
+          }
+
+          // Play the strumline animation.
+          customStrummer.playConfirm(input.noteDirection);
+        }
+      }
+
+      for (i in 0...inputReleaseQueue.length)
+      {
+        var input:PreciseInputEvent = inputReleaseQueue[0];
+
+        // Play the strumline animation.
+        customStrummer.playStatic(input.noteDirection);
+        customStrummer.releaseKey(input.noteDirection);
+      }
+    }
   }
 
   /**
@@ -2350,6 +3282,11 @@ class PlayState extends MusicBeatSubState
       inputPressQueue = [];
       inputReleaseQueue = [];
       return;
+    }
+
+    if (isModchartSong)
+    {
+      processInputQueueCustom();
     }
 
     // Generate a list of notes within range.
@@ -2471,7 +3408,17 @@ class PlayState extends MusicBeatSubState
     Highscore.tallies.totalNotesHit++;
     // Display the hit on the strums
     playerStrumline.hitNote(note, !isComboBreak);
-    if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection());
+    if (event.doesNotesplash)
+    {
+      playerStrumline.playNoteSplash(note.noteData.getDirection());
+      for (customStrummer in customStrumLines)
+      {
+        if (customStrummer.isPlayer)
+        {
+          customStrummer.playNoteSplash(note.noteData.getDirection());
+        }
+      }
+    }
     if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
     vocals.playerVolume = 1;
 
@@ -2639,6 +3586,9 @@ class PlayState extends MusicBeatSubState
 
     // 9: Toggle the old icon.
     if (FlxG.keys.justPressed.NINE) iconP1.toggleOldIcon();
+
+    // 8:
+    if (FlxG.keys.justPressed.EIGHT) scanForModchart();
 
     #if (debug || FORCE_DEBUG_VERSION)
     // PAGEUP: Skip forward two sections.
@@ -3013,6 +3963,25 @@ class PlayState extends MusicBeatSubState
    */
   function performCleanup():Void
   {
+    // cleanup
+    clearOutCustomLuaSprites();
+    if (allStrumSprites != null) allStrumSprites.clear();
+    if (customZspritesGroup != null) customZspritesGroup.clear();
+
+    for (lua in luaArray)
+    {
+      // lua.call('onDestroy', []);
+      lua.stop();
+    }
+    luaArray = [];
+
+    // get rid of the hxscript!
+    if (HazardModLuaTest.hscript != null)
+    {
+      // HazardModLuaTest.hscript.destroy();
+      HazardModLuaTest.hscript = null;
+    }
+
     // If the camera is being tweened, stop it.
     cancelAllCameraTweens();
 

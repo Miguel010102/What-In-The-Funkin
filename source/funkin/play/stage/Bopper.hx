@@ -380,4 +380,10 @@ class Bopper extends StageProp implements IPlayStateScriptedClass
   public function onSongLoaded(event:SongLoadScriptEvent) {}
 
   public function onSongRetry(event:ScriptEvent) {}
+
+  public function onModchartSetup(event:ScriptEvent):Void {}
+
+  public function onModchartTimeline(event:ScriptEvent):Void {}
+
+  public function onModchartReset(event:ScriptEvent):Void {}
 }

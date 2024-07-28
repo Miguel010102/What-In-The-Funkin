@@ -7,8 +7,10 @@ import funkin.util.assets.FlxAnimationUtil;
 import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
+import funkin.graphics.ZSprite;
+import funkin.play.modchartSystem.ModConstants;
 
-class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
+class NoteHoldCover extends FlxTypedSpriteGroup<ZSprite>
 {
   static final FRAMERATE_DEFAULT:Int = 24;
 
@@ -16,8 +18,10 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 
   public var holdNote:SustainTrail;
 
-  var glow:FlxSprite;
-  var sparks:FlxSprite;
+  public var glow:ZSprite;
+  public var sparks:ZSprite;
+
+  public var holdNoteDir:Int = 0;
 
   public function new()
   {
@@ -52,7 +56,7 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
    */
   function setup():Void
   {
-    glow = new FlxSprite();
+    glow = new ZSprite();
     add(glow);
     if (glowFrames == null) preloadFrames();
     glow.frames = glowFrames;
@@ -79,21 +83,30 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
     super.update(elapsed);
   }
 
+  public function applyPerspective()
+  {
+    if (glow != null) ModConstants.applyPerspective(glow);
+    if (sparks != null) ModConstants.applyPerspective(sparks);
+  }
+
   public function playStart():Void
   {
     var direction:NoteDirection = holdNote.noteDirection;
+    holdNoteDir = holdNote.noteDirection;
     glow.animation.play('holdCoverStart${direction.colorName.toTitleCase()}');
   }
 
   public function playContinue():Void
   {
     var direction:NoteDirection = holdNote.noteDirection;
+    holdNoteDir = holdNote.noteDirection;
     glow.animation.play('holdCover${direction.colorName.toTitleCase()}');
   }
 
   public function playEnd():Void
   {
     var direction:NoteDirection = holdNote.noteDirection;
+    holdNoteDir = holdNote.noteDirection;
     glow.animation.play('holdCoverEnd${direction.colorName.toTitleCase()}');
   }
 

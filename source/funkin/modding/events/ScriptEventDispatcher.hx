@@ -141,6 +141,14 @@ class ScriptEventDispatcher
         case SONG_LOADED:
           t.onSongLoaded(cast event);
           return;
+        case MODCHART_RESET:
+          t.onModchartReset(cast event);
+        case MODCHART_SETUP:
+          t.onModchartSetup(cast event);
+          return;
+        case MODCHART_TIMELINE:
+          t.onModchartTimeline(cast event);
+          return;
         default: // Continue;
       }
     }

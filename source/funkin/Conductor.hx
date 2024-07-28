@@ -79,7 +79,7 @@ class Conductor
    * The list of time changes in the song.
    * There should be at least one time change (at the beginning of the song) to define the BPM.
    */
-  var timeChanges:Array<SongTimeChange> = [];
+  public var timeChanges:Array<SongTimeChange> = [];
 
   /**
    * The most recent time change for the current song position.
@@ -430,7 +430,8 @@ class Conductor
     else if (currentTimeChange != null && this.songPosition > 0.0)
     {
       // roundDecimal prevents representing 8 as 7.9999999
-      this.currentStepTime = FlxMath.roundDecimal((currentTimeChange.beatTime * Constants.STEPS_PER_BEAT) + (this.songPosition - currentTimeChange.timeStamp) / stepLengthMs, 6);
+      this.currentStepTime = FlxMath.roundDecimal((currentTimeChange.beatTime * Constants.STEPS_PER_BEAT)
+        + (this.songPosition - currentTimeChange.timeStamp) / stepLengthMs, 6);
       this.currentBeatTime = currentStepTime / Constants.STEPS_PER_BEAT;
       this.currentMeasureTime = currentStepTime / stepsPerMeasure;
       this.currentStep = Math.floor(currentStepTime);

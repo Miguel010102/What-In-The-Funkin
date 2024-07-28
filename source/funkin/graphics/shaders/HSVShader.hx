@@ -10,6 +10,11 @@ class HSVShader extends FlxRuntimeShader
   public var saturation(default, set):Float;
   public var value(default, set):Float;
 
+  public var stealthGlow(default, set):Float;
+  public var stealthGlowRed(default, set):Float;
+  public var stealthGlowGreen(default, set):Float;
+  public var stealthGlowBlue(default, set):Float;
+
   public function new()
   {
     super(Assets.getText(Paths.frag('hsv')));
@@ -17,6 +22,38 @@ class HSVShader extends FlxRuntimeShader
     hue = 1;
     saturation = 1;
     value = 1;
+    stealthGlow = 0;
+  }
+
+  function set_stealthGlowRed(value:Float):Float
+  {
+    this.setFloat('_stealthR', value);
+    this.stealthGlowRed = value;
+    return this.stealthGlowRed;
+  }
+
+  function set_stealthGlowGreen(value:Float):Float
+  {
+    this.setFloat('_stealthG', value);
+    this.stealthGlowGreen = value;
+
+    return this.stealthGlowGreen;
+  }
+
+  function set_stealthGlowBlue(value:Float):Float
+  {
+    this.setFloat('_stealthB', value);
+    this.stealthGlowBlue = value;
+
+    return this.stealthGlowBlue;
+  }
+
+  function set_stealthGlow(value:Float):Float
+  {
+    this.setFloat('_stealthGlow', value);
+    this.stealthGlow = value;
+
+    return this.stealthGlow;
   }
 
   function set_hue(value:Float):Float

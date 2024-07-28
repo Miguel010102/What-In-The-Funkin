@@ -645,6 +645,8 @@ class PauseSubState extends MusicBeatSubState
   {
     PlayState.instance.currentSong = SongRegistry.instance.fetchEntry(PlayState.instance.currentSong.id.toLowerCase());
 
+    PlayState.instance.scanForModchart(false);
+
     // Reset campaign score when changing difficulty
     // So if you switch difficulty on the last song of a week you get a really low overall score.
     PlayStatePlaylist.campaignScore = 0;

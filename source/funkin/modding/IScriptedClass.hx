@@ -89,6 +89,25 @@ interface INoteScriptedClass extends IScriptedClass
 interface IPlayStateScriptedClass extends INoteScriptedClass
 {
   /**
+   * Called during the setup process of Modcharts.
+   * Use this to mutate the modchart system before it gets applied / set!
+   * THIS IS BEFORE CUSTOM STRUMS ARE CREATED!
+   */
+  public function onModchartSetup(event:ScriptEvent):Void;
+
+  /**
+   * Called when going back in time lol
+   */
+  public function onModchartReset(event:ScriptEvent):Void;
+
+  /**
+   * Called during the setup process of Modcharts.
+   * Use this to mutate the modchart system before it gets applied / set!
+   * THIS IS AFTER CUSTOM STRUMS ARE CREATED!
+   */
+  public function onModchartTimeline(event:ScriptEvent):Void;
+
+  /**
    * Called when the game is paused.
    * Has properties to set whether the pause easter egg will happen,
    * and can be cancelled by scripts.

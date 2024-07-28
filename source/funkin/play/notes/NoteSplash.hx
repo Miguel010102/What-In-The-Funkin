@@ -5,14 +5,17 @@ import flixel.graphics.frames.FlxFramesCollection;
 import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
+import funkin.graphics.ZSprite;
 
-class NoteSplash extends FlxSprite
+class NoteSplash extends ZSprite
 {
   static final ALPHA:Float = 0.6;
   static final FRAMERATE_DEFAULT:Int = 24;
   static final FRAMERATE_VARIANCE:Int = 2;
 
   static var frameCollection:FlxFramesCollection;
+
+  public var DIRECTION:Int = 0;
 
   public static function preloadFrames():Void
   {
@@ -64,6 +67,7 @@ class NoteSplash extends FlxSprite
   {
     if (variant == null) variant = FlxG.random.int(1, 2);
 
+    this.DIRECTION = direction;
     switch (direction)
     {
       case NoteDirection.LEFT:

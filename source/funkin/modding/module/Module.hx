@@ -118,4 +118,10 @@ class Module implements IPlayStateScriptedClass implements IStateChangingScripte
   public function onSubStateCloseEnd(event:SubStateScriptEvent) {}
 
   public function onSongRetry(event:ScriptEvent) {}
+
+  public function onModchartSetup(event:ScriptEvent) {}
+
+  public function onModchartTimeline(event:ScriptEvent) {}
+
+  public function onModchartReset(event:ScriptEvent) {}
 }
