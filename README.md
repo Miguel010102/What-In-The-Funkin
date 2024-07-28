@@ -1,3 +1,12 @@
+# A WORK IN PROGRESS fork of FNF for Modcharting
+**By Hazard24**
+
+A modified fork of the latest version of FNF which allows the player to create and play modcharts in a very similar method to modcharting in NotITG with Mirin Template.
+
+
+
+
+
 # Friday Night Funkin' 
 
 Friday Night Funkin' is a rhythm game. Built using HaxeFlixel for Ludum Dare 47.
