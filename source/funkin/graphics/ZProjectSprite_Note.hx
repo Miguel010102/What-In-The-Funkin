@@ -172,9 +172,12 @@ class ZProjectSprite_Note extends FlxSprite
         var xPercent_SkewOffset:Float = xPercent - skewY_offset - 0.5;
         var yPercent_SkewOffset:Float = yPercent - skewX_offset - 0.5;
         // Keep math the same as skewedsprite for parity reasons.
-        point3D.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h;
-        point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w;
-        point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h;
+        if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
+          point3D.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h;
+        if (skewY != 0) //
+          point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w;
+        if (skewZ != 0) //
+          point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h;
 
         // scale
         var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);
@@ -196,7 +199,7 @@ class ZProjectSprite_Note extends FlxSprite
       }
     }
 
-    if (debugTrace) trace("\nverts: \n" + vertices + "\n");
+    // if (debugTrace) trace("\nverts: \n" + vertices + "\n");
 
     culled = false;
 
@@ -379,17 +382,17 @@ class ZProjectSprite_Note extends FlxSprite
     pos_modified.x = thing.x;
     pos_modified.y = thing.y;
 
-    var rotateModPivotPoint:Vector2 = new Vector2(w / 2, 0);
+    rotateModPivotPoint = new Vector2(w / 2, 0);
     rotateModPivotPoint.x += pivotOffsetX;
     rotateModPivotPoint.y += pivotOffsetZ;
-    var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY);
+    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY);
     pos_modified.x = thing.x;
     pos_modified.z = thing.y;
 
-    var rotateModPivotPoint:Vector2 = new Vector2(0, h / 2);
+    rotateModPivotPoint = new Vector2(0, h / 2);
     rotateModPivotPoint.x += pivotOffsetZ;
     rotateModPivotPoint.y += pivotOffsetY;
-    var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
+    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
     pos_modified.z = thing.x;
     pos_modified.y = thing.y;
 
@@ -411,15 +414,15 @@ class ZProjectSprite_Note extends FlxSprite
       pos_modified.y += fovOffsetY;
       pos_modified.z *= 0.001;
 
-      var thisNotePos:Vector3D = perspectiveMath_OLD(pos_modified, 0, 0);
+      pos_modified = perspectiveMath_OLD(pos_modified, 0, 0);
 
-      thisNotePos.x -= this.x;
-      thisNotePos.y -= this.y;
-      thisNotePos.z -= this.z * 0.001; // ?????
+      pos_modified.x -= this.x;
+      pos_modified.y -= this.y;
+      pos_modified.z -= this.z * 0.001; // ?????
 
-      thisNotePos.x -= fovOffsetX;
-      thisNotePos.y -= fovOffsetY;
-      return new Vector2(thisNotePos.x, thisNotePos.y);
+      pos_modified.x -= fovOffsetX;
+      pos_modified.y -= fovOffsetY;
+      return new Vector2(pos_modified.x, pos_modified.y);
     }
     else
     {
