@@ -134,6 +134,38 @@ class MoveZMod_true extends Modifier
   }
 }
 
+class CenteredXMod extends Modifier
+{
+  var caluclated:Bool = false;
+  var distanceToMove:Float = 0;
+
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority = -999999; // Apply this mod last so it doesn't fuck with mods like the rotate mods lmfao
+    unknown = false;
+    strumsMod = true;
+    createSubMod("always_calculate", 0.0);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (!caluclated || getSubVal("always_calculate") > 0.5)
+    {
+      var beforeCenter:Float = strumLine.x;
+      strumLine.screenCenter(X);
+      var afterCenter:Float = strumLine.x;
+      strumLine.x = beforeCenter;
+
+      distanceToMove = afterCenter - beforeCenter;
+      caluclated = true;
+    }
+
+    // preculated distance so a value of 100% will center both the player and strum
+    data.x += distanceToMove * currentValue;
+  }
+}
+
 class CenteredMod extends Modifier
 {
   public function new(name:String)

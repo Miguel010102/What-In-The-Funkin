@@ -513,6 +513,7 @@ class Strumline extends FlxSpriteGroup
 
     noteStyle.applyStrumlineOffsets(note);
 
+    note.resetStealthGlow(true);
     note.noteModData.defaultValues();
     note.noteModData.setValuesFromZSprite(note);
     note.noteModData.direction = note.direction;
@@ -668,7 +669,7 @@ class Strumline extends FlxSpriteGroup
       newString += "-INVERTED MOD VALUES-";
     }
     newString += "\n";
-    newString += "ScrollSpeed: " + PlayState.instance.currentChart.scrollSpeed;
+    newString += "-ScrollSpeed: " + PlayState.instance.currentChart.scrollSpeed + "-";
 
     // for (mod in modifiers){
     for (mod in mods.mods_all)

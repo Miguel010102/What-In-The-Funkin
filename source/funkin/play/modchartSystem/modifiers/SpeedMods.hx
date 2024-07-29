@@ -14,9 +14,12 @@ class SpeedMod extends Modifier
   public function new(name:String)
   {
     super(name, 1);
-    modPriority = 500;
+    modPriority = 667;
     unknown = false;
     speedMod = true;
+
+    this.baseValue = 1;
+    this.currentValue = 1;
   }
 
   override function speedMath(lane:Int, curPos:Float, strumLine, isHoldNote = false):Float

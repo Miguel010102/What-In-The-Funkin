@@ -777,6 +777,8 @@ class ModConstants
       case "z":
         newMod = new MoveZMod_true(tag);
 
+      case "centerx":
+        newMod = new CenteredXMod(tag);
       case "center":
         newMod = new CenteredMod(tag);
       case "centernotes":
