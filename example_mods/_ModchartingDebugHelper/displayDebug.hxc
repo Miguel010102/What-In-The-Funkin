@@ -1,0 +1,377 @@
+import funkin.modding.module.Module;
+import funkin.play.PlayState;
+import flixel.FlxG;
+import funkin.util.Constants;
+import funkin.Preferences;
+import flixel.tweens.FlxTween;
+import flixel.tweens.FlxEase;
+import funkin.Conductor;
+import funkin.play.notes.Strumline;
+import flixel.math.FlxMath;
+import flixel.util.FlxStringUtil;
+
+import funkin.data.event.SongEventRegistry;
+
+import flixel.text.FlxText;
+import flixel.text.FlxTextBorderStyle;
+import funkin.Paths;
+
+import funkin.audio.FunkinSound;
+
+import funkin.ui.debug.charting.ChartEditorState;
+
+
+class Modchart extends Module
+{
+	var alwaysHideTweenList:Bool = false;
+	var hideAllIncludesTweens:Bool = false;
+
+	var visibleByDefault:Bool = true;
+	var forceBotplayPractice:Bool = false;
+	
+	var defaultToBotplayPractice:Bool = true;
+
+
+	var enableTimeManipulation:Bool = true;
+	var timeManipulateInBeats:Bool = true;
+	
+	var timeInfoTxt: FlxText;
+	var timeInfoTxt_editor: FlxText;
+	
+	
+	override function onCountdownStart(event) {
+		super.onCountdownStart(event);
+		
+		
+		
+		if(inChartEditor){
+			editorPlay = true;
+		}
+		
+		if (!PlayState.instance.members.contains(timeInfoTxt)) {
+			createTimeInfoTXT(PlayState.instance);
+			//FunkinSound.playOnce(Paths.sound("pauseEnable"), 1.0);
+		}
+		
+		if(initialised && !inChartEditor){
+			if(PlayState.instance.opponentStrumline.txtActiveMods != null)
+				PlayState.instance.opponentStrumline.txtActiveMods.visible = showingDebug_mods;
+			if(PlayState.instance.playerStrumline.txtActiveMods != null)
+				PlayState.instance.playerStrumline.txtActiveMods.visible = showingDebug_mods;
+			
+			for (customStrummer in PlayState.instance.customStrumLines){
+				customStrummer.txtActiveMods.visible = showingDebug_mods;
+			}
+			if(PlayState.instance.modchartTweenList != null)
+				PlayState.instance.modchartTweenList.visible = showingDebug_tween;
+			
+			timeInfoTxt.visible = showingDebug_time;
+		}
+		
+		if(defaultToBotplayPractice){
+			updatePraticeState(true);
+			updateBotplayState(true);
+		}
+		initialised = true;
+	}
+	
+	function updatePraticeState(newVal:Bool){
+		PlayState.instance.isPracticeMode = newVal;
+	}
+	
+	function updateBotplayState(newVal:Bool){
+		PlayState.instance.isBotPlayMode = newVal;
+		PlayState.instance.playerStrumline.isPlayer = !PlayState.instance.isBotPlayMode;
+		
+		for (strummer in PlayState.instance.customStrumLines){
+			if(strummer.isActuallyPlayerStrum){ //since we don't wanna affect opponent strums
+				strummer.isPlayer = !newVal;
+			}
+		}
+	}
+	
+	
+	var dumb = null;
+	var inChartEditor = false;
+	var editorPlay = false;
+	
+	var showingDebug_mods = true;
+	var showingDebug_tween = false;
+	var showingDebug_time = true;
+	
+	var initialised:Bool = false;
+	
+	function createTimeInfoTXT(targetstatedumb){
+		if(!initialised)
+			showingDebug_time = visibleByDefault;
+		if ( timeInfoTxt_editor == null && (Std.isOfType(targetstatedumb, ChartEditorState)) )
+		{
+			timeInfoTxt_editor = new FlxText(0, 0, 0, "songPos: null");
+			timeInfoTxt_editor.setFormat(Paths.font("vcr.ttf"), 24, 0xFFFFFFFF, "left", FlxTextBorderStyle.OUTLINE, 0xFF000000);
+			timeInfoTxt_editor.borderSize = 2;
+			timeInfoTxt_editor.x = 10;
+			timeInfoTxt_editor.y = 20;
+			timeInfoTxt_editor.y += 20;
+			dumb.add(timeInfoTxt_editor);
+			timeInfoTxt_editor.camera = dumb.uiCamera;
+			timeInfoTxt_editor.text = "LOL";
+			timeInfoTxt_editor.zIndex = 9999;
+			
+			timeInfoTxt_editor.visible = (initialised ? showingDebug_time : visibleByDefault);
+			return;
+		}
+		
+		if (timeInfoTxt == null) {
+			//FunkinSound.playOnce(Paths.sound("pauseEnable"), 1.0);
+			timeInfoTxt = new FlxText(0, 0, 0, "songPos: null");
+			timeInfoTxt.setFormat(Paths.font("vcr.ttf"), 24, 0xFFFFFFFF, "left", FlxTextBorderStyle.OUTLINE, 0xFF000000);
+			timeInfoTxt.borderSize = 2;
+	  
+			//timeInfoTxt.screenCenter(0x01);
+			//timeInfoTxt.y = Preferences.get_downscroll() ? FlxG.height - 40 : 10;
+			
+			timeInfoTxt.x = 10;
+			timeInfoTxt.y = 20;
+			
+			timeInfoTxt.camera = PlayState.instance.camHUD;
+			PlayState.instance.add(timeInfoTxt);
+			
+			timeInfoTxt.visible = (initialised ? showingDebug_time : visibleByDefault);
+			
+			timeInfoTxt.text = "LOL";
+			timeInfoTxt.zIndex = 9999;
+		}
+	}
+	
+	function clearTimeInfoTXT_justPlay(state = null){
+		if(timeInfoTxt != null){
+			if(state != null) state.remove(timeInfoTxt);
+			//remove(timeInfoTxt);
+			timeInfoTxt.destroy();
+		}
+	}
+	
+	function clearTimeInfoTXT(state = null){
+		if(timeInfoTxt != null){
+			if(state != null) state.remove(timeInfoTxt);
+			//remove(timeInfoTxt);
+			timeInfoTxt.destroy();
+			timeInfoTxt = null;
+		}
+		if(timeInfoTxt_editor != null){
+			if(state != null) state.remove(timeInfoTxt_editor);
+			timeInfoTxt_editor.destroy();
+		}
+		//FunkinSound.playOnce(Paths.sound("pauseDisable"), 1.0);
+	}
+	
+	function onStateChangeEnd(event:StateChangeScriptEvent)
+	{
+		dumb = null;
+		inChartEditor = false;
+		editorPlay = false;
+		//clearTimeInfoTXT();
+		
+		if (!(Std.isOfType(event.targetState, PlayState)))
+		{
+			clearTimeInfoTXT();
+			//FunkinSound.playOnce(Paths.sound("pauseDisable"), 1.0);
+			initialised = true;
+		}
+		
+		super.onStateChangeEnd(event);
+		inChartEditor = false;
+		editorPlay = false;
+		if ((Std.isOfType(event.targetState, ChartEditorState)))
+		{
+			dumb = event.targetState;
+			inChartEditor = true;
+			createTimeInfoTXT(event.targetState);
+		}
+	}
+
+	
+	public function setSongTime(time:Float)
+	{
+		if(time < 0) time = 0;
+
+		//updatenoteQuantizationColours();
+
+		FlxG.sound.music.pause();
+		if (PlayState.instance.vocals != null) {
+			PlayState.instance.vocals.pause();
+		}
+
+		FlxG.sound.music.time = time;
+		FlxG.sound.music.pitch = PlayState.instance.playbackRate;
+		
+		if(!PlayState.instance.get_isGamePaused()){
+			FlxG.sound.music.play();
+		}
+		
+		if (PlayState.instance.vocals != null) {
+			//vocals.time = time;
+			if (Conductor.get_instance().songPosition <= PlayState.instance.vocals.length)
+			{
+				PlayState.instance.vocals.time = time;
+				PlayState.instance.vocals.pitch = PlayState.instance.playbackRate;
+			}
+			if(!PlayState.instance.get_isGamePaused()){
+				PlayState.instance.vocals.play();
+			}
+		}
+		Conductor.get_instance().songPosition = time;
+		//songTime = time;
+		
+		PlayState.instance.handleSkippedNotes();
+		
+		Conductor.get_instance().update();
+	}
+	
+	
+	var lastReportedSongPos:Float = 0;
+	
+	var dumbStupid = false;
+	function onUpdate(callback)
+	{
+		if (timeInfoTxt != null) {
+			if(timeInfoTxt.visible && lastReportedSongPos != Conductor.get_instance().songPosition){
+				timeInfoTxt.text = "songPos: " + Std.string(Conductor.get_instance().songPosition);
+				
+				var beatTime = (Conductor.get_instance().songPosition / 1000) * (Conductor.get_instance().bpm/60);
+				
+				timeInfoTxt.text += "\nbeatPos: " + Std.string(beatTime);
+				timeInfoTxt.text += "\ncurBeat: " + Std.string(Conductor.get_instance().currentBeat);
+				timeInfoTxt.text += "\ncurStep: " + Std.string(Conductor.get_instance().currentStep);
+				timeInfoTxt.text += "\ncurMeasure: " + Std.string(Conductor.get_instance().currentMeasure);
+				lastReportedSongPos = Conductor.get_instance().songPosition;
+			}
+			
+		}
+		
+		if (timeInfoTxt_editor != null) {
+			if(timeInfoTxt_editor.visible && lastReportedSongPos != Conductor.get_instance().songPosition){
+				timeInfoTxt_editor.text = "songPos: " + Std.string(Conductor.get_instance().songPosition);
+				var beatTime = (Conductor.get_instance().songPosition / 1000) * (Conductor.get_instance().bpm/60);
+				timeInfoTxt_editor.text += "\nbeatPos: " + Std.string(beatTime);
+				timeInfoTxt_editor.text += "\ncurBeat: " + Std.string(Conductor.get_instance().currentBeat);
+				timeInfoTxt_editor.text += "\ncurStep: " + Std.string(Conductor.get_instance().currentStep);
+				timeInfoTxt_editor.text += "\ncurMeasure: " + Std.string(Conductor.get_instance().currentMeasure);
+				lastReportedSongPos = Conductor.get_instance().songPosition;
+			}
+		}
+		
+		if(editorPlay){
+			if(dumb.uiCamera.alive){
+				editorPlay = false;
+				clearTimeInfoTXT_justPlay(PlayState.instance);
+				inChartEditor = true;
+				//createTimeInfoTXT(dumb);
+				//FunkinSound.playOnce(Paths.sound("pauseEnable"), 1.0);
+			}
+		}
+
+	
+
+		if(FlxG.keys.pressed.CONTROL){
+			if(FlxG.keys.justPressed.P || FlxG.keys.justPressed.H){
+				showingDebug_time = !showingDebug_time;
+				if(timeInfoTxt != null)
+					timeInfoTxt.visible = !timeInfoTxt.visible;
+				if(timeInfoTxt_editor != null)
+					timeInfoTxt_editor.visible = !timeInfoTxt_editor.visible;	
+			}
+			
+			
+			if((FlxG.keys.justPressed.T || (FlxG.keys.justPressed.H && hideAllIncludesTweens)) && PlayState.instance != null){
+				if(PlayState.instance.modchartTweenList != null && !alwaysHideTweenList){
+					showingDebug_tween = !showingDebug_tween;
+					PlayState.instance.modchartTweenList.visible = showingDebug_tween;
+				}
+			}
+			
+			if((FlxG.keys.justPressed.M || FlxG.keys.justPressed.H) && PlayState.instance != null){
+				showingDebug_mods = !showingDebug_mods;
+				
+				for (strum in PlayState.instance.allStrumLines){
+					if(strum.txtActiveMods!=null){
+						strum.txtActiveMods.visible = showingDebug_mods;
+						strum.debugNeedsUpdate = true;
+					}
+				}
+			}
+		}
+		
+
+	
+		if (PlayState.instance == null){
+			return;
+		}
+		
+		if(PlayState.instance.modchartTweenList != null && alwaysHideTweenList)
+			PlayState.instance.modchartTweenList.visible = false;
+		
+		if(forceBotplayPractice){
+			updatePraticeState(true);
+			updateBotplayState(true);
+		}else{
+			if (PlayState.instance.get_isGamePaused())
+			{		
+				if (FlxG.keys.justPressed.FIVE){ 
+					updatePraticeState(!PlayState.instance.isPracticeMode);
+					//PlayState.instance.isPracticeMode = !PlayState.instance.isPracticeMode;
+					FunkinSound.playOnce(Paths.sound(PlayState.instance.isPracticeMode ? "pauseEnable" : "pauseDisable"), 0.6);
+				}
+				if (FlxG.keys.justPressed.FOUR){ 
+					updateBotplayState(!PlayState.instance.isBotPlayMode);
+				
+					//PlayState.instance.isBotPlayMode = !PlayState.instance.isBotPlayMode;
+					FunkinSound.playOnce(Paths.sound(PlayState.instance.isBotPlayMode ? "pauseEnable" : "pauseDisable"), 0.6);
+					
+					//PlayState.instance.playerStrumline.isPlayer = !PlayState.instance.isBotPlayMode;
+				}
+			}
+		}
+		
+		
+		
+		
+		//time manip
+		//only works in practice or botplay!
+		if((PlayState.instance.isPracticeMode || PlayState.instance.isBotPlayMode) && enableTimeManipulation && Conductor.get_instance().songPosition > 0) { 
+			var gotoPos = Conductor.get_instance().songPosition;
+			var posChange = 0;
+			if (FlxG.keys.justPressed.FOUR && !PlayState.instance.get_isGamePaused()){ 
+				setSongTime(0);
+				SongEventRegistry.handleSkippedEvents(PlayState.instance.songEvents, Conductor.instance.songPosition);
+			}
+			
+			if (FlxG.keys.justPressed.FIVE && !PlayState.instance.get_isGamePaused()){ 
+				setSongTime(PlayState.instance.currentSongLengthMs - skipToEndOffset);
+				SongEventRegistry.handleSkippedEvents(PlayState.instance.songEvents, Conductor.instance.songPosition);
+			}
+			
+			if(FlxG.keys.justPressed.TWO){
+				if(timeManipulateInBeats){
+					var beatTime = Conductor.get_instance().get_beatLengthMs();
+					posChange = beatTime * (FlxG.keys.pressed.SHIFT ? shiftMult : shiftAmount); 
+				}else{
+					posChange = FlxG.keys.pressed.SHIFT ? 10000 : 5000;
+				}
+				
+				if(FlxG.keys.pressed.CONTROL){
+					posChange *= -1;
+				}
+				
+				setSongTime(gotoPos + posChange);
+				SongEventRegistry.handleSkippedEvents(PlayState.instance.songEvents, Conductor.instance.songPosition);
+			}
+			
+			
+		}
+	}
+	
+	var skipToEndOffset = 10000; //10 seconds off
+	var shiftMult = 6;
+	var shiftAmount = 2;
+}
