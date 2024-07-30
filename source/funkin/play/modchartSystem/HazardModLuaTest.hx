@@ -726,6 +726,7 @@ class HScript
     interp = new Interp();
     interp.variables.set('FlxG', FlxG);
     interp.variables.set('FlxSprite', FlxSprite);
+    interp.variables.set('ZSprite', ZSprite);
     interp.variables.set('FlxCamera', FlxCamera);
     interp.variables.set('FlxTimer', FlxTimer);
     interp.variables.set('FlxTween', FlxTween);

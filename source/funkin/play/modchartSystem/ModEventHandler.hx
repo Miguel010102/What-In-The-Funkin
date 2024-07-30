@@ -437,7 +437,9 @@ class ModEventHandler
       var tween:FlxTween = null;
 
       // If beat time is PAST the event!
-      if (beatTime >= modEvent.startingBeat + modEvent.timeInBeats && modEvent.style != "func" && modEvent.style != "reset")
+      if (beatTime >= modEvent.startingBeat + modEvent.timeInBeats
+        && !(modEvent.style == "func" && modEvent.persist)
+        && modEvent.style != "reset")
       {
         modEvent.hasTriggered = true;
         if (!modEvent.persist) continue; // lol
@@ -607,7 +609,7 @@ class ModEventHandler
   // Event to trigger a function at this beatTime!
   public function funcModEvent(target:ModHandler, startTime:Float, funky:Void->Void, ?tweenName:String = null, ?persist:Bool = true):Void
   {
-    addModEventToTimeline(target, startTime, 0, ModConstants.getEaseFromString("linear"), 0, tweenName, "func", persist, funky);
+    addModEventToTimeline(target, startTime, 1, ModConstants.getEaseFromString("linear"), 0, tweenName, "func", persist, funky);
   }
 
   // Event to trigger a function at this beatTime!
