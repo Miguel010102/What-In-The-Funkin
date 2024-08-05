@@ -88,17 +88,33 @@ class Main extends Sprite
    */
   public static var memoryCounter:MemoryCounter;
 
+  /**
+   * A frame counter displayed at the top left.
+   * to make it easier to read when on a white background.
+   * This is a fucking stupid way of doing this but I can't be bothered to figure out how to do it 'properly'
+   * Ported from Inhuman lmfao
+   */
+  public static var fpsVar_Shadow:FPS;
+
+  /**
+   * A RAM counter displayed at the top left.
+   * but black
+   */
+  public static var memoryCounter_Shadow:MemoryCounter;
+
   function setupGame():Void
   {
     initHaxeUI();
 
     // addChild gets called by the user settings code.
     fpsCounter = new FPS(10, 3, 0xFFFFFF);
+    fpsVar_Shadow = new FPS(12, 5, 0x000000);
 
     #if !html5
     // addChild gets called by the user settings code.
     // TODO: disabled on HTML5 (todo: find another method that works?)
     memoryCounter = new MemoryCounter(10, 13, 0xFFFFFF);
+    memoryCounter_Shadow = new MemoryCounter(12, 15, 0x000000);
     #end
 
     // George recommends binding the save before FlxGame is created.
@@ -117,6 +133,7 @@ class Main extends Sprite
     game.debugger.interaction.addTool(new funkin.util.TrackerToolButtonUtil());
     #end
 
+    addChild(fpsVar_Shadow);
     addChild(fpsCounter);
 
     #if hxcpp_debug_server

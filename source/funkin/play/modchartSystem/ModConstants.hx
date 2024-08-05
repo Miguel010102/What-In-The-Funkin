@@ -66,6 +66,7 @@ import funkin.play.modchartSystem.modifiers.SawtoothMods;
 import funkin.play.modchartSystem.modifiers.CosecantMods;
 import funkin.play.modchartSystem.modifiers.ExtraMods;
 import funkin.play.modchartSystem.modifiers.CullMods;
+import funkin.play.modchartSystem.modifiers.GridFloorMods;
 import funkin.play.modchartSystem.modifiers.*; // if only you worked ;_;
 
 class ModConstants
@@ -1264,6 +1265,26 @@ class ModConstants
         newMod = new AttenuateSkewYMod(tag);
       case "attenuateskewy":
         newMod = new AttenuateSkewXMod(tag);
+
+      // Snap mods
+      case "snap":
+        newMod = new GridXYZModifier(tag);
+      case "snapx":
+        newMod = new GridXModifier(tag);
+      case "snapy":
+        newMod = new GridYModifier(tag);
+      case "snapz":
+        newMod = new GridZModifier(tag);
+      case "snapstrum":
+        newMod = new GridStrumXYZModifier(tag);
+      case "snapstrumx":
+        newMod = new GridStrumXModifier(tag);
+      case "snapstrumy":
+        newMod = new GridStrumYModifier(tag);
+      case "snapstrumz":
+        newMod = new GridStrumZModifier(tag);
+      case "snapangle":
+        newMod = new GridAngleModifier(tag);
 
       // wavey mods
       case "waveyx":
