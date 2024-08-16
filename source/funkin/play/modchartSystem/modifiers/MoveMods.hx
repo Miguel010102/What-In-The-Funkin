@@ -168,11 +168,15 @@ class CenteredXMod extends Modifier
 
 class CenteredMod extends Modifier
 {
+  var caluclated:Bool = false;
+  var distanceToMove:Float = 0;
+
   public function new(name:String)
   {
     super(name, 0);
     modPriority = 51;
     createSubMod("oldmath", 0.0);
+    createSubMod("always_calculate", 0.0);
     unknown = false;
     strumsMod = true;
   }
@@ -197,9 +201,14 @@ class CenteredMod extends Modifier
     }
     else
     {
-      var screenCenter:Float = (FlxG.height / 2) - (ModConstants.strumSize / 2);
-      var differenceBetween:Float = data.y - screenCenter;
-      data.y -= currentValue * differenceBetween;
+      if (!caluclated || getSubVal("always_calculate") > 0.5)
+      {
+        var screenCenter:Float = (FlxG.height / 2) - (ModConstants.strumSize / 2);
+        var differenceBetween:Float = data.y - screenCenter;
+        distanceToMove = differenceBetween;
+        caluclated = true;
+      }
+      data.y -= currentValue * distanceToMove;
     }
   }
 }

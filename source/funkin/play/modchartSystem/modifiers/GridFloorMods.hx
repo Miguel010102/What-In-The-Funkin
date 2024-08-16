@@ -112,6 +112,22 @@ class GridZModifier extends GridModBase
   }
 }
 
+/*
+  class GridSpeedModifier extends GridModBase
+  {
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function speedMath(lane:Int, curPos:Float, strumLine, isHoldNote = false):Float
+  {
+    if (currentValue == 0) return 1; // skip math if mod is 0
+    var modWouldBe:Float = toGrid(curPos);
+    return (modWouldBe + 1);
+  }
+  }
+ */
 class GridAngleModifier extends GridModBase
 {
   public function new(name:String)
