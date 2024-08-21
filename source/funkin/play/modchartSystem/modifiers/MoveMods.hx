@@ -230,6 +230,32 @@ class CenteredNotesMod extends Modifier
   }
 }
 
+// Ported from MT (literally made this just for meta mods lmfao)
+class JumpMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority = 97;
+    unknown = false;
+    strumsMod = true;
+
+    createSubMod("beat", 1.0);
+    createSubMod("offset", 0.0);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+
+    var time:Float = (beatTime + getSubVal("offset")) % getSubVal("beat");
+    var val:Float = time * Conductor.instance.beatLengthMs;
+
+    var scrollSpeed = PlayState.instance.currentChart.scrollSpeed;
+    data.y += Constants.PIXELS_PER_MS * scrollSpeed * (Preferences.downscroll ? -1 : 1) * val * currentValue;
+  }
+}
+
 class DriveMod extends Modifier
 {
   public function new(name:String)

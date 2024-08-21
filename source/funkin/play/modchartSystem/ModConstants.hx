@@ -826,6 +826,8 @@ class ModConstants
         newMod = new DriveMod(tag);
       case "drive2":
         newMod = new Drive2Mod(tag);
+      case "jump":
+        newMod = new JumpMod(tag);
 
       // skew mods
       case "noteskewx":
