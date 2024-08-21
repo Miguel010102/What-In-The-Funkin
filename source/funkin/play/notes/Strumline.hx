@@ -274,17 +274,7 @@ class Strumline extends FlxSpriteGroup
 
     if (modchartSong)
     {
-      this.mods = new ModHandler(!isPlayer);
-      this.mods.strum = this;
-
-      this.txtActiveMods = new FlxText(this.x, this.y, 0, 'wtf', 20);
-      this.txtActiveMods.x += (1.5 * Strumline.NOTE_SPACING);
-      // this.txtActiveMods.y += (Preferences.downscroll ? -200 : 200);
-      // errrr, wtf lol?
-      this.txtActiveMods.setFormat(Paths.font('vcr.ttf'), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-      this.txtActiveMods.borderSize = 2;
-      this.txtActiveMods.zIndex = 66;
-      this.add(this.txtActiveMods);
+      setupModStuff();
     }
 
     this.refresh();
@@ -317,6 +307,27 @@ class Strumline extends FlxSpriteGroup
     this.active = true;
   }
 
+  public function setupModStuff():Void
+  {
+    if (mods == null)
+    {
+      this.mods = new ModHandler(!isPlayer);
+      this.mods.strum = this;
+    }
+
+    if (txtActiveMods == null)
+    {
+      this.txtActiveMods = new FlxText(this.x, this.y, 0, 'wtf', 20);
+      this.txtActiveMods.x += (1.5 * Strumline.NOTE_SPACING);
+      // this.txtActiveMods.y += (Preferences.downscroll ? -200 : 200);
+      // errrr, wtf lol?
+      this.txtActiveMods.setFormat(Paths.font('vcr.ttf'), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+      this.txtActiveMods.borderSize = 2;
+      this.txtActiveMods.zIndex = 66;
+      this.add(this.txtActiveMods);
+    }
+  }
+
   public function refresh():Void
   {
     sort(SortUtil.byZIndex, FlxSort.ASCENDING);
@@ -334,7 +345,7 @@ class Strumline extends FlxSpriteGroup
 
     if (mods != null)
     {
-      if (!generatedArrowPaths)
+      if (!generatedArrowPaths && drawArrowPaths)
       {
         notitgPaths = [];
         notitgPath = new HazardArrowpath(this);

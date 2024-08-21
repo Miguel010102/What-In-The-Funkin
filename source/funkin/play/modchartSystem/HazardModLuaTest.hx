@@ -28,6 +28,7 @@ import funkin.play.modchartSystem.NoteData;
 import flixel.math.FlxMath;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import funkin.graphics.ZSprite;
+import openfl.display.BlendMode;
 
 using StringTools;
 
@@ -753,6 +754,19 @@ class HScript
     interp.variables.set('downScroll', Preferences.downscroll);
 
     interp.variables.set("FlxTypedSpriteGroup", Type.resolveClass("flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup"));
+
+    interp.variables.set("BlendMode", Type.resolveClass("openfl.display.BlendMode"));
+
+    interp.variables.set('setBlendMode', function(name:String, blendy:String = "") {
+      if (PlayState.instance.customLuaSprites.exists(name))
+      {
+        PlayState.instance.customLuaSprites.get(name).blend = ModConstants.blendModeFromString(blendy);
+      }
+    });
+
+    interp.variables.set('getBlendMode', function(b:String):BlendMode {
+      return ModConstants.blendModeFromString(b);
+    });
 
     interp.variables.set('createSprGroup', function(variableTag:String, addToGame:Bool = true) {
       var grp:FlxTypedSpriteGroup<FlxSprite> = null;

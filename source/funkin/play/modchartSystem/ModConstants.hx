@@ -33,6 +33,8 @@ import funkin.graphics.ZSprite;
 import funkin.play.modchartSystem.ModHandler;
 import funkin.play.modchartSystem.HazardEase;
 import lime.math.Vector4;
+//
+import openfl.display.BlendMode;
 // I want to kill myself:
 import funkin.play.modchartSystem.modifiers.BaseModifier;
 import funkin.play.modchartSystem.modifiers.ColumnMods;
@@ -147,6 +149,42 @@ class ModConstants
   public static function isTagSub(tag:String):Bool
   {
     return StringTools.contains(tag, "__");
+  }
+
+  public static function blendModeFromString(blend:String):BlendMode
+  {
+    switch (blend.toLowerCase().trim())
+    {
+      case 'add':
+        return ADD;
+      case 'alpha':
+        return ALPHA;
+      case 'darken':
+        return DARKEN;
+      case 'difference':
+        return DIFFERENCE;
+      case 'erase':
+        return ERASE;
+      case 'hardlight':
+        return HARDLIGHT;
+      case 'invert':
+        return INVERT;
+      case 'layer':
+        return LAYER;
+      case 'lighten':
+        return LIGHTEN;
+      case 'multiply':
+        return MULTIPLY;
+      case 'overlay':
+        return OVERLAY;
+      case 'screen':
+        return SCREEN;
+      case 'shader':
+        return SHADER;
+      case 'subtract':
+        return SUBTRACT;
+    }
+    return NORMAL;
   }
 
   public static function rotateAround(origin:Vector2, point:Vector2, degrees:Float):Vector2
