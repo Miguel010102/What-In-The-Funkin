@@ -541,12 +541,11 @@ class ModHandler
 
   var traceDebug:Bool = false;
 
-  public function getHoldOffsetX(arrowpath:Bool = false):Float
+  public function getHoldOffsetX(arrowpath:Bool = false, graphicWidth:Float = 0):Float
   {
     if (arrowpath)
     {
       return (Strumline.STRUMLINE_SIZE / 2.0) + 10; // old math to keep paths happy until they become part of notestyle
-      // return 52 / 2; // nvm lol
     }
     else
     {
@@ -555,13 +554,15 @@ class ModHandler
       var shit:Float = (Strumline.STRUMLINE_SIZE / 2.0) + 28; // JANK NUMBER SPOTTED
 
       // then offset it with the correct graphicwidth in use
-      shit -= strum.sustainGraphicWidth / 2;
+      if (graphicWidth == 0) graphicWidth = strum.sustainGraphicWidth;
+      shit -= graphicWidth / 2;
 
       return shit;
     }
   }
 
-  public function makeHoldCopyStrum_sample(note:ZSprite, strumTime:Float, direction:Int, strumLine:Strumline, notePos:Float, isArrowPath:Bool = false):Float
+  public function makeHoldCopyStrum_sample(note:ZSprite, strumTime:Float, direction:Int, strumLine:Strumline, notePos:Float, isArrowPath:Bool = false,
+      graphicWidth:Float = 0):Float
   {
     // var notePos:Float = 0.0;
 
@@ -577,7 +578,7 @@ class ModHandler
     }
 
     // note.x = FlxG.width /2;
-    note.x = whichStrumNote.x + getHoldOffsetX(isArrowPath);
+    note.x = whichStrumNote.x + getHoldOffsetX(isArrowPath, graphicWidth);
     var sillyPos:Float = strumLine.calculateNoteYPos(strumTime, true) * scrollMult;
 
     var note_heighht:Float = 0.0;

@@ -332,7 +332,7 @@ class SustainTrail extends ZSprite
     }
     noteModData.speedMod = scrollMult;
 
-    noteModData.x = noteModData.whichStrumNote.x + parentStrumline.mods.getHoldOffsetX(isArrowPath);
+    noteModData.x = noteModData.whichStrumNote.x + parentStrumline.mods.getHoldOffsetX(isArrowPath, graphicWidth);
     var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime, true) * scrollMult;
     if (Preferences.downscroll)
     {

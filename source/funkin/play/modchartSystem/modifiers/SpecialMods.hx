@@ -182,7 +182,9 @@ class BangarangMod extends Modifier
 
     var speed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
 
-    var fYOffset = -data.curPos / speed;
+    var curpos:Float = data.curPos * (Preferences.downscroll ? 1 : -1);
+
+    var fYOffset = -curpos / speed;
     var fEffectHeight = FlxG.height;
     var fScale = FlxMath.remapToRange(fYOffset, 0, fEffectHeight, 0, 1); // scale
     var fNewYOffset = fYOffset * fScale;
@@ -190,7 +192,7 @@ class BangarangMod extends Modifier
     fBrakeYAdjust = FlxMath.bound(fBrakeYAdjust, -400, 400); // clamp
 
     yOffset -= fBrakeYAdjust * speed;
-    data.y -= data.curPos + yOffset;
+    data.y -= curpos + yOffset;
   }
 }
 
