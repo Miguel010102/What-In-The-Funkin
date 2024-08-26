@@ -488,7 +488,7 @@ class Strumline extends FlxSpriteGroup
     {
       if (splash.alive)
       {
-        ModConstants.applyPerspective(splash);
+        ModConstants.applyPerspective(splash, splash.width / 2.2, splash.height / 2.2);
       }
     }
   }
@@ -1422,12 +1422,17 @@ class Strumline extends FlxSpriteGroup
 
   function noteSplashSetPos(splash:NoteSplash, direction:Int):Void
   {
+    // var funny:Float = (FlxMath.fastSin(conductorInUse.songPosition / 1000) + 1) * 0.5;
+
     // var whichStrumNote = strumlineNotes.group.members[direction % KEY_COUNT];
     var whichStrumNote:StrumlineNote = getByIndex(direction % KEY_COUNT);
     splash.x = whichStrumNote.x;
     splash.y = whichStrumNote.y;
+    splash.x += 26;
+    splash.y += 17;
     splash.z = whichStrumNote.z; // copy Z!
-    splash.scale.set(1.0, 1.0);
+    // splash.scale.set(funny, funny);
+    splash.scale.set(1, 1);
 
     var ay:Float = whichStrumNote.alpha;
     ay -= whichStrumNote.strumExtraModData.alphaSplashMod;

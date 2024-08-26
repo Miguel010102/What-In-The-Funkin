@@ -537,7 +537,7 @@ class HazardModLuaTest
       return retVal;
     });
 
-    Lua_helper.add_callback(lua, "createSprite", function(tag:String, imagePath:String,) {
+    Lua_helper.add_callback(lua, "createSprite", function(tag:String, imagePath:String) {
       var newSpr:FlxSprite = new FlxSprite(0, 0);
       newSpr.loadGraphic(Paths.image(imagePath));
       newSpr.scrollFactor.set();
@@ -766,6 +766,23 @@ class HScript
 
     interp.variables.set('getBlendMode', function(b:String):BlendMode {
       return ModConstants.blendModeFromString(b);
+    });
+
+    interp.variables.set('textBorderStyle', function(b:String) {
+      switch (b.toLowerCase())
+      {
+        case "shadow":
+          return FlxTextBorderStyle.SHADOW;
+        case "none":
+          return FlxTextBorderStyle.NONE;
+        case "outline_fast":
+          return FlxTextBorderStyle.OUTLINE_FAST;
+        case "outline":
+          return FlxTextBorderStyle.OUTLINE;
+
+        default:
+          return FlxTextBorderStyle.NONE;
+      }
     });
 
     interp.variables.set('createSprGroup', function(variableTag:String, addToGame:Bool = true) {

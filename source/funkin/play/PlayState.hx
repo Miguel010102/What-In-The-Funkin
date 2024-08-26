@@ -1303,7 +1303,7 @@ class PlayState extends MusicBeatSubState
     updateHazModchartSystem(elapsed);
 
     // Handle keybinds.
-    processInputQueue();
+    if (!disableInputQueueProcessing) processInputQueue();
     if (!isInCutscene && !disableKeys) debugKeyShit();
     if (isInCutscene && !disableKeys) handleCutsceneKeys(elapsed);
 
@@ -1312,6 +1312,8 @@ class PlayState extends MusicBeatSubState
 
     justUnpaused = false;
   }
+
+  var disableInputQueueProcessing:Bool = false;
 
   function moveToGameOver():Void
   {
@@ -2107,9 +2109,12 @@ class PlayState extends MusicBeatSubState
     for (key in customLuaSprites.keys())
     {
       var spr = customLuaSprites.get(key);
-      remove(spr);
-      spr.destroy();
-      customLuaSprites.remove(key);
+      if (spr != null)
+      {
+        remove(spr);
+        spr.destroy();
+        customLuaSprites.remove(key);
+      }
     }
   }
 
@@ -3173,7 +3178,11 @@ class PlayState extends MusicBeatSubState
     {
       if (!customStrummer.isPlayer) continue; // is bot controlled... NEXT!
       // Generate a list of notes within range.
-      var notesInRange:Array<NoteSprite> = customStrummer.getNotesMayHit();
+      // var notesInRange:Array<NoteSprite> = customStrummer.getNotesMayHit();
+
+      // Shoutouts to https://gamebanana.com/mods/519072 (burgerballs9's funny inputs mod) for the input system fix!
+      // All it does is orders the array to prioritise notes based on their strum time so early notes get priority.
+      var notesInRange:Array<NoteSprite> = Arrays.order(customStrummer.getNotesMayHit(), (a, b) -> return byValues(-1, a.strumTime, b.strumTime));
       var holdNotesInRange:Array<SustainTrail> = customStrummer.getHoldNotesHitOrMissed();
 
       var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
@@ -3183,7 +3192,7 @@ class PlayState extends MusicBeatSubState
 
       for (i in 0...inputPressQueue.length)
       {
-        var input:PreciseInputEvent = inputPressQueue[0]; // return first input but don't pop it!
+        var input:PreciseInputEvent = inputPressQueue[i]; // return first input but don't pop it!
 
         customStrummer.pressKey(input.noteDirection);
 
@@ -3225,32 +3234,7 @@ class PlayState extends MusicBeatSubState
 
           notesInDirection.remove(targetNote);
 
-          // all this shit, just to figure out if the note was a combo break note (to be removed or to be desaturated?)
-          var inputLatencyNs:Int64 = PreciseInputManager.getCurrentTimestamp() - input.timestamp;
-          var inputLatencyMs:Float = inputLatencyNs.toFloat() / Constants.NS_PER_MS;
-          var noteDiff:Int = Std.int(Conductor.instance.songPosition - targetNote.noteData.time - inputLatencyMs);
-
-          var daRating = Scoring.judgeNote(noteDiff, PBOT1);
-          var isComboBreak = false;
-          switch (daRating)
-          {
-            case 'sick':
-              isComboBreak = Constants.JUDGEMENT_SICK_COMBO_BREAK;
-            case 'good':
-              isComboBreak = Constants.JUDGEMENT_GOOD_COMBO_BREAK;
-            case 'bad':
-              isComboBreak = Constants.JUDGEMENT_BAD_COMBO_BREAK;
-            case 'shit':
-              isComboBreak = Constants.JUDGEMENT_SHIT_COMBO_BREAK;
-            default:
-              FlxG.log.error('Wuh? Buh? Guh? Note hit judgement was $daRating!');
-          }
-          customStrummer.hitNote(targetNote, !isComboBreak);
-
-          if (targetNote.isHoldNote && targetNote.holdNoteSprite != null)
-          {
-            customStrummer.playNoteHoldCover(targetNote.holdNoteSprite);
-          }
+          goodNoteCustom(targetNote, customStrummer, input);
 
           // Play the strumline animation.
           customStrummer.playConfirm(input.noteDirection);
@@ -3259,12 +3243,58 @@ class PlayState extends MusicBeatSubState
 
       for (i in 0...inputReleaseQueue.length)
       {
-        var input:PreciseInputEvent = inputReleaseQueue[0];
+        var input:PreciseInputEvent = inputReleaseQueue[i];
 
         // Play the strumline animation.
         customStrummer.playStatic(input.noteDirection);
         customStrummer.releaseKey(input.noteDirection);
       }
+    }
+  }
+
+  function byValues(Order:Int, Value1:Float, Value2:Float):Int
+  {
+    var result:Int = 0;
+
+    if (Value1 < Value2)
+    {
+      result = Order;
+    }
+    else if (Value1 > Value2)
+    {
+      result = -Order;
+    }
+
+    return result;
+  }
+
+  public function goodNoteCustom(targetNote:NoteSprite, customStrummer:Strumline, input:PreciseInputEvent):Void
+  {
+    // all this shit, just to figure out if the note was a combo break note (to be removed or to be desaturated?)
+    var inputLatencyNs:Int64 = PreciseInputManager.getCurrentTimestamp() - input.timestamp;
+    var inputLatencyMs:Float = inputLatencyNs.toFloat() / Constants.NS_PER_MS;
+    var noteDiff:Int = Std.int(Conductor.instance.songPosition - targetNote.noteData.time - inputLatencyMs);
+
+    var daRating = Scoring.judgeNote(noteDiff, PBOT1);
+    var isComboBreak = false;
+    switch (daRating)
+    {
+      case 'sick':
+        isComboBreak = Constants.JUDGEMENT_SICK_COMBO_BREAK;
+      case 'good':
+        isComboBreak = Constants.JUDGEMENT_GOOD_COMBO_BREAK;
+      case 'bad':
+        isComboBreak = Constants.JUDGEMENT_BAD_COMBO_BREAK;
+      case 'shit':
+        isComboBreak = Constants.JUDGEMENT_SHIT_COMBO_BREAK;
+      default:
+        FlxG.log.error('Wuh? Buh? Guh? Note hit judgement was $daRating!');
+    }
+    customStrummer.hitNote(targetNote, !isComboBreak);
+
+    if (targetNote.isHoldNote && targetNote.holdNoteSprite != null)
+    {
+      customStrummer.playNoteHoldCover(targetNote.holdNoteSprite);
     }
   }
 
@@ -3290,7 +3320,8 @@ class PlayState extends MusicBeatSubState
     }
 
     // Generate a list of notes within range.
-    var notesInRange:Array<NoteSprite> = playerStrumline.getNotesMayHit();
+    // var notesInRange:Array<NoteSprite> = playerStrumline.getNotesMayHit();
+    var notesInRange:Array<NoteSprite> = Arrays.order(playerStrumline.getNotesMayHit(), (a, b) -> return byValues(-1, a.strumTime, b.strumTime));
     var holdNotesInRange:Array<SustainTrail> = playerStrumline.getHoldNotesHitOrMissed();
 
     var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];

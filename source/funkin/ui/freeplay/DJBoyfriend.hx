@@ -178,7 +178,7 @@ class DJBoyfriend extends FlxAtlasSprite
         currentState = Idle;
         onIntroDone.dispatch();
       case "Boyfriend DJ":
-      // trace('Finished idle');
+        // trace('Finished idle');
       case "bf dj afk":
         // trace('Finished spook');
         currentState = Idle;
