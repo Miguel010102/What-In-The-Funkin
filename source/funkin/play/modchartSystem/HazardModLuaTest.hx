@@ -752,6 +752,7 @@ class HScript
 
     interp.variables.set('Preferences', Preferences);
     interp.variables.set('downScroll', Preferences.downscroll);
+    interp.variables.set('upScroll', !Preferences.downscroll);
 
     interp.variables.set("FlxTypedSpriteGroup", Type.resolveClass("flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup"));
 

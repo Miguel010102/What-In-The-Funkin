@@ -2225,6 +2225,11 @@ class PlayState extends MusicBeatSubState
     // IF WE ARE RELOADING THIS MIDSONG!
     if (playerStrumline != null && modchartEventHandler != null)
     {
+      // for (lua in luaArray)
+      // {
+      //  lua.call('setUp', []);
+      // }
+
       modchartEventHandler.clearEvents();
       for (lua in luaArray)
       {
@@ -2241,7 +2246,7 @@ class PlayState extends MusicBeatSubState
 
       for (strumLine in allStrumLines)
       {
-        if (!strumLine.isPlayer)
+        if (!strumLine.isActuallyPlayerStrum)
         {
           strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
         }
@@ -2404,7 +2409,7 @@ class PlayState extends MusicBeatSubState
 
       for (strumLine in allStrumLines)
       {
-        if (!strumLine.isPlayer)
+        if (!strumLine.isActuallyPlayerStrum)
         {
           strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
         }

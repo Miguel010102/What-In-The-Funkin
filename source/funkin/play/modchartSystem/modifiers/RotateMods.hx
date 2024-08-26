@@ -26,7 +26,7 @@ class RotateXModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (currentValue == 0) return; // skip math if mod is 0
+    if (currentValue % 360 == 0) return; // skip math if mod is 0
     // this is dumb lmfao
     var xrot:Float = (FlxMath.fastSin(currentValue * Math.PI / 180));
     var yrot:Float = (FlxMath.fastCos(currentValue * Math.PI / 180));
@@ -118,8 +118,7 @@ class RotateYMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    currentValue = currentValue % 360;
-    if (currentValue == 0) return; // skip math if mod is 0
+    if (currentValue % 360 == 0) return; // skip math if mod is 0
     // this is dumb lmfao
     var xrot:Float = (FlxMath.fastSin(currentValue * Math.PI / 180.0));
     var yrot:Float = (FlxMath.fastCos(currentValue * Math.PI / 180.0));
@@ -194,8 +193,7 @@ class RotateZMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    currentValue = currentValue % 360;
-    if (currentValue == 0) return; // skip math if mod is 0
+    if (currentValue % 360 == 0) return; // skip math if mod is 0
     // this is dumb lmfao
     // var xrot = currentValue ;// *(Math.PI / 180);
     var xrot:Float = (FlxMath.fastSin(currentValue * Math.PI / 180.0));
