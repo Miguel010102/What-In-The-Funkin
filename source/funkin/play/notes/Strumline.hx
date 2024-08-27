@@ -125,21 +125,20 @@ class Strumline extends FlxSpriteGroup
 
   public function requestNoteMeshCreation():Void
   {
-    if (createdNoteMeshes == false)
+    if (createdNoteMeshes) return;
+
+    for (note in notes.members)
     {
-      for (note in notes.members)
-      {
-        note.setupMesh();
-      }
-      for (note in notesVwoosh.members)
-      {
-        note.setupMesh();
-      }
-      strumlineNotes.forEach(function(note:StrumlineNote) {
-        note.setupMesh();
-      });
-      createdNoteMeshes = true;
+      note.setupMesh();
     }
+    for (note in notesVwoosh.members)
+    {
+      note.setupMesh();
+    }
+    strumlineNotes.forEach(function(note:StrumlineNote) {
+      note.setupMesh();
+    });
+    createdNoteMeshes = true;
   }
 
   public var arrowPaths:FlxTypedSpriteGroup<SustainTrail>;

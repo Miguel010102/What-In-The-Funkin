@@ -84,7 +84,7 @@ class StrumlineNote extends ZSprite
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    if (this.alpha < 0 || !this.visible || !this.alive)
+    if (this.alpha <= 0 || !this.visible || !this.alive)
     {
       return;
     }
