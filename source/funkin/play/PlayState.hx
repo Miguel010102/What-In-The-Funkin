@@ -82,6 +82,7 @@ import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.util.FlxSort;
 import funkin.play.notes.StrumlineNote;
+import funkin.graphics.ZProjectSprite_Note;
 
 class TimeVector extends Vector4
 {
@@ -4003,6 +4004,9 @@ class PlayState extends MusicBeatSubState
     clearOutCustomLuaSprites();
     if (allStrumSprites != null) allStrumSprites.clear();
     if (customZspritesGroup != null) customZspritesGroup.clear();
+
+    // clear graphicCache for 3D render mode
+    ZProjectSprite_Note.clearOutCache();
 
     for (lua in luaArray)
     {

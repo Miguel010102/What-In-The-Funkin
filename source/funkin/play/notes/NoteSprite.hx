@@ -10,6 +10,7 @@ import funkin.graphics.ZProjectSprite_Note;
 import flixel.graphics.frames.FlxFrame;
 import funkin.graphics.ZSprite;
 import flixel.FlxBasic;
+import flixel.graphics.FlxGraphic;
 
 class NoteSprite extends ZSprite
 {
@@ -175,44 +176,14 @@ class NoteSprite extends ZSprite
 
       mesh.updateTris();
 
-      mesh.drawManual();
+      mesh.drawManual(this.graphic, noteStyleName);
     }
     else
     {
       super.draw();
-      // this.draw_regular();
     }
   }
 
-  /*
-    // copy and pasted from FlxSprite XD
-    public function draw_regular():Void
-    {
-      checkEmptyFrame();
-
-      if (alpha == 0 || _frame.type == FlxFrameType.EMPTY) return;
-
-      if (dirty) // rarely
-        calcFrame(useFramePixels);
-
-      for (camera in cameras)
-      {
-        if (!camera.visible || !camera.exists || !isOnScreen(camera)) continue;
-
-        if (isSimpleRender(camera)) drawSimple(camera);
-        else
-          drawComplex(camera);
-
-        #if FLX_DEBUG
-        FlxBasic.visibleCount++;
-        #end
-      }
-
-      #if FLX_DEBUG
-      if (FlxG.debugger.drawDebug) drawDebug();
-      #end
-    }
-   */
   // for identifying what noteStyle this notesprite is using in hxScript or even lua
   public var noteStyleName:String = "funkin";
 

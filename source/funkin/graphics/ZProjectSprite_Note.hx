@@ -289,20 +289,69 @@ class ZProjectSprite_Note extends FlxSprite
     return; // do nothing lmfao, moved to drawManual just to be safe cuz idk if it will double draw or not (I doubt but, you never know with Flixel)
   }
 
-  public function drawManual():Void
+  public var debugTesting:Bool = false;
+
+  // public var graphicAnimMap:Map<String, FlxGraphic> = new Map<String, FlxGraphic>();
+  public static var graphicCache3D:Map<String, FlxGraphic> = new Map<String, FlxGraphic>();
+
+  public function drawManual(graphicToUse:FlxGraphic = null, noteStyleName:String = ""):Void
   {
-    if (culled || alpha < 0 || vertices == null || indices == null || processedGraphic == null || uvtData == null || _point == null || offset == null)
+    if (graphicToUse == null) graphicToUse = processedGraphic;
+
+    if (culled || alpha < 0 || vertices == null || indices == null || graphicToUse == null || uvtData == null || _point == null || offset == null)
     {
       return;
     }
 
-    if (spriteGraphic != null)
+    if (graphicToUse == null && false)
     {
-      spriteGraphic.update(FlxG.elapsed);
-      spriteGraphic.updateFramePixels();
+      if (spriteGraphic != null)
+      {
+        spriteGraphic.update(FlxG.elapsed);
+        spriteGraphic.updateFramePixels();
+      }
+    }
+    else
+    {
+      if (spriteGraphic != null)
+      {
+        // var animFrameName:String = "ligma";
+
+        // var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName + (spriteGraphic.flipX ? " - flipX" : "")
+        //  + (spriteGraphic.flipY ? " - flipY" : "");
+
+        var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName;
+
+        // check to see if we have this frame of animation saved
+        if (ZProjectSprite_Note.graphicCache3D.exists(animFrameName))
+        {
+          graphicToUse = ZProjectSprite_Note.graphicCache3D.get(animFrameName);
+          // if (debugTesting) trace("got: " + animFrameName);
+        }
+        else
+        {
+          // TODO: MAKE IT SO IT AUTOMATICALLY PRECACHES ALL THE ANIMATION FRAMES BEFORE THE SONG STARTS TO AVOID MID-SONG LAGSPIKES AS IT CACHES NEW ANIMATIONS!
+
+          // if (debugTesting)
+          trace("New frame for: " + animFrameName);
+          // if not, we create it and add it to the map.
+          spriteGraphic.updateFramePixels();
+          graphicToUse = FlxGraphic.fromBitmapData(spriteGraphic.framePixels, true, animFrameName);
+          // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
+
+          ZProjectSprite_Note.graphicCache3D.set(animFrameName, graphicToUse);
+        }
+        // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
+        // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, spriteGraphic.colorTransform);
+
+        //  var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
+
+        // if (debugTesting)
+        // trace("map: " + graphicCache3D);
+      }
     }
 
-    if (alpha < 0 || processedGraphic == null || _point == null || offset == null)
+    if (alpha < 0 || graphicToUse == null || _point == null || offset == null)
     {
       return;
     }
@@ -316,7 +365,7 @@ class ZProjectSprite_Note extends FlxSprite
 
       // getScreenPosition(_point, camera).subtractPoint(offset);
       getScreenPosition(_point, camera);
-      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform,
+      camera.drawTriangles(graphicToUse, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.colorTransform ?? colorTransform,
         spriteGraphic?.shader ?? null, cullMode);
       // camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
     }
@@ -324,6 +373,12 @@ class ZProjectSprite_Note extends FlxSprite
     #if FLX_DEBUG
     if (FlxG.debugger.drawDebug) drawDebug();
     #end
+  }
+
+  public static function clearOutCache():Void
+  {
+    ZProjectSprite_Note.graphicCache3D = new Map<String, FlxGraphic>();
+    trace("3D animation graphics cache cleared!");
   }
 
   override public function destroy():Void
@@ -347,8 +402,15 @@ class ZProjectSprite_Note extends FlxSprite
   override function updateColorTransform():Void
   {
     super.updateColorTransform();
+
+    if (originalWidthHeight == null && spriteGraphic != null)
+    {
+      originalWidthHeight = new Vector2(spriteGraphic.frameWidth, spriteGraphic.frameHeight);
+    }
+
     // Clear old graphic
     if (processedGraphic != null) processedGraphic.destroy();
+    return;
 
     if (spriteGraphic != null)
     {
@@ -479,8 +541,8 @@ class ZProjectSprite_Note extends FlxSprite
     }
     catch (e)
     {
-      return pos;
       trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+      return pos;
     }
   }
 }

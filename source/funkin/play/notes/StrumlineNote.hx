@@ -46,6 +46,9 @@ class StrumlineNote extends ZSprite
     return this.direction;
   }
 
+  // for identifying what noteStyle this notesprite is using in hxScript or even lua
+  public var noteStyleName:String = "funkin";
+
   public function new(noteStyle:NoteStyle, isPlayer:Bool, direction:NoteDirection)
   {
     super(0, 0);
@@ -54,6 +57,7 @@ class StrumlineNote extends ZSprite
 
     this.direction = direction;
 
+    noteStyleName = noteStyle.id;
     setup(noteStyle);
 
     this.animation.callback = onAnimationFrame;
@@ -111,45 +115,14 @@ class StrumlineNote extends ZSprite
 
       mesh.updateTris();
 
-      mesh.drawManual();
+      mesh.drawManual(this.graphic, noteStyleName);
     }
     else
     {
       super.draw();
-      // this.draw_regular();
     }
   }
 
-  // copy and pasted from FlxSprite XD
-  /*
-    @:access(flixel.FlxCamera)
-    public function draw_regular():Void
-    {
-      checkEmptyFrame();
-
-      if (alpha == 0 || _frame.type == FlxFrameType.EMPTY) return;
-
-      if (dirty) // rarely
-        calcFrame(useFramePixels);
-
-      for (camera in cameras)
-      {
-        if (!camera.visible || !camera.exists || !isOnScreen(camera)) continue;
-
-        if (isSimpleRender(camera)) drawSimple(camera);
-        else
-          drawComplex(camera);
-
-        #if FLX_DEBUG
-        FlxBasic.visibleCount++;
-        #end
-      }
-
-      #if FLX_DEBUG
-      if (FlxG.debugger.drawDebug) drawDebug();
-      #end
-    }
-   */
   // call this to reset stealthGlow back to default values
   public function resetStealthGlow(skipUpdate:Bool = false):Void
   {

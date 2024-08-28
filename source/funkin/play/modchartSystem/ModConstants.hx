@@ -608,8 +608,8 @@ class ModConstants
     }
     catch (e)
     {
-      return pos;
       trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+      return pos;
     }
   }
 
@@ -682,8 +682,8 @@ class ModConstants
     }
     catch (e)
     {
-      return pos;
       trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+      return pos;
     }
   }
 
