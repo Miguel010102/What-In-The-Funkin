@@ -29,7 +29,17 @@ class DebugNotification extends FlxText
 
     timer = new FlxTimer().start(5 + 0.25, function(tmr) {
       if (alphaTween != null) alphaTween.cancel();
-      alphaTween = FlxTween.tween(this, {alpha: 0}, 1, {ease: FlxEase.linear});
+      // alphaTween = FlxTween.tween(this, {alpha: 0}, 1, {ease: FlxEase.linear});
+
+      alphaTween = FlxTween.tween(this, {alpha: 0}, 1,
+        {
+          ease: FlxEase.linear,
+          onComplete: function(_) {
+            alphaTween = null;
+            this.kill(); // KILL YOURSELF
+          }
+        });
+
       timer = null;
     });
   }

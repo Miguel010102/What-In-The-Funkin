@@ -794,6 +794,20 @@ class PlayState extends MusicBeatSubState
     }
   }
 
+  // Kills every active debug Notification. Does not destroy!
+  public function clearDebugNotifications():Void
+  {
+    for (pastNotif in debugNotifs.members)
+    {
+      pastNotif.kill();
+    }
+  }
+
+  public function debugNotification(txtToShow:String = "", color:FlxColor = FlxColor.WHITE):Void
+  {
+    modDebugNotif(txtToShow, color);
+  }
+
   function updateHazModchartSystem(elapsed:Float):Void
   {
     if (isModchartSong)
@@ -3659,8 +3673,12 @@ class PlayState extends MusicBeatSubState
     // 9: Toggle the old icon.
     if (FlxG.keys.justPressed.NINE) iconP1.toggleOldIcon();
 
-    // 8:
-    if (FlxG.keys.justPressed.EIGHT) scanForModchart();
+    // 8: RELOAD MODCHART
+    if (FlxG.keys.justPressed.EIGHT)
+    {
+      clearDebugNotifications();
+      scanForModchart();
+    }
 
     #if (debug || FORCE_DEBUG_VERSION)
     // PAGEUP: Skip forward two sections.
