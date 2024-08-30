@@ -1149,7 +1149,7 @@ class SustainTrail extends ZSprite
     handledMiss = false;
   }
 
-  override public function destroy():Void
+  public override function destroy():Void
   {
     vertices = null;
     indices = null;

@@ -83,6 +83,7 @@ import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.util.FlxSort;
 import funkin.play.notes.StrumlineNote;
 import funkin.graphics.ZProjectSprite_Note;
+import funkin.play.modchartSystem.DebugNotification;
 
 class TimeVector extends Vector4
 {
@@ -640,9 +641,6 @@ class PlayState extends MusicBeatSubState
     modchartTweenList.screenCenter();
   }
 
-  // public var modDebugHelperTXT:FlxText;
-  public var modDebugNotificationTXT:FlxText;
-
   function setUpModTXT():Void
   {
     if (modchartTweenList != null) return; // We already have it created!
@@ -653,14 +651,6 @@ class PlayState extends MusicBeatSubState
     modchartTweenList.zIndex = 927;
     add(modchartTweenList);
     modchartTweenList.cameras = [camHUD];
-
-    modDebugNotificationTXT = new FlxText(0, 0, FlxG.width / 4, '', 20);
-    modDebugNotificationTXT.setFormat(Paths.font('vcr.ttf'), 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-    modDebugNotificationTXT.scrollFactor.set();
-    modDebugNotificationTXT.zIndex = 928;
-    add(modDebugNotificationTXT);
-    modDebugNotificationTXT.cameras = [camHUD];
-    modDebugNotificationTXT.alpha = 0;
   }
 
   public var modchartEventHandler:ModEventHandler;
@@ -690,6 +680,20 @@ class PlayState extends MusicBeatSubState
   {
     // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
     return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+  }
+
+  function compareZSprites_playfields(order:Int, a:ZSprite, b:ZSprite):Int
+  {
+    if (Std.isOfType(a, SustainTrail))
+    {
+      // sustain always goes behind!
+      return 0;
+    }
+    else
+    {
+      // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
+      return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+    }
   }
 
   /*
@@ -738,26 +742,56 @@ class PlayState extends MusicBeatSubState
     return v;
   }
 
+  function compareByAge(order:Int, a:DebugNotification, b:DebugNotification):Int
+  {
+    return FlxSort.byValues(order, a?.age, b?.age);
+  }
+
+  public var debugNotifs:FlxTypedSpriteGroup<DebugNotification>;
+
+  // Call this to display a notification in the corner of the screen!
   public function modDebugNotif(txtToShow:String = "", color:FlxColor = FlxColor.WHITE):Void
   {
-    if (modDebugNotifTween != null) modDebugNotifTween.cancel();
-    if (modDebugNotifTimer != null) modDebugNotifTimer.cancel();
-
+    if (debugNotifs == null)
+    {
+      debugNotifs = new FlxTypedSpriteGroup<DebugNotification>();
+      add(debugNotifs);
+      debugNotifs.cameras = [camHUD];
+    }
     trace("\n" + txtToShow);
 
-    modDebugNotificationTXT.color = color;
+    if (debugNotifs.members.length > 1)
+    {
+      debugNotifs.members.insertionSort(compareByAge.bind(FlxSort.ASCENDING));
+    }
 
-    modDebugNotificationTXT.alpha = 0;
-    modDebugNotificationTXT.text = txtToShow;
-    modDebugNotificationTXT.x = 4;
-    modDebugNotificationTXT.y = FlxG.height - modDebugNotificationTXT.height;
+    var result:DebugNotification = null;
+    // Else, find a note which is inactive so we can revive it.
+    result = debugNotifs.getFirstAvailable();
 
-    modDebugNotifTween = FlxTween.tween(modDebugNotificationTXT, {alpha: 1}, 0.25, {ease: FlxEase.linear});
-    modDebugNotifTimer = new FlxTimer().start(5 + 0.25, function(tmr) {
-      if (modDebugNotifTween != null) modDebugNotifTween.cancel();
-      modDebugNotifTween = FlxTween.tween(modDebugNotificationTXT, {alpha: 0}, 1, {ease: FlxEase.linear});
-      modDebugNotifTimer = null;
-    });
+    if (result != null)
+    {
+      // Revive and reuse the text.
+      result.revive();
+    }
+    else
+    {
+      // The note sprite pool is full and all note splashes are active.
+      // We have to create a new note.
+      result = new DebugNotification();
+      debugNotifs.add(result);
+    }
+    result.x = 4;
+    result.displayText(txtToShow, color);
+    result.y = FlxG.height - result.height;
+
+    for (pastNotif in debugNotifs.members)
+    {
+      if (pastNotif.alive && pastNotif != result)
+      {
+        pastNotif.y -= result.height;
+      }
+    }
   }
 
   function updateHazModchartSystem(elapsed:Float):Void
@@ -767,7 +801,8 @@ class PlayState extends MusicBeatSubState
       modchartEventHandler.update(elapsed);
       updateTweenList();
 
-      if (allStrumSprites.members.length > 1 && allStrumSprites.visible) allStrumSprites.members.insertionSort(compareZSprites.bind(FlxSort.ASCENDING));
+      if (allStrumSprites.members.length > 1 && allStrumSprites.visible)
+        allStrumSprites.members.insertionSort(compareZSprites_playfields.bind(FlxSort.ASCENDING));
 
       if (customZspritesGroup.members.length > 1 && customZspritesGroup.visible)
       {
@@ -4004,6 +4039,11 @@ class PlayState extends MusicBeatSubState
     clearOutCustomLuaSprites();
     if (allStrumSprites != null) allStrumSprites.clear();
     if (customZspritesGroup != null) customZspritesGroup.clear();
+
+    for (pastNotif in debugNotifs.members)
+    {
+      pastNotif.destroy();
+    }
 
     // clear graphicCache for 3D render mode
     ZProjectSprite_Note.clearOutCache();
