@@ -798,9 +798,12 @@ class PlayState extends MusicBeatSubState
   // Kills every active debug Notification. Does not destroy!
   public function clearDebugNotifications():Void
   {
-    for (pastNotif in debugNotifs.members)
+    if (debugNotifs != null)
     {
-      pastNotif.kill();
+      for (pastNotif in debugNotifs.members)
+      {
+        pastNotif.kill();
+      }
     }
   }
 
@@ -4059,9 +4062,12 @@ class PlayState extends MusicBeatSubState
     if (allStrumSprites != null) allStrumSprites.clear();
     if (customZspritesGroup != null) customZspritesGroup.clear();
 
-    for (pastNotif in debugNotifs.members)
+    if (debugNotifs != null)
     {
-      pastNotif.destroy();
+      for (pastNotif in debugNotifs.members)
+      {
+        pastNotif.destroy();
+      }
     }
 
     // clear graphicCache for 3D render mode
