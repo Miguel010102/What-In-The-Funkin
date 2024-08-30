@@ -20,18 +20,19 @@ class DebugNotification extends FlxText
   }
 
   // Call this function to trigger the process of showing and hiding the debug notification text!
-  public function displayText(txtToShow:String = "", color:FlxColor = FlxColor.WHITE):Void
+  public function displayText(txtToShow:String = "", color:FlxColor = FlxColor.WHITE, howManySeconds:Float = 5, fadeInSeconds:Float = 0.25,
+      fadeOutSeconds:Float = 1):Void
   {
     this.text = txtToShow;
     this.color = color;
 
-    alphaTween = FlxTween.tween(this, {alpha: 1}, 0.25, {ease: FlxEase.linear});
+    alphaTween = FlxTween.tween(this, {alpha: 1}, fadeInSeconds, {ease: FlxEase.linear});
 
-    timer = new FlxTimer().start(5 + 0.25, function(tmr) {
+    timer = new FlxTimer().start(howManySeconds + fadeInSeconds, function(tmr) {
       if (alphaTween != null) alphaTween.cancel();
       // alphaTween = FlxTween.tween(this, {alpha: 0}, 1, {ease: FlxEase.linear});
 
-      alphaTween = FlxTween.tween(this, {alpha: 0}, 1,
+      alphaTween = FlxTween.tween(this, {alpha: 0}, fadeOutSeconds,
         {
           ease: FlxEase.linear,
           onComplete: function(_) {

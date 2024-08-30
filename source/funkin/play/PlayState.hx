@@ -750,7 +750,8 @@ class PlayState extends MusicBeatSubState
   public var debugNotifs:FlxTypedSpriteGroup<DebugNotification>;
 
   // Call this to display a notification in the corner of the screen!
-  public function modDebugNotif(txtToShow:String = "", color:FlxColor = FlxColor.WHITE):Void
+  public function modDebugNotif(txtToShow:String = "", ?color:FlxColor = FlxColor.WHITE, ?howManySeconds:Float = 5, ?fadeInSeconds:Float = 0.25,
+      ?fadeOutSeconds:Float = 1):Void
   {
     if (debugNotifs == null)
     {
@@ -782,7 +783,7 @@ class PlayState extends MusicBeatSubState
       debugNotifs.add(result);
     }
     result.x = 4;
-    result.displayText(txtToShow, color);
+    result.displayText(txtToShow, color, howManySeconds, fadeInSeconds, fadeOutSeconds);
     result.y = FlxG.height - result.height;
 
     for (pastNotif in debugNotifs.members)
