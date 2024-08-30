@@ -3,7 +3,7 @@
 
 A modified fork of the latest version of FNF which allows the player to create and play modcharts in a very similar method to modcharting in NotITG with Mirin Template.
 
-
+Note: If you're trying to compile the code yourself, you might need to grab the arrowpath image from a stable release to put into the assets folder (cuz idk how to modify assets folder here lol)
 
 
 
