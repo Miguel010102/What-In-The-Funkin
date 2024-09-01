@@ -831,7 +831,15 @@ class PlayState extends MusicBeatSubState
 
     for (fun in perframeFunctions)
     {
-      fun(elapsed);
+      try
+      {
+        fun(elapsed);
+      }
+      catch (e)
+      {
+        trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+        return;
+      }
     }
   }
 

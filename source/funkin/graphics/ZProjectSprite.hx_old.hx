@@ -18,9 +18,6 @@ import flixel.graphics.tile.FlxDrawTrianglesItem;
 import flixel.math.FlxMath;
 import funkin.play.modchartSystem.ModConstants;
 import funkin.graphics.ZSprite;
-import openfl.display.TriangleCulling;
-import openfl.geom.Vector3D;
-import flixel.util.FlxColor;
 
 class ZProjectSprite extends ZSprite
 {
@@ -38,17 +35,11 @@ class ZProjectSprite extends ZSprite
     return spriteGraphic;
   }
 
-  public var originalWidthHeight:Vector2;
   public var projectionEnabled:Bool = true;
-  public var autoOffset:Bool = false;
 
   public var angleX:Float = 0;
   public var angleY:Float = 0;
   public var angleZ:Float = 0;
-
-  public var scaleX:Float = 1;
-  public var scaleY:Float = 1;
-  public var scaleZ:Float = 1;
 
   public var skewX:Float = 0;
   public var skewY:Float = 0;
@@ -94,15 +85,15 @@ class ZProjectSprite extends ZSprite
 
   private var processedGraphic:FlxGraphic;
 
-  // custom setter to prevent values below 0, cuz otherwise we'll devide by 0!
-  public var subdivisions(default, set):Int = 2;
+  public var subdivisions:Int = 5;
 
-  function set_subdivisions(value:Int):Int
-  {
-    if (value < 0) value = 0;
-    subdivisions = value;
-    return subdivisions;
-  }
+  static final TRIANGLE_VERTEX_INDICES:Array<Int> = [
+    0, 5, 1, 5, 1, 6, 1, 6, 2, 6, 2, 7, 2, 7, 3, 7, 3, 8, 3, 8, 4, 8, 4, 9, 5, 10, 6, 10, 6, 11, 6, 11, 7, 11, 7, 12, 7, 12, 8, 12, 8, 13, 8, 13, 9, 13, 9,
+    14, 10, 15, 11, 15, 11, 16, 11, 16, 12, 16, 12, 17, 12, 17, 13, 17, 13, 18, 13, 18, 14, 18, 14, 19, 15, 20, 16, 20, 16, 21, 16, 21, 17, 21, 17, 22, 17,
+    22, 18, 22, 18, 23, 18, 23, 19, 23, 19, 24
+  ];
+
+  // static final TRIANGLE_VERTEX_INDICES:Array<Int> = [0, 2, 1, 1, 2, 3, 3, 2, 4, 4, 2, 0];
 
   public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset)
   {
@@ -112,51 +103,44 @@ class ZProjectSprite extends ZSprite
 
   public function setUp():Void
   {
-    this.x = 0;
-    this.y = 0;
-    this.z = 0;
-
-    if (spriteGraphic != null)
-    {
-      spriteGraphic.x = 0;
-      spriteGraphic.y = 0;
-    }
-
-    var nextRow:Int = (subdivisions + 1 + 1);
-
     this.active = true; // This NEEDS to be true for the note to be drawn!
     updateColorTransform();
     var noteIndices:Array<Int> = [];
-    for (x in 0...subdivisions + 1)
+    for (x in 0...subdivisions - 1)
     {
-      for (y in 0...subdivisions + 1)
+      for (y in 0...subdivisions - 1)
       {
-        // indices are created from top to bottom, going along the x axis each cycle.
-        var funny:Int = y + (x * nextRow);
+        var funny2:Int = x * (subdivisions);
+        var funny:Int = y + funny2;
         noteIndices.push(0 + funny);
-        noteIndices.push(nextRow + funny);
+        noteIndices.push(5 + funny);
         noteIndices.push(1 + funny);
 
-        noteIndices.push(nextRow + funny);
+        noteIndices.push(5 + funny);
         noteIndices.push(1 + funny);
-        noteIndices.push(nextRow + 1 + funny);
+        noteIndices.push(6 + funny);
       }
     }
+
+    // trace("\nindices: \n" + noteIndices);
+
+    // indices = new DrawData<Int>(12, true, TRIANGLE_VERTEX_INDICES);
     indices = new DrawData<Int>(noteIndices.length, true, noteIndices);
 
     // UV coordinates are normalized, so they range from 0 to 1.
     var i:Int = 0;
-    for (x in 0...subdivisions + 2) // x
+    for (x in 0...subdivisions) // x
     {
-      for (y in 0...subdivisions + 2) // y
+      for (y in 0...subdivisions) // y
       {
-        var xPercent:Float = x / (subdivisions + 1);
-        var yPercent:Float = y / (subdivisions + 1);
-        uvtData[i * 2] = xPercent;
-        uvtData[i * 2 + 1] = yPercent;
+        uvtData[i * 2] = (1 / (subdivisions - 1)) * x;
+        uvtData[i * 2 + 1] = (1 / (subdivisions - 1)) * y;
         i++;
       }
     }
+
+    // trace("\nuv: \n" + uvtData);
+
     updateTris();
   }
 
@@ -166,137 +150,42 @@ class ZProjectSprite extends ZSprite
     var h:Float = spriteGraphic?.frameHeight ?? frameHeight;
 
     var i:Int = 0;
-    for (x in 0...subdivisions + 2) // x
+    for (x in 0...subdivisions) // x
     {
-      for (y in 0...subdivisions + 2) // y
+      for (y in 0...subdivisions) // y
       {
-        var point2D:Vector2;
         var point3D:Vector3D = new Vector3D(0, 0, 0);
-        point3D.x = (w / (subdivisions + 1)) * x;
-        point3D.y = (h / (subdivisions + 1)) * y;
+        point3D.x = (w / (subdivisions - 1)) * x;
+        point3D.y = (h / (subdivisions - 1)) * y;
 
         // skew funny
-        var xPercent:Float = x / (subdivisions + 1);
-        var yPercent:Float = y / (subdivisions + 1);
-        // For some reason, we need a 0.5 offset for this???????????????????
-        var xPercent_SkewOffset:Float = xPercent - skewY_offset - 0.5;
-        var yPercent_SkewOffset:Float = yPercent - skewX_offset - 0.5;
+        var xPercent:Float = x / (subdivisions - 1);
+        var yPercent:Float = y / (subdivisions - 1);
+        xPercent -= skewY_offset;
+        yPercent -= skewX_offset;
+
         // Keep math the same as skewedsprite for parity reasons.
-        if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
-          point3D.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h;
-        if (skewY != 0) //
-          point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w;
-        if (skewZ != 0) //
-          point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h;
+        // point3D.x += yPercent * Math.tan(skewX * FlxAngle.TO_RAD) * frameHeight;
+        // point3D.y += xPercent * Math.tan(skewY * FlxAngle.TO_RAD) * frameWidth;
+        // point3D.z += yPercent * Math.tan(skewZ * FlxAngle.TO_RAD) * frameHeight;
 
-        // scale
-        var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);
-        point3D.x += (newWidth) * w;
-        newWidth = (scaleY - 1) * (yPercent - 0.5);
-        point3D.y += (newWidth) * h;
+        // _skewMatrix.b = Math.tan(skew.y * FlxAngle.TO_RAD);
+        // _skewMatrix.c = Math.tan(skew.x * FlxAngle.TO_RAD);
 
-        point2D = applyPerspective(point3D, xPercent, yPercent);
-
-        if (originalWidthHeight != null && autoOffset)
-        {
-          point2D.x += (originalWidthHeight.x - spriteGraphic.frameWidth) / 2;
-          point2D.y += (originalWidthHeight.y - spriteGraphic.frameHeight) / 2;
-        }
-
+        var point2D:Vector2 = applyPerspective(point3D);
         vertices[i * 2] = point2D.x;
         vertices[i * 2 + 1] = point2D.y;
         i++;
       }
     }
 
-    // if (debugTrace) trace("\nverts: \n" + vertices + "\n");
-
-    culled = false;
-
-    // temp fix for now I guess lol?
-    if (spriteGraphic != null)
-    {
-      spriteGraphic.flipX = false;
-      spriteGraphic.flipY = false;
-    }
-
-    // TODO -> Swap this so that it instead just breaks out of the function if it detects a difference between two points as being negative!
-    switch (hazCullMode)
-    {
-      case "always_positive" | "always_negative":
-        if (spriteGraphic != null)
-        {
-          spriteGraphic.flipX = hazCullMode == "always_negative" ? true : false;
-          spriteGraphic.flipY = hazCullMode == "always_negative" ? true : false;
-        }
-
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX)
-        {
-          if (spriteGraphic != null)
-          {
-            spriteGraphic.flipX = !spriteGraphic.flipX;
-          }
-          else
-          {
-            culled = true;
-          }
-        }
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX)
-          {
-            if (spriteGraphic != null)
-            {
-              spriteGraphic.flipY = !spriteGraphic.flipY;
-            }
-            else
-            {
-              culled = true;
-            }
-          }
-        }
-
-      case "back" | "positive":
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        }
-      case "front" | "negative":
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        }
-        culled = !culled;
-      case "always":
-        culled = true;
-      default:
-        culled = false;
-    }
+    if (debugTrace) trace("\nverts: \n" + vertices + "\n");
   }
-
-  public var cullMode = TriangleCulling.NONE;
-  public var hazCullMode:String = "none";
-
-  var culled:Bool = false;
 
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    if (culled || alpha == 0 || graphic == null || vertices == null || indices == null || processedGraphic == null)
+    if (alpha == 0 || graphic == null || vertices == null || indices == null || processedGraphic == null)
     {
       return;
     }
@@ -348,10 +237,12 @@ class ZProjectSprite extends ZSprite
     }
   }
 
-  public function applyPerspective(pos:Vector3D, xPercent:Float = 0, yPercent:Float = 0):Vector2
+  public function applyPerspective(pos:Vector3D):Vector2
   {
     var w:Float = spriteGraphic?.frameWidth ?? frameWidth;
     var h:Float = spriteGraphic?.frameHeight ?? frameHeight;
+
+    // return new Vector2(pos.x, pos.y);
 
     var pos_modified:Vector3D = new Vector3D(pos.x, pos.y, pos.z);
 
@@ -362,23 +253,19 @@ class ZProjectSprite extends ZSprite
     pos_modified.x = thing.x;
     pos_modified.y = thing.y;
 
-    rotateModPivotPoint = new Vector2(w / 2, 0);
+    var rotateModPivotPoint:Vector2 = new Vector2(w / 2, 0);
     rotateModPivotPoint.x += pivotOffsetX;
     rotateModPivotPoint.y += pivotOffsetZ;
-    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY);
+    var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY);
     pos_modified.x = thing.x;
     pos_modified.z = thing.y;
 
-    rotateModPivotPoint = new Vector2(0, h / 2);
+    var rotateModPivotPoint:Vector2 = new Vector2(0, h / 2);
     rotateModPivotPoint.x += pivotOffsetZ;
     rotateModPivotPoint.y += pivotOffsetY;
-    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
+    var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
     pos_modified.z = thing.x;
     pos_modified.y = thing.y;
-
-    // Apply offset here before it gets affected by z projection!
-    pos_modified.x -= offset.x;
-    pos_modified.y -= offset.y;
 
     pos_modified.x += moveX;
     pos_modified.y += moveY;
@@ -393,16 +280,15 @@ class ZProjectSprite extends ZSprite
       pos_modified.x += fovOffsetX;
       pos_modified.y += fovOffsetY;
       pos_modified.z *= 0.001;
+      var thisNotePos:Vector3D = perspectiveMath_OLD(pos_modified);
 
-      pos_modified = perspectiveMath_OLD(pos_modified, 0, 0);
+      thisNotePos.x -= this.x;
+      thisNotePos.y -= this.y;
+      thisNotePos.z -= this.z * 0.001; // ?????
 
-      pos_modified.x -= this.x;
-      pos_modified.y -= this.y;
-      pos_modified.z -= this.z * 0.001; // ?????
-
-      pos_modified.x -= fovOffsetX;
-      pos_modified.y -= fovOffsetY;
-      return new Vector2(pos_modified.x, pos_modified.y);
+      thisNotePos.x -= fovOffsetX;
+      thisNotePos.y -= fovOffsetY;
+      return new Vector2(thisNotePos.x, thisNotePos.y);
     }
     else
     {
