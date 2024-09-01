@@ -1,3 +1,6 @@
+**Flashing lights warning!**
+
+
 # A WORK IN PROGRESS fork of FNF for Modcharting
 **By Hazard24**
 
