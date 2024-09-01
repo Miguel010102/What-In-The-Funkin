@@ -236,9 +236,12 @@ class Strumline extends FlxSpriteGroup
       this.notitgPathSprite.zIndex = 8;
       this.add(notitgPathSprite);
 
-      if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+      if (PlayState.instance != null)
       {
-        PlayState.instance.allStrumSprites.add(notitgPathSprite);
+        if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+        {
+          PlayState.instance.allStrumSprites.add(notitgPathSprite);
+        }
       }
     }
 
@@ -291,9 +294,12 @@ class Strumline extends FlxSpriteGroup
       this.strumlineNotes.add(child);
 
       child.weBelongTo = this;
-      if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+      if (PlayState.instance != null)
       {
-        PlayState.instance.allStrumSprites.add(child);
+        if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+        {
+          PlayState.instance.allStrumSprites.add(child);
+        }
       }
     }
 
@@ -1556,9 +1562,12 @@ class Strumline extends FlxSpriteGroup
       result = new NoteSplash();
       this.noteSplashes.add(result);
       result.weBelongTo = this;
-      if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+      if (PlayState.instance != null)
       {
-        PlayState.instance.allStrumSprites.add(result);
+        if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+        {
+          PlayState.instance.allStrumSprites.add(result);
+        }
       }
     }
     else
@@ -1638,9 +1647,12 @@ class Strumline extends FlxSpriteGroup
       this.notes.add(result);
       result.weBelongTo = this;
 
-      if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+      if (PlayState.instance != null)
       {
-        PlayState.instance.allStrumSprites.add(result);
+        if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+        {
+          PlayState.instance.allStrumSprites.add(result);
+        }
       }
     }
 
@@ -1668,9 +1680,12 @@ class Strumline extends FlxSpriteGroup
       // We have to create a new note.
       result = new SustainTrail(0, 0, noteStyle, false, this);
       this.holdNotes.add(result);
-      if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+      if (PlayState.instance != null)
       {
-        PlayState.instance.allStrumSprites.add(result);
+        if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
+        {
+          PlayState.instance.allStrumSprites.add(result);
+        }
       }
     }
 
