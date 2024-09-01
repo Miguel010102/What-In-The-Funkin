@@ -146,6 +146,8 @@ class NoteSprite extends ZSprite
     mesh.setUp();
   }
 
+  public var vwooshing:Bool = false;
+
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
@@ -156,23 +158,26 @@ class NoteSprite extends ZSprite
 
     if (mesh != null && noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false)
     {
-      mesh.x = noteModData.x;
-      mesh.y = noteModData.y;
-      mesh.z = noteModData.z;
+      if (!vwooshing)
+      {
+        mesh.x = noteModData.x;
+        mesh.y = noteModData.y;
+        mesh.z = noteModData.z;
 
-      mesh.angleX = noteModData.angleX;
-      mesh.angleY = noteModData.angleY;
-      mesh.angleZ = noteModData.angleZ;
+        mesh.angleX = noteModData.angleX;
+        mesh.angleY = noteModData.angleY;
+        mesh.angleZ = noteModData.angleZ;
 
-      mesh.scaleX = noteModData.scaleX;
-      mesh.scaleY = noteModData.scaleY;
-      mesh.scaleZ = noteModData.scaleZ;
+        mesh.scaleX = noteModData.scaleX;
+        mesh.scaleY = noteModData.scaleY;
+        mesh.scaleZ = noteModData.scaleZ;
 
-      mesh.skewX = noteModData.skewX;
-      mesh.skewY = noteModData.skewY;
+        mesh.skewX = noteModData.skewX;
+        mesh.skewY = noteModData.skewY;
 
-      mesh.offset = this.offset;
-      mesh.cameras = this.cameras;
+        mesh.offset = this.offset;
+        mesh.cameras = this.cameras;
+      }
 
       mesh.updateTris();
 
@@ -199,6 +204,7 @@ class NoteSprite extends ZSprite
     noteStyleName = noteStyle.id;
 
     setupNoteGraphic(noteStyle);
+    vwooshing = false;
 
     // Disables the update() function for performance.
     this.active = false;
@@ -263,6 +269,7 @@ class NoteSprite extends ZSprite
     this.hasBeenHit = false;
     this.mayHit = false;
     this.hasMissed = false;
+    vwooshing = false;
 
     this.hsvShader.hue = 1.0;
     this.hsvShader.saturation = 1.0;
@@ -295,6 +302,7 @@ class NoteSprite extends ZSprite
   public override function kill():Void
   {
     super.kill();
+    vwooshing = false;
   }
 
   public override function destroy():Void

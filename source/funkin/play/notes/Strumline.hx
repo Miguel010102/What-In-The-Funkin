@@ -796,8 +796,20 @@ class Strumline extends FlxSpriteGroup
       notes.remove(note);
       notesVwoosh.add(note);
 
+      note.vwooshing = true;
+
       var targetY:Float = FlxG.height + note.y;
       if (Preferences.downscroll) targetY = 0 - note.height;
+
+      // check for 3D
+      if (note.mesh != null)
+      {
+        FlxTween.tween(note.mesh, {y: targetY}, 0.498,
+          {
+            ease: FlxEase.expoIn
+          });
+      }
+
       FlxTween.tween(note, {y: targetY}, 0.5,
         {
           ease: FlxEase.expoIn,

@@ -18,6 +18,7 @@ import lime.math.Vector2;
 import openfl.geom.Matrix;
 import openfl.display.TriangleCulling;
 import openfl.geom.Vector3D;
+import flixel.util.FlxColor;
 
 class ZProjectSprite_Note extends FlxSprite
 {
@@ -332,6 +333,16 @@ class ZProjectSprite_Note extends FlxSprite
         {
           // TODO: MAKE IT SO IT AUTOMATICALLY PRECACHES ALL THE ANIMATION FRAMES BEFORE THE SONG STARTS TO AVOID MID-SONG LAGSPIKES AS IT CACHES NEW ANIMATIONS!
 
+          var prevAlpha:Float = spriteGraphic.alpha;
+          var prevCol:FlxColor = spriteGraphic.color;
+          // var prevSkewX:Float = spriteGraphic.skewY;
+          // var prevSkewY:Float = spriteGraphic.skewX;
+          var prevAngle:Float = spriteGraphic.angle;
+
+          spriteGraphic.alpha = 1; // Make sure the graphic alpha is 1!
+          spriteGraphic.color = 0xFFFFFFFF;
+          spriteGraphic.angle = 0;
+
           // if (debugTesting)
           trace("New frame for: " + animFrameName);
           // if not, we create it and add it to the map.
@@ -340,6 +351,9 @@ class ZProjectSprite_Note extends FlxSprite
           // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
 
           ZProjectSprite_Note.graphicCache3D.set(animFrameName, graphicToUse);
+          spriteGraphic.alpha = prevAlpha;
+          spriteGraphic.angle = prevAngle;
+          spriteGraphic.color = prevCol;
         }
         // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
         // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, spriteGraphic.colorTransform);

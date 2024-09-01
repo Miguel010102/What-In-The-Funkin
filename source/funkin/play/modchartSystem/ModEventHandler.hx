@@ -448,7 +448,7 @@ class ModEventHandler
         switch (modEvent.style)
         {
           case "add":
-            tween = tweenAddMod(modEvent.target, modEvent.modName, modEvent.gotoValue, 0.01, modEvent.easeToUse);
+            tween = tweenAddMod(modEvent.target, modEvent.modName, modEvent.gotoValue, 0.001, modEvent.easeToUse);
           case "add_old":
             var modToTween:Modifier;
             if (modEvent.target.modifiers.exists(modEvent.modName))
@@ -544,9 +544,10 @@ class ModEventHandler
       }
       if (tween != null)
       {
-        // trace("Tween Funny!");
+        var addAmount:Float = ((songTime - ModConstants.getTimeFromBeat(modEvent.startingBeat)) * 0.001);
+        // trace("Tween Funny! " + addAmount);
         @:privateAccess
-        tween._secondsSinceStart += ((songTime - ModConstants.getTimeFromBeat(modEvent.startingBeat)) * 0.001);
+        tween._secondsSinceStart += addAmount;
         @:privateAccess
         tween.update(0);
       }

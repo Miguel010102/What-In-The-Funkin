@@ -510,6 +510,15 @@ class ModConstants
   {
     if (conductor == null) conductor = Conductor.instance;
 
+    if (beat <= 0) // Update v0.7.3a -> Allows for tweens to function before the song has begun!
+    {
+      var timmy:Float = 0;
+      timmy = beat / (conductor.bpm / 60);
+      timmy *= 1000;
+      // trace(timmy);
+      return timmy;
+    }
+
     var totalTime:Float = 0;
     var curBpm = conductor.bpm;
     // if (PlayState.SONG != null)
@@ -529,6 +538,7 @@ class ModConstants
     var leftOverBeat = beat - Math.floor(beat);
     totalTime += (60 / curBpm) * 1000 * leftOverBeat;
 
+    trace(totalTime);
     return totalTime;
   }
 

@@ -480,6 +480,9 @@ class SustainTrail extends ZSprite
     return returnVal;
   }
 
+  // If set to false, will disable the hold being hidden when being dropped
+  public var hideOnMiss:Bool = true;
+
   /**
    * Sets up new vertex and UV data to clip the trail.
    * @param songTime	The time to clip the note at, in milliseconds.
@@ -554,7 +557,11 @@ class SustainTrail extends ZSprite
     }
 
     // lmao, make it invisible if we dropped a hold. Done using alpha in base game but since alpha is being used, we need to use visible instead
-    if (hitNote && missedNote) visible = false;
+    if (hitNote && missedNote && hideOnMiss)
+    {
+      visible = false;
+      return; // Update v0.7.3 -> No need to do any more math / code if it's going to not be seen lol
+    }
 
     var sussyLength:Float = fullSustainLength;
     var holdWidth = graphicWidth;
