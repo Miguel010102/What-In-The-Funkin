@@ -837,6 +837,8 @@ class PlayState extends MusicBeatSubState
       }
       catch (e)
       {
+        perframeFunctions.remove(fun); // to avoid constantly spamming the broken function
+        modDebugNotif(e.toString(), FlxColor.RED);
         trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
         return;
       }

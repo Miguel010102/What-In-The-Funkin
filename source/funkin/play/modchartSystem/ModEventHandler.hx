@@ -390,7 +390,16 @@ class ModEventHandler
   {
     for (resetFunc in modResetFuncs)
     {
-      resetFunc();
+      try
+      {
+        resetFunc();
+      }
+      catch (e)
+      {
+        modResetFuncs.remove(resetFunc);
+        modDebugNotif(e.toString(), FlxColor.RED);
+        return;
+      }
     }
   }
 
@@ -467,7 +476,14 @@ class ModEventHandler
             {
               modchartTweenCancel(modEvent.modName.toLowerCase());
             }
-            modEvent.tweenFunky(modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 1));
+            try
+            {
+              modEvent.tweenFunky(modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 1));
+            }
+            catch (e)
+            {
+              PlayState.instance.modDebugNotif(e.toString(), 0xFFFF0000);
+            }
             continue;
 
           case "set":
@@ -518,7 +534,15 @@ class ModEventHandler
               modEvent.easeToUse, "add");
           case "func":
             if (modEvent.modName != null) modchartTweenCancel(modEvent.modName.toLowerCase());
-            modEvent.triggerFunction();
+            try
+            {
+              modEvent.triggerFunction();
+            }
+            catch (e)
+            {
+              PlayState.instance.modDebugNotif(e.toString(), 0xFFFF0000);
+            }
+
             continue;
           case "func_tween":
             var tweenTagged:Bool = false;
@@ -535,7 +559,14 @@ class ModEventHandler
                   modEvent.tweenFunky(modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 1));
                 }
               }, function(v) {
-                modEvent.tweenFunky(v);
+                try
+                {
+                  modEvent.tweenFunky(v);
+                }
+                catch (e)
+                {
+                  PlayState.instance.modDebugNotif(e.toString(), 0xFFFF0000);
+                }
               });
             if (tweenTagged) modchartTweens.set(modEvent.modName.toLowerCase(), tween);
 
