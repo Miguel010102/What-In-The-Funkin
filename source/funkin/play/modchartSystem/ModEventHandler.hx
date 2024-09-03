@@ -397,7 +397,7 @@ class ModEventHandler
       catch (e)
       {
         modResetFuncs.remove(resetFunc);
-        modDebugNotif(e.toString(), FlxColor.RED);
+        PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
         return;
       }
     }

@@ -19,6 +19,7 @@ import openfl.geom.Matrix;
 import openfl.display.TriangleCulling;
 import openfl.geom.Vector3D;
 import flixel.util.FlxColor;
+import funkin.play.PlayState;
 
 class ZProjectSprite_Note extends FlxSprite
 {
@@ -83,8 +84,6 @@ class ZProjectSprite_Note extends FlxSprite
    */
   public var uvtData:DrawData<Float> = new DrawData<Float>();
 
-  public var processedGraphic:FlxGraphic;
-
   // custom setter to prevent values below 0, cuz otherwise we'll devide by 0!
   public var subdivisions(default, set):Int = 2;
 
@@ -101,13 +100,13 @@ class ZProjectSprite_Note extends FlxSprite
     if (simpleGraphic != null) setUp();
   }
 
-  public function setUp():Void
+  public function setUp(moveSprGraph:Bool = true):Void
   {
     this.x = 0;
     this.y = 0;
     this.z = 0;
 
-    if (spriteGraphic != null)
+    if (spriteGraphic != null && moveSprGraph)
     {
       spriteGraphic.x = 0;
       spriteGraphic.y = 0;
@@ -284,10 +283,45 @@ class ZProjectSprite_Note extends FlxSprite
 
   var culled:Bool = false;
 
+  // Default to true for when players create their own ZProjectSprites!
+  public var doDraw:Bool = true;
+  public var copySpriteGraphic:Bool = true;
+
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    return; // do nothing lmfao, moved to drawManual just to be safe cuz idk if it will double draw or not (I doubt but, you never know with Flixel)
+    if (doDraw)
+    {
+      if (spriteGraphic == null)
+      {
+        doDraw = false;
+        if (PlayState.instance != null) PlayState.instance.modDebugNotif("spriteGraphic variable needs to be set!", 0xFFFF0000);
+        return;
+      }
+      else
+      {
+        if (copySpriteGraphic)
+        {
+          this.x = spriteGraphic.x;
+          this.y = spriteGraphic.y;
+          // this.z = spriteGraphic.z;
+
+          this.scaleX = spriteGraphic.scale.x;
+          this.scaleY = spriteGraphic.scale.y;
+
+          this.angleZ = spriteGraphic.angle;
+
+          this.offset = spriteGraphic.offset;
+          this.cameras = spriteGraphic.cameras;
+        }
+        updateTris();
+        drawManual(spriteGraphic?.graphic ?? null);
+      }
+    }
+    else
+    {
+      return; // do nothing lmfao, moved to drawManual just to be safe cuz idk if it will double draw or not (I doubt but, you never know with Flixel)
+    }
   }
 
   public var debugTesting:Bool = false;
@@ -297,72 +331,63 @@ class ZProjectSprite_Note extends FlxSprite
 
   public function drawManual(graphicToUse:FlxGraphic = null, noteStyleName:String = ""):Void
   {
-    if (graphicToUse == null) graphicToUse = processedGraphic;
-
     if (culled || alpha < 0 || vertices == null || indices == null || graphicToUse == null || uvtData == null || _point == null || offset == null)
     {
       return;
     }
 
-    if (graphicToUse == null && false)
+    if (spriteGraphic != null)
     {
-      if (spriteGraphic != null)
+      // var animFrameName:String = "ligma";
+
+      // var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName + (spriteGraphic.flipX ? " - flipX" : "")
+      //  + (spriteGraphic.flipY ? " - flipY" : "");
+
+      var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName;
+
+      // check to see if we have this frame of animation saved
+      if (ZProjectSprite_Note.graphicCache3D.exists(animFrameName))
       {
-        spriteGraphic.update(FlxG.elapsed);
-        spriteGraphic.updateFramePixels();
+        graphicToUse = ZProjectSprite_Note.graphicCache3D.get(animFrameName);
+        // if (debugTesting) trace("got: " + animFrameName);
       }
+      else
+      {
+        // TODO: MAKE IT SO IT AUTOMATICALLY PRECACHES ALL THE ANIMATION FRAMES BEFORE THE SONG STARTS TO AVOID MID-SONG LAGSPIKES AS IT CACHES NEW ANIMATIONS!
+
+        var prevAlpha:Float = spriteGraphic.alpha;
+        var prevCol:FlxColor = spriteGraphic.color;
+        // var prevSkewX:Float = spriteGraphic.skewY;
+        // var prevSkewY:Float = spriteGraphic.skewX;
+        var prevAngle:Float = spriteGraphic.angle;
+
+        spriteGraphic.alpha = 1; // Make sure the graphic alpha is 1!
+        spriteGraphic.color = 0xFFFFFFFF;
+        spriteGraphic.angle = 0;
+
+        // if (debugTesting)
+        trace("New frame for: " + animFrameName);
+        // if not, we create it and add it to the map.
+        spriteGraphic.updateFramePixels();
+        graphicToUse = FlxGraphic.fromBitmapData(spriteGraphic.framePixels, true, animFrameName);
+        // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
+
+        ZProjectSprite_Note.graphicCache3D.set(animFrameName, graphicToUse);
+        spriteGraphic.alpha = prevAlpha;
+        spriteGraphic.angle = prevAngle;
+        spriteGraphic.color = prevCol;
+      }
+      // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
+      // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, spriteGraphic.colorTransform);
+
+      //  var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
+
+      // if (debugTesting)
+      // trace("map: " + graphicCache3D);
     }
     else
     {
-      if (spriteGraphic != null)
-      {
-        // var animFrameName:String = "ligma";
-
-        // var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName + (spriteGraphic.flipX ? " - flipX" : "")
-        //  + (spriteGraphic.flipY ? " - flipY" : "");
-
-        var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName;
-
-        // check to see if we have this frame of animation saved
-        if (ZProjectSprite_Note.graphicCache3D.exists(animFrameName))
-        {
-          graphicToUse = ZProjectSprite_Note.graphicCache3D.get(animFrameName);
-          // if (debugTesting) trace("got: " + animFrameName);
-        }
-        else
-        {
-          // TODO: MAKE IT SO IT AUTOMATICALLY PRECACHES ALL THE ANIMATION FRAMES BEFORE THE SONG STARTS TO AVOID MID-SONG LAGSPIKES AS IT CACHES NEW ANIMATIONS!
-
-          var prevAlpha:Float = spriteGraphic.alpha;
-          var prevCol:FlxColor = spriteGraphic.color;
-          // var prevSkewX:Float = spriteGraphic.skewY;
-          // var prevSkewY:Float = spriteGraphic.skewX;
-          var prevAngle:Float = spriteGraphic.angle;
-
-          spriteGraphic.alpha = 1; // Make sure the graphic alpha is 1!
-          spriteGraphic.color = 0xFFFFFFFF;
-          spriteGraphic.angle = 0;
-
-          // if (debugTesting)
-          trace("New frame for: " + animFrameName);
-          // if not, we create it and add it to the map.
-          spriteGraphic.updateFramePixels();
-          graphicToUse = FlxGraphic.fromBitmapData(spriteGraphic.framePixels, true, animFrameName);
-          // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
-
-          ZProjectSprite_Note.graphicCache3D.set(animFrameName, graphicToUse);
-          spriteGraphic.alpha = prevAlpha;
-          spriteGraphic.angle = prevAngle;
-          spriteGraphic.color = prevCol;
-        }
-        // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, colorTransform);
-        // graphicToUse.bitmap.colorTransform(graphicToUse.bitmap.rect, spriteGraphic.colorTransform);
-
-        //  var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
-
-        // if (debugTesting)
-        // trace("map: " + graphicCache3D);
-      }
+      return; // fuck
     }
 
     if (alpha < 0 || graphicToUse == null || _point == null || offset == null)
@@ -381,7 +406,6 @@ class ZProjectSprite_Note extends FlxSprite
       getScreenPosition(_point, camera);
       camera.drawTriangles(graphicToUse, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.colorTransform ?? colorTransform,
         spriteGraphic?.shader ?? null, cullMode);
-      // camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
     }
 
     #if FLX_DEBUG
@@ -401,8 +425,6 @@ class ZProjectSprite_Note extends FlxSprite
     indices = null;
     uvtData = null;
     spriteGraphic = null;
-    if (processedGraphic != null) processedGraphic.destroy();
-
     super.destroy();
   }
 
@@ -421,28 +443,9 @@ class ZProjectSprite_Note extends FlxSprite
     {
       originalWidthHeight = new Vector2(spriteGraphic.frameWidth, spriteGraphic.frameHeight);
     }
-
-    // Clear old graphic
-    if (processedGraphic != null) processedGraphic.destroy();
-    return;
-
-    if (spriteGraphic != null)
-    {
-      spriteGraphic.updateFramePixels();
-      processedGraphic = FlxGraphic.fromBitmapData(spriteGraphic.framePixels, false);
-      processedGraphic.bitmap.colorTransform(processedGraphic.bitmap.rect, colorTransform);
-
-      if (originalWidthHeight == null)
-      {
-        originalWidthHeight = new Vector2(spriteGraphic.frameWidth, spriteGraphic.frameHeight);
-      }
-    }
-    else if (graphic != null)
-    {
-      processedGraphic = FlxGraphic.fromGraphic(graphic, true);
-      processedGraphic.bitmap.colorTransform(processedGraphic.bitmap.rect, colorTransform);
-    }
   }
+
+  public var offsetBeforeRotation:FlxPoint = new FlxPoint(0, 0);
 
   public function applyPerspective(pos:Vector3D, xPercent:Float = 0, yPercent:Float = 0):Vector2
   {
@@ -450,6 +453,9 @@ class ZProjectSprite_Note extends FlxSprite
     var h:Float = spriteGraphic?.frameHeight ?? frameHeight;
 
     var pos_modified:Vector3D = new Vector3D(pos.x, pos.y, pos.z);
+
+    pos_modified.x -= offsetBeforeRotation.x;
+    pos_modified.y -= offsetBeforeRotation.y;
 
     var rotateModPivotPoint:Vector2 = new Vector2(w / 2, h / 2);
     rotateModPivotPoint.x += pivotOffsetX;
