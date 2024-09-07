@@ -152,6 +152,9 @@ class ZProjectSprite_Note extends FlxSprite
 
   public function updateTris(debugTrace:Bool = false):Void
   {
+    var wasAlreadyFlipped_X:Bool = flipX;
+    var wasAlreadyFlipped_Y:Bool = flipY;
+
     var w:Float = spriteGraphic?.frameWidth ?? frameWidth;
     var h:Float = spriteGraphic?.frameHeight ?? frameHeight;
 
@@ -204,49 +207,57 @@ class ZProjectSprite_Note extends FlxSprite
     culled = false;
 
     // temp fix for now I guess lol?
-    if (spriteGraphic != null)
-    {
-      spriteGraphic.flipX = false;
-      spriteGraphic.flipY = false;
-    }
+    // if (spriteGraphic != null)
+    // {
+    //  spriteGraphic.flipX = false;
+    //  spriteGraphic.flipY = false;
+    // }
+
+    // flipX = wasAlreadyFlipped_X;
+    // flipY = wasAlreadyFlipped_Y;
+    flipX = false;
+    flipY = false;
 
     // TODO -> Swap this so that it instead just breaks out of the function if it detects a difference between two points as being negative!
     switch (hazCullMode)
     {
       case "always_positive" | "always_negative":
-        if (spriteGraphic != null)
-        {
-          spriteGraphic.flipX = hazCullMode == "always_negative" ? true : false;
-          spriteGraphic.flipY = hazCullMode == "always_negative" ? true : false;
-        }
+        flipX = hazCullMode == "always_negative" ? true : false;
+        flipY = hazCullMode == "always_negative" ? true : false;
 
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX)
+        if (!wasAlreadyFlipped_X)
         {
-          if (spriteGraphic != null)
+          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX)
           {
-            spriteGraphic.flipX = !spriteGraphic.flipX;
-          }
-          else
-          {
-            culled = true;
+            flipX = !flipX;
           }
         }
         else
-        { // y check
+        {
+          if (xFlipCheck_vertTopLeftX < xFlipCheck_vertBottomRightX)
+          {
+            flipX = !flipX;
+          }
+        }
+        // y check
+        if (!wasAlreadyFlipped_Y)
+        {
           xFlipCheck_vertTopLeftX = vertices[1];
           xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
           if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX)
           {
-            if (spriteGraphic != null)
-            {
-              spriteGraphic.flipY = !spriteGraphic.flipY;
-            }
-            else
-            {
-              culled = true;
-            }
+            flipY = !flipY;
+          }
+        }
+        else
+        {
+          xFlipCheck_vertTopLeftX = vertices[1];
+          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
+          if (xFlipCheck_vertTopLeftX < xFlipCheck_vertBottomRightX)
+          {
+            flipY = !flipY;
           }
         }
 
@@ -338,6 +349,8 @@ class ZProjectSprite_Note extends FlxSprite
 
     if (spriteGraphic != null)
     {
+      this.antialiasing = spriteGraphic.antialiasing;
+
       // var animFrameName:String = "ligma";
 
       // var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName + (spriteGraphic.flipX ? " - flipX" : "")
@@ -467,14 +480,16 @@ class ZProjectSprite_Note extends FlxSprite
     rotateModPivotPoint = new Vector2(w / 2, 0);
     rotateModPivotPoint.x += pivotOffsetX;
     rotateModPivotPoint.y += pivotOffsetZ;
-    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY);
+    var angleY_withFlip:Float = angleY + (flipX ? 180 : 0);
+    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY_withFlip);
     pos_modified.x = thing.x;
     pos_modified.z = thing.y;
 
     rotateModPivotPoint = new Vector2(0, h / 2);
     rotateModPivotPoint.x += pivotOffsetZ;
     rotateModPivotPoint.y += pivotOffsetY;
-    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
+    var angleX_withFlip:Float = angleX + (flipY ? 180 : 0);
+    thing = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX_withFlip);
     pos_modified.z = thing.x;
     pos_modified.y = thing.y;
 

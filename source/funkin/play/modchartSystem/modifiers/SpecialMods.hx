@@ -27,66 +27,68 @@ class CustomPathMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    var path = PlayState.instance.customArrowPathModTest;
-    var whichStrumNote = data.whichStrumNote;
-    if (path == null || currentValue == 0 || whichStrumNote == null) return;
+    /*
+      var path = PlayState.instance.customArrowPathModTest;
+      var whichStrumNote = data.whichStrumNote;
+      if (path == null || currentValue == 0 || whichStrumNote == null) return;
 
-    // automatically apply linearY mod to cancel the default y movement
+      // automatically apply linearY mod to cancel the default y movement
 
-    var strumX:Float = whichStrumNote.x;
-    var strumY:Float = whichStrumNote.y;
-    var strumZ:Float = whichStrumNote.z;
+      var strumX:Float = whichStrumNote.x;
+      var strumY:Float = whichStrumNote.y;
+      var strumZ:Float = whichStrumNote.z;
 
-    if (data.noteType == "receptor")
-    {
-      strumX = data.strumPosWasHere.x;
-      strumY = data.strumPosWasHere.y;
-      strumZ = data.strumPosWasHere.z;
-    }
-    else
-    {
-      strumX += isHoldNote ? strumLine.mods.getHoldOffsetX(isArrowPath) : strumLine.getNoteXOffset();
-      if (isHoldNote)
+      if (data.noteType == "receptor")
       {
-        if (Preferences.downscroll)
-        {
-          strumY += (Strumline.STRUMLINE_SIZE / 2);
-        }
-        else
-        {
-          strumY += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
-        }
+        strumX = data.strumPosWasHere.x;
+        strumY = data.strumPosWasHere.y;
+        strumZ = data.strumPosWasHere.z;
       }
       else
       {
-        strumY += strumLine.getNoteYOffset();
+        strumX += isHoldNote ? strumLine.mods.getHoldOffsetX(isArrowPath) : strumLine.getNoteXOffset();
+        if (isHoldNote)
+        {
+          if (Preferences.downscroll)
+          {
+            strumY += (Strumline.STRUMLINE_SIZE / 2);
+          }
+          else
+          {
+            strumY += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
+          }
+        }
+        else
+        {
+          strumY += strumLine.getNoteYOffset();
+        }
       }
-    }
 
-    var strumPosition:Vector4 = new Vector4(strumX, strumY, strumZ, 0);
-    var notePosition:Vector4 = new Vector4(data.x, data.y, data.z, 0);
+      var strumPosition:Vector4 = new Vector4(strumX, strumY, strumZ, 0);
+      var notePosition:Vector4 = new Vector4(data.x, data.y, data.z, 0);
 
-    var newPosition1:Vector4 = PlayState.instance.executePath(beatTime, data.whichStrumNote.strumDistance, data.direction, currentValue, strumPosition);
-    var newPosition2:Vector4 = PlayState.instance.executePath(beatTime, Math.abs(data.curPos) * -1 / 0.47, data.direction, currentValue, notePosition);
-    // newPosition2.y *= (Preferences.downscroll && flipForDownscroll ? -1 : 1);
-    data.x = notePosition.x + (newPosition1.x - newPosition2.x);
-    data.y = notePosition.y + (newPosition1.y - newPosition2.y);
-    data.z = notePosition.z + (newPosition1.z - newPosition2.z);
+      var newPosition1:Vector4 = PlayState.instance.executePath(beatTime, data.whichStrumNote.strumDistance, data.direction, currentValue, strumPosition);
+      var newPosition2:Vector4 = PlayState.instance.executePath(beatTime, Math.abs(data.curPos) * -1 / 0.47, data.direction, currentValue, notePosition);
+      // newPosition2.y *= (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+      data.x = notePosition.x + (newPosition1.x - newPosition2.x);
+      data.y = notePosition.y + (newPosition1.y - newPosition2.y);
+      data.z = notePosition.z + (newPosition1.z - newPosition2.z);
 
-    // automatically apply linearY mod to cancel the default y movement
-    var curVal:Float = currentValue * -1;
-    data.y += data.curPos * curVal;
+      // automatically apply linearY mod to cancel the default y movement
+      var curVal:Float = currentValue * -1;
+      data.y += data.curPos * curVal;
+     */
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
-    var path = PlayState.instance.customArrowPathModTest;
-    if (path == null || currentValue == 0) return;
-
-    var newPosition = PlayState.instance.executePath(beatTime, 0.0, data.direction, currentValue, new Vector4(data.x, data.y, data.z, 0));
-    data.x = newPosition.x;
-    data.y = newPosition.y;
-    data.z = newPosition.z;
+    // var path = PlayState.instance.customArrowPathModTest;
+    // if (path == null || currentValue == 0) return;
+    //
+    // var newPosition = PlayState.instance.executePath(beatTime, 0.0, data.direction, currentValue, new Vector4(data.x, data.y, data.z, 0));
+    // data.x = newPosition.x;
+    // data.y = newPosition.y;
+    // data.z = newPosition.z;
   }
 }
 
@@ -182,7 +184,7 @@ class BangarangMod extends Modifier
 
     var speed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
 
-    var curpos:Float = data.curPos * (Preferences.downscroll ? 1 : -1);
+    var curpos:Float = data.curPos;
 
     var fYOffset = -curpos / speed;
     var fEffectHeight = FlxG.height;
@@ -192,7 +194,7 @@ class BangarangMod extends Modifier
     fBrakeYAdjust = FlxMath.bound(fBrakeYAdjust, -400, 400); // clamp
 
     yOffset -= fBrakeYAdjust * speed;
-    data.y -= curpos + yOffset;
+    data.y += curpos + yOffset;
   }
 }
 

@@ -27,7 +27,8 @@ class HazardAFTSpriteTest extends ZSprite
 
   override function update(elapsed:Float):Void
   {
-    pixels = aft.bitmap;
+    super.update(elapsed);
+    this.pixels = aft.bitmap;
     // aft.bitmap.disposeImage(); // To prevent memory leak lol
   }
 }

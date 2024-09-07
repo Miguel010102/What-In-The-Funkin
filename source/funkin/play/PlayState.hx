@@ -76,7 +76,6 @@ import funkin.play.modchartSystem.HazardModLuaTest;
 import sys.FileSystem;
 import sys.io.File;
 import funkin.modding.PolymodHandler;
-import lime.math.Vector4;
 import funkin.graphics.ZSprite;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
@@ -84,21 +83,6 @@ import flixel.util.FlxSort;
 import funkin.play.notes.StrumlineNote;
 import funkin.graphics.ZProjectSprite_Note;
 import funkin.play.modchartSystem.DebugNotification;
-
-class TimeVector extends Vector4
-{
-  public var startDist:Float;
-  public var endDist:Float;
-  public var next:TimeVector;
-
-  public function new(x:Float = 0, y:Float = 0, z:Float = 0, w:Float = 0)
-  {
-    super(x, y, z, w);
-    startDist = 0.0;
-    endDist = 0.0;
-    next = null;
-  }
-}
 
 /**
  * Parameters used to initialize the PlayState.
@@ -814,7 +798,7 @@ class PlayState extends MusicBeatSubState
 
   function updateHazModchartSystem(elapsed:Float):Void
   {
-    if (isModchartSong)
+    if (isModchartSong && modchartEventHandler != null)
     {
       modchartEventHandler.update(elapsed);
       updateTweenList();
@@ -2060,112 +2044,6 @@ class PlayState extends MusicBeatSubState
     }
   }
 
-  function calculatePathDistances(path:List<TimeVector>):Float
-  {
-    @:privateAccess
-    var iterator_head = path.h;
-    var val = iterator_head.item;
-    iterator_head = iterator_head.next;
-    var last = val;
-    last.startDist = 0;
-    var dist = 0.0;
-    while (iterator_head != null)
-    {
-      var val = iterator_head.item;
-      iterator_head = iterator_head.next;
-      var current = val;
-      var result = new Vector4();
-      result.x = current.x - last.x;
-      result.y = current.y - last.y;
-      result.z = current.z - last.z;
-      var differential = result;
-      dist += Math.sqrt(differential.x * differential.x + differential.y * differential.y + differential.z * differential.z);
-      current.startDist = dist;
-      last.next = current;
-      last.endDist = current.startDist;
-      last = current;
-    }
-    return dist;
-  }
-
-  public function getPointAlongPath(distance:Float):TimeVector
-  {
-    @:privateAccess
-    var _g_head = this._path.h;
-    while (_g_head != null)
-    {
-      var val = _g_head.item;
-      _g_head = _g_head.next;
-      var vec = val;
-      var Min = vec.startDist;
-      var Max = vec.endDist;
-      // looks like a FlxMath function could be that
-      if ((Min == 0 || distance >= Min) && (Max == 0 || distance <= Max) && vec.next != null)
-      {
-        var ratio = distance - vec.startDist;
-        var _this = vec.next;
-        var result = new Vector4();
-        result.x = _this.x - vec.x;
-        result.y = _this.y - vec.y;
-        result.z = _this.z - vec.z;
-        var ratio1 = ratio / Math.sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
-        var vec2 = vec.next;
-        var out1 = new Vector4(vec.x, vec.y, vec.z, vec.w);
-        var s = 1 - ratio1;
-        out1.x *= s;
-        out1.y *= s;
-        out1.z *= s;
-        var out2 = new Vector4(vec2.x, vec2.y, vec2.z, vec2.w);
-        out2.x *= ratio1;
-        out2.y *= ratio1;
-        out2.z *= ratio1;
-        var result1 = new Vector4();
-        result1.x = out1.x + out2.x;
-        result1.y = out1.y + out2.y;
-        result1.z = out1.z + out2.z;
-        return new TimeVector(result1.x, result1.y, result1.z, result1.w);
-      }
-    }
-    return _path.first();
-  }
-
-  public function executePath(currentBeat:Float, strumTimeDiff:Float, column:Int, modValue:Float, pos:Vector4):Vector4
-  {
-    if (_path == null)
-    {
-      return pos;
-    }
-    var path = getPointAlongPath(strumTimeDiff / -1500.0 * _pathDistance);
-    // var a = new Vector4(FlxG.width / 2, FlxG.height / 2 + 280, column % 4 * getOtherPercent("arrowshapeoffset", player) + pos.z);
-    var a = new Vector4(FlxG.width / 2, FlxG.height / 2 + 280, column % 4 * 1 + pos.z);
-    var result = new Vector4();
-    result.x = path.x + a.x;
-    result.y = path.y + a.y;
-    result.z = path.z + a.z;
-    var vec2 = result;
-    // var lerp = getPercent(player);
-    var lerp = modValue;
-    var out1 = new Vector4(pos.x, pos.y, pos.z, pos.w);
-    var s = 1 - lerp;
-    out1.x *= s;
-    out1.y *= s;
-    out1.z *= s;
-    var out2 = new Vector4(vec2.x, vec2.y, vec2.z, vec2.w);
-    out2.x *= lerp;
-    out2.y *= lerp;
-    out2.z *= lerp;
-    var result = new Vector4();
-    result.x = out1.x + out2.x;
-    result.y = out1.y + out2.y;
-    result.z = out1.z + out2.z;
-    return result;
-  }
-
-  var _path:List<TimeVector> = null;
-  var _pathDistance:Float = 0;
-
-  public var customArrowPathModTest:String = null;
-
   // Call this to clear out any custom sprites created in the lua file!
   public function clearOutCustomLuaSprites():Void
   {
@@ -2207,8 +2085,6 @@ class PlayState extends MusicBeatSubState
     var secondCheckTest:String = 'assets/data/modchart/' + songna + "/";
     var foldersToCheck:Array<String> = [firstCheckTest, secondCheckTest];
 
-    customArrowPathModTest = null;
-
     // fuck it, we just check every mod lmfao
     for (modid in PolymodHandler.loadedModIds)
     {
@@ -2233,55 +2109,13 @@ class PlayState extends MusicBeatSubState
             luaArray.push(new HazardModLuaTest(folder + file, folder, file));
             filesPushed.push(file);
           }
-          else if (file.endsWith('path.txt') && customArrowPathModTest == null)
-          {
-            customArrowPathModTest = folder + file;
-            trace("Oh shit, we found somethin? " + customArrowPathModTest);
-            // var file = sys.io.File.getContent(customArrowPathModTest);
-            var file_part1 = funkin.util.FileUtil.readStringFromPath(customArrowPathModTest);
-
-            var filePath:Array<String> = [];
-            filePath = file_part1.trim().split('\n');
-
-            for (i in 0...filePath.length)
-            {
-              filePath[i] = filePath[i].trim();
-            }
-            filePath.reverse(); // lmao, the points are reversed when used in my system
-
-            if (filePath != null)
-            {
-              var path = new List<TimeVector>();
-              var _g = 0;
-              while (_g < filePath.length)
-              {
-                var line = filePath[_g];
-                // trace("line: " + line);
-                _g++;
-                var coords = line.split(";");
-                // trace((_g - 1) + "split: " + coords);
-                var vec = new TimeVector(Std.parseFloat(coords[0]), Std.parseFloat(coords[1]) * (Preferences.downscroll ? -1 : 1), Std.parseFloat(coords[2]),
-                  Std.parseFloat(coords[3]));
-                vec.x *= 200;
-                vec.y *= 200;
-                vec.z *= 200;
-                path.add(vec);
-
-                //  trace("x: " + vec.x);
-                // trace("y: " + vec.y);
-                // trace("z: " + vec.z);
-                // trace("-------");
-              }
-
-              _pathDistance = calculatePathDistances(path);
-              _path = path;
-            }
-            else
-            {
-              trace("nvm, file is fucked");
-              customArrowPathModTest == null;
-            }
-          }
+          // Old code from the customPath mod. Will eventually be overhauled!
+          // else if (file.endsWith('path.txt') && customArrowPathModTest == null)
+          // {
+          //  customArrowPathModTest = folder + file;
+          //  trace("Oh shit, we found somethin? " + customArrowPathModTest);
+          //  // var file = sys.io.File.getContent(customArrowPathModTest);
+          // }
         }
       }
     }
@@ -2401,6 +2235,7 @@ class PlayState extends MusicBeatSubState
 
     playerStrumline = new Strumline(noteStyle, !isBotPlayMode, isModchartSong);
     playerStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
+    playerStrumline.isActuallyPlayerStrum = true;
     opponentStrumline = new Strumline(noteStyle, false, isModchartSong);
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     add(playerStrumline);

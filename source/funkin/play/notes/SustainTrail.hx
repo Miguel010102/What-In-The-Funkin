@@ -110,6 +110,9 @@ class SustainTrail extends ZSprite
 
   public var isArrowPath:Bool = false;
 
+  // for identifying what noteStyle this notesprite is using in hxScript or even lua
+  public var noteStyleName:String = "funkin";
+
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
    * @param NoteData
@@ -122,13 +125,23 @@ class SustainTrail extends ZSprite
     this.parentStrumline = parentStrum;
     if (isArrowPath)
     {
-      super(0, 0, Paths.image('NOTE_ArrowPath'));
+      if (parentStrum != null)
+      {
+        super(0, 0, Paths.image(parentStrum.arrowPathFileName));
+        // trace("pathpath: " + parentStrum.arrowPathFileName);
+      }
+      else
+      {
+        super(0, 0, Paths.image('NOTE_ArrowPath'));
+      }
       useShader = false; // Don't use the hsv shader for arrowpaths cuz by default they should be white so they can easily be tinted instead of relying on a shader.
     }
     else
     {
       super(0, 0, noteStyle.getHoldNoteAssetPath());
     }
+
+    noteStyleName = noteStyle.id;
 
     antialiasing = true;
 
@@ -515,7 +528,12 @@ class SustainTrail extends ZSprite
     }
     longHolds += 1;
 
-    var holdResolution:Int = Math.floor(fullSustainLength * longHolds / holdGrain); // use full sustain so the uv doesn't mess up? huh?
+    var holdResolution:Int = Math.floor(fullSustainLength * longHolds / holdGrain);
+
+    if (holdResolution < 1) // To ensure UV's to break (lol???)
+    {
+      holdResolution = 1;
+    }
 
     var holdNoteJankX:Float = ModConstants.holdNoteJankX * -1;
     var holdNoteJankY:Float = ModConstants.holdNoteJankY * -1;
@@ -590,12 +608,12 @@ class SustainTrail extends ZSprite
     // just copy it from source idgaf
     if (uvSetup)
     {
-      uvtData[0 * 2] = 1 / 4 * (noteDirection % 4); // 0%/25%/50%/75% of the way through the image
-      uvtData[0 * 2 + 1] = uvHeight; // top bound
+      uvtData[0 * 2] = (1 / 4) * (noteDirection % 4); // 0%/25%/50%/75% of the way through the image
+      uvtData[0 * 2 + 1] = 0; // top bound
       // Top left
 
       // Top right
-      uvtData[1 * 2] = uvtData[0 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
+      uvtData[1 * 2] = uvtData[0 * 2] + (1 / 8); // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
       uvtData[1 * 2 + 1] = uvtData[0 * 2 + 1]; // top bound
     }
 
@@ -783,8 +801,7 @@ class SustainTrail extends ZSprite
 
         // Bottom left
         uvtData[i * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
-        uvtData[i * 2 + 1] = uvtData[(i - 2) * 2]; // bottom bound
-        uvtData[i * 2 + 1] += (uvHeight / holdResolution) * k; // bottom bound
+        uvtData[i * 2 + 1] = 1 * (k + 1);
 
         // Bottom right
         uvtData[(i + 1) * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
@@ -940,7 +957,7 @@ class SustainTrail extends ZSprite
 
       // === END CAP UVs ===
       // Top left
-      uvtData[highestNumSoFar * 2] = uvtData[2 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
+      uvtData[highestNumSoFar * 2] = uvtData[2 * 2] + (1 / 8); // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
       uvtData[highestNumSoFar * 2 + 1] = if (partHeight > 0)
       {
         0;
@@ -952,7 +969,7 @@ class SustainTrail extends ZSprite
 
       // Top right
       uvtData[(highestNumSoFar + 1) * 2] = uvtData[highestNumSoFar * 2] +
-        1 / 8; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
+        (1 / 8); // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
       uvtData[(highestNumSoFar + 1) * 2 + 1] = uvtData[highestNumSoFar * 2 + 1]; // top bound
 
       // Bottom left

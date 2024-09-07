@@ -73,7 +73,9 @@ import funkin.play.modchartSystem.modifiers.*; // if only you worked ;_;
 
 class ModConstants
 {
-  public static var MODCHART_VERSION:String = "v0.7.3a";
+  public static var MODCHART_VERSION:String = "v0.7.4a";
+
+  public static var tempNoteSkinScaleFix:Bool = true;
 
   // If a mod tag is in this array, it will automatically invert the mod value
   public static var dadInvert:Array<String> = [
@@ -538,7 +540,7 @@ class ModConstants
     var leftOverBeat = beat - Math.floor(beat);
     totalTime += (60 / curBpm) * 1000 * leftOverBeat;
 
-    trace(totalTime);
+    // trace(totalTime);
     return totalTime;
   }
 

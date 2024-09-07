@@ -55,6 +55,9 @@ class Strumline extends FlxSpriteGroup
    */
   public var mods:ModHandler;
 
+  // The name of the arrowPath file name to use in shared.
+  public var arrowPathFileName:String = "NOTE_ArrowPath";
+
   // Set to true for opponent and player strumline cuz they already have their inputs set properly.
   // public var skipmeforcontrolslol:Bool = false;
   // made public so scripts can easily refer to this lol
@@ -129,11 +132,13 @@ class Strumline extends FlxSpriteGroup
 
     for (note in notes.members)
     {
-      note.setupMesh();
+      if (note == null) continue;
+      if (note.alive) note.setupMesh();
     }
     for (note in notesVwoosh.members)
     {
-      note.setupMesh();
+      if (note == null) continue;
+      if (note.alive) note.setupMesh();
     }
     strumlineNotes.forEach(function(note:StrumlineNote) {
       note.setupMesh();
@@ -299,6 +304,17 @@ class Strumline extends FlxSpriteGroup
         if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
         {
           PlayState.instance.allStrumSprites.add(child);
+        }
+      }
+
+      if (ModConstants.tempNoteSkinScaleFix)
+      {
+        // Dumb fucking fix for scale difference between normal and modchart gameplay for custom noteskins
+        var isPixel:Bool = noteStyle.id.toLowerCase() == "pixel"; // dumb fucking fix lmfao
+        if (!isPixel) // Don't apply this fix for pixel since it's already fine in vanilla, it's only custom noteskins which are fucked
+        {
+          var sizeMod:Float = isPixel ? dumbfuckingpixelnotesfix : 1;
+          child.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale * sizeMod);
         }
       }
     }
