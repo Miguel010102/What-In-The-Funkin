@@ -487,6 +487,9 @@ class BaseCharacter extends Bopper
   {
     super.onNoteHit(event);
 
+    // Calling event.cancelEvent() skips all the other logic! Neat!
+    if (event.eventCanceled) return;
+
     if (event.note.noteData.getMustHitNote() && characterType == BF)
     {
       // If the note is from the same strumline, play the sing animation.
@@ -508,6 +511,9 @@ class BaseCharacter extends Bopper
   public override function onNoteMiss(event:NoteScriptEvent)
   {
     super.onNoteMiss(event);
+
+    // Calling event.cancelEvent() skips all the other logic! Neat!
+    if (event.eventCanceled) return;
 
     if (event.note.noteData.getMustHitNote() && characterType == BF)
     {

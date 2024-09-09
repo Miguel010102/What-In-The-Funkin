@@ -430,8 +430,14 @@ class ZProjectSprite extends ZSprite
       {
         tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / dividebyzerofix;
       }
+      else
+        culled = true;
 
-      if (pos.z > 1) newz = 0;
+      if (pos.z > 1)
+      {
+        newz = 0;
+        culled = true;
+      }
 
       var xOffsetToCenter:Float = pos.x - (FlxG.width * 0.5);
       var yOffsetToCenter:Float = pos.y - (FlxG.height * 0.5);
@@ -459,8 +465,9 @@ class ZProjectSprite extends ZSprite
     }
     catch (e)
     {
-      return pos;
+      culled = true;
       trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+      return pos;
     }
   }
 }

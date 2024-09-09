@@ -116,8 +116,8 @@ class StrumlineNote extends ZSprite
       mesh.cameras = this.cameras;
 
       mesh.updateTris();
-
-      mesh.drawManual(this.graphic, noteStyleName);
+      mesh.graphicCacheSuffix = noteStyleName;
+      mesh.drawManual(this.graphic);
     }
     else
     {

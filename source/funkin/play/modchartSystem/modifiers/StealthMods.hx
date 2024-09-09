@@ -240,8 +240,12 @@ class HiddenMod extends Modifier
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
     curPos2 *= Preferences.downscroll ? -1 : 1;
+
     // Don't do anything if we're past receptors! Maybe disable this if we want stealth past receptors?
-    if (curPos2 < 0) return;
+    if (getSubVal("stealthpastreceptors") <= 0)
+    {
+      if (curPos2 < 0) return;
+    }
 
     var a:Float = FlxMath.remapToRange(curPos2, getSubVal("start") + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 0, 1);
     a = FlxMath.bound(a, 0, 1); // clamp

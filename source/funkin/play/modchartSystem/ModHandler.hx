@@ -284,6 +284,19 @@ class ModHandler
       mod.targetLane = Std.parseInt(subModArr[1]);
     }
     mod.strumOwner = strum;
+
+    if (mod.specialMod)
+    {
+      try
+      {
+        mod.specialMath();
+      }
+      catch (e)
+      {
+        modDebugNotif(e.toString(), FlxColor.RED);
+        return;
+      }
+    }
     modifiers.set(mod.tag, mod);
   }
 

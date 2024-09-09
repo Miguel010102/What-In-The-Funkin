@@ -158,6 +158,10 @@ class ZProjectSprite_Note extends FlxSprite
     var w:Float = spriteGraphic?.frameWidth ?? frameWidth;
     var h:Float = spriteGraphic?.frameHeight ?? frameHeight;
 
+    culled = false;
+    var cullCheckX:Float = 0;
+    var cullCheckY:Float = 0;
+
     var i:Int = 0;
     for (x in 0...subdivisions + 2) // x
     {
@@ -190,6 +194,26 @@ class ZProjectSprite_Note extends FlxSprite
 
         point2D = applyPerspective(point3D, xPercent, yPercent);
 
+        /* Commented out for now cuz... it don't work / is worse then the current cull method
+          if (i > 0)
+          {
+            if (point2D.x < cullCheckX)
+            {
+              culled = !culled;
+            }
+            if (point2D.y < cullCheckY)
+            {
+              culled = !culled;
+            }
+          }
+
+
+          cullCheckX = point2D.x;
+          cullCheckY = point2D.y;
+
+          if (culled) break; // Don't bother with any more vert updates, we already know the rest will be culled...
+         */
+
         if (originalWidthHeight != null && autoOffset)
         {
           point2D.x += (originalWidthHeight.x - spriteGraphic.frameWidth) / 2;
@@ -203,6 +227,8 @@ class ZProjectSprite_Note extends FlxSprite
     }
 
     // if (debugTrace) trace("\nverts: \n" + vertices + "\n");
+
+    // return; // TEMP TEMP TEMP TEMP TEMP TEMP OVER HER DUMBASS GET RID OF ME RID OF ME YOU HEAR ME?!!!!
 
     culled = false;
 
@@ -264,23 +290,23 @@ class ZProjectSprite_Note extends FlxSprite
       case "back" | "positive":
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        }
+        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
+        // else
+        // { // y check
+        xFlipCheck_vertTopLeftX = vertices[1];
+        xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
+        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
+      // }
       case "front" | "negative":
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        }
+        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
+        // else
+        // { // y check
+        xFlipCheck_vertTopLeftX = vertices[1];
+        xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
+        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
+        // }
         culled = !culled;
       case "always":
         culled = true;
@@ -340,7 +366,9 @@ class ZProjectSprite_Note extends FlxSprite
   // public var graphicAnimMap:Map<String, FlxGraphic> = new Map<String, FlxGraphic>();
   public static var graphicCache3D:Map<String, FlxGraphic> = new Map<String, FlxGraphic>();
 
-  public function drawManual(graphicToUse:FlxGraphic = null, noteStyleName:String = ""):Void
+  public var graphicCacheSuffix:String = "";
+
+  public function drawManual(graphicToUse:FlxGraphic = null):Void
   {
     if (culled || alpha < 0 || vertices == null || indices == null || graphicToUse == null || uvtData == null || _point == null || offset == null)
     {
@@ -356,7 +384,7 @@ class ZProjectSprite_Note extends FlxSprite
       // var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName + (spriteGraphic.flipX ? " - flipX" : "")
       //  + (spriteGraphic.flipY ? " - flipY" : "");
 
-      var animFrameName:String = spriteGraphic.animation.frameName + " - " + noteStyleName;
+      var animFrameName:String = spriteGraphic.animation.frameName + " - " + graphicCacheSuffix;
 
       // check to see if we have this frame of animation saved
       if (ZProjectSprite_Note.graphicCache3D.exists(animFrameName))
@@ -460,6 +488,10 @@ class ZProjectSprite_Note extends FlxSprite
 
   public var offsetBeforeRotation:FlxPoint = new FlxPoint(0, 0);
 
+  public var preRotationMoveX:Float = 0;
+  public var preRotationMoveY:Float = 0;
+  public var preRotationMoveZ:Float = 0;
+
   public function applyPerspective(pos:Vector3D, xPercent:Float = 0, yPercent:Float = 0):Vector2
   {
     var w:Float = spriteGraphic?.frameWidth ?? frameWidth;
@@ -469,6 +501,9 @@ class ZProjectSprite_Note extends FlxSprite
 
     pos_modified.x -= offsetBeforeRotation.x;
     pos_modified.y -= offsetBeforeRotation.y;
+    pos_modified.x += preRotationMoveX;
+    pos_modified.y += preRotationMoveY;
+    pos_modified.z += preRotationMoveZ;
 
     var rotateModPivotPoint:Vector2 = new Vector2(w / 2, h / 2);
     rotateModPivotPoint.x += pivotOffsetX;
@@ -547,8 +582,14 @@ class ZProjectSprite_Note extends FlxSprite
       {
         tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / dividebyzerofix;
       }
+      else
+        culled = true;
 
-      if (pos.z > 1) newz = 0;
+      if (pos.z > 1)
+      {
+        newz = 0;
+        culled = true;
+      }
 
       var xOffsetToCenter:Float = pos.x - (FlxG.width * 0.5);
       var yOffsetToCenter:Float = pos.y - (FlxG.height * 0.5);
@@ -577,6 +618,7 @@ class ZProjectSprite_Note extends FlxSprite
     catch (e)
     {
       trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+      culled = true;
       return pos;
     }
   }

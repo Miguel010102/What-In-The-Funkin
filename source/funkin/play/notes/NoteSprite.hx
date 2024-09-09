@@ -182,8 +182,8 @@ class NoteSprite extends ZSprite
       }
 
       mesh.updateTris();
-
-      mesh.drawManual(this.graphic, noteStyleName);
+      mesh.graphicCacheSuffix = noteStyleName;
+      mesh.drawManual(this.graphic);
     }
     else
     {

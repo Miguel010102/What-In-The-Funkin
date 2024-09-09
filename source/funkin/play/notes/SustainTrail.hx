@@ -305,7 +305,6 @@ class SustainTrail extends ZSprite
 
   public var whichStrumNote:StrumlineNote;
 
-  // TODO -> Feed the correct height value into apply perspective to fix y drifitng off
   function susSample(t:Float, yJank:Bool = false, isRoot:Bool = false, dumbHeight:Float = 0):Void
   {
     var strumTimmy:Float = t - whichStrumNote.strumExtraModData.strumPos; // parentStrumline.mods.strumPos[noteDirection % 4];
@@ -604,7 +603,9 @@ class SustainTrail extends ZSprite
     // holdRightSide = holdWidth * scaleTest;
 
     // ===HOLD VERTICES==
-    var uvHeight = (-partHeight) / graphic.height / zoom;
+    // var uvHeight = (-partHeight) / graphic.height / zoom;
+    // V0.7.4a -> Updated UV textures to not be stupid anymore. (0 -> 1 -> 2 -> 3) since we can just use the repeating texture power of drawTriangles.
+
     // just copy it from source idgaf
     if (uvSetup)
     {
