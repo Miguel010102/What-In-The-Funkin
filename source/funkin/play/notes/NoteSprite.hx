@@ -1,6 +1,7 @@
 package funkin.play.notes;
 
 import funkin.data.song.SongData.SongNoteData;
+import funkin.data.song.SongData.NoteParamData;
 import funkin.play.notes.notestyle.NoteStyle;
 import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.graphics.FunkinSprite;
@@ -74,6 +75,22 @@ class NoteSprite extends ZSprite
   }
 
   /**
+   * An array of custom parameters for this note
+   */
+  public var params(get, set):Array<NoteParamData>;
+
+  function get_params():Array<NoteParamData>
+  {
+    return this.noteData?.params ?? [];
+  }
+
+  function set_params(value:Array<NoteParamData>):Array<NoteParamData>
+  {
+    if (this.noteData == null) return value;
+    return this.noteData.params = value;
+  }
+
+  /**
    * The data of the note (i.e. the direction.)
    */
   public var direction(default, set):NoteDirection;
@@ -82,7 +99,7 @@ class NoteSprite extends ZSprite
   {
     if (frames == null) return value;
 
-    animation.play(DIRECTION_COLORS[value] + 'Scroll');
+    playNoteAnimation(value);
 
     this.direction = value;
     return this.direction;
@@ -207,17 +224,15 @@ class NoteSprite extends ZSprite
 
     setupNoteGraphic(noteStyle);
     vwooshing = false;
-
-    // Disables the update() function for performance.
-    this.active = false;
   }
 
-  function setupNoteGraphic(noteStyle:NoteStyle):Void
+  /**
+   * Creates frames and animations
+   * @param noteStyle The `NoteStyle` instance
+   */
+  public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
-
-    setGraphicSize(Strumline.STRUMLINE_SIZE);
-    updateHitbox();
 
     this.shader = hsvShader;
     stealthGlow = 0.0;
@@ -226,6 +241,26 @@ class NoteSprite extends ZSprite
     stealthGlowRed = 1.0;
     updateStealthGlow();
     if (mesh != null) mesh.updateCol();
+
+    // `false` disables the update() function for performance.
+    this.active = noteStyle.isNoteAnimated();
+  }
+
+  /**
+   * Retrieve the value of the param with the given name
+   * @param name Name of the param
+   * @return Null<Dynamic>
+   */
+  public function getParam(name:String):Null<Dynamic>
+  {
+    for (param in params)
+    {
+      if (param.name == name)
+      {
+        return param.value;
+      }
+    }
+    return null;
   }
 
   #if FLX_DEBUG
@@ -250,6 +285,11 @@ class NoteSprite extends ZSprite
     endDrawDebug(camera);
   }
   #end
+
+  function playNoteAnimation(value:Int):Void
+  {
+    animation.play(DIRECTION_COLORS[value] + 'Scroll');
+  }
 
   public function desaturate():Void
   {

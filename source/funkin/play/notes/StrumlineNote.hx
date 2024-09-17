@@ -178,6 +178,13 @@ class StrumlineNote extends ZSprite
 
   function setup(noteStyle:NoteStyle):Void
   {
+    if (noteStyle == null)
+    {
+      // If you get an exception on this line, check the debug console.
+      // You probably have a parsing error in your note style's JSON file.
+      throw "FATAL ERROR: Attempted to initialize PlayState with an invalid NoteStyle.";
+    }
+
     noteStyle.applyStrumlineFrames(this);
     noteStyle.applyStrumlineAnimations(this, this.direction);
 

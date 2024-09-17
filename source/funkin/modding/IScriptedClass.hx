@@ -74,6 +74,22 @@ interface INoteScriptedClass extends IScriptedClass
 }
 
 /**
+ * Defines a set of callbacks available to scripted classes which represent sprites synced with the BPM.
+ */
+interface IBPMSyncedScriptedClass extends IScriptedClass
+{
+  /**
+   * Called once every step of the song.
+   */
+  public function onStepHit(event:SongTimeScriptEvent):Void;
+
+  /**
+   * Called once every beat of the song.
+   */
+  public function onBeatHit(event:SongTimeScriptEvent):Void;
+}
+
+/**
  * Developer note:
  *
  * I previously considered adding events for onKeyDown, onKeyUp, mouse events, etc.
@@ -86,7 +102,7 @@ interface INoteScriptedClass extends IScriptedClass
 /**
  * Defines a set of callbacks available to scripted classes that involve the lifecycle of the Play State.
  */
-interface IPlayStateScriptedClass extends INoteScriptedClass
+interface IPlayStateScriptedClass extends INoteScriptedClass extends IBPMSyncedScriptedClass
 {
   /**
    * Called during the setup process of Modcharts.
@@ -154,16 +170,6 @@ interface IPlayStateScriptedClass extends INoteScriptedClass
    * Called when the song reaches an event.
    */
   public function onSongEvent(event:SongEventScriptEvent):Void;
-
-  /**
-   * Called once every step of the song.
-   */
-  public function onStepHit(event:SongTimeScriptEvent):Void;
-
-  /**
-   * Called once every beat of the song.
-   */
-  public function onBeatHit(event:SongTimeScriptEvent):Void;
 
   /**
    * Called when the countdown of the song starts.

@@ -123,6 +123,9 @@ class SustainTrail extends ZSprite
   {
     this.isArrowPath = isArrowPath;
     this.parentStrumline = parentStrum;
+    this.sustainLength = sustainLength;
+    this.fullSustainLength = sustainLength;
+    this.noteDirection = noteDirection;
     if (isArrowPath)
     {
       if (parentStrum != null)
@@ -153,13 +156,14 @@ class SustainTrail extends ZSprite
       endOffset = bottomClip = 1;
       antialiasing = false;
     }
+    else
+    {
+      endOffset = 0.5;
+      bottomClip = 0.9;
+    }
+
+    zoom = 1.0;
     zoom *= noteStyle.fetchHoldNoteScale();
-
-    // BASIC SETUP
-    this.sustainLength = sustainLength;
-    this.fullSustainLength = sustainLength;
-    this.noteDirection = noteDirection;
-
     zoom *= 0.7;
 
     // CALCULATE SIZE
@@ -182,9 +186,15 @@ class SustainTrail extends ZSprite
     updateColorTransform();
 
     updateClipping();
-    indices = new DrawData<Int>(12, true, TRIANGLE_VERTEX_INDICES);
+  }
 
-    this.active = true; // This NEEDS to be true for the note to be drawn!
+  /**
+   * Creates hold note graphic and applies correct zooming
+   * @param noteStyle The note style
+   */
+  public function setupHoldNoteGraphic(noteStyle:NoteStyle):Void
+  {
+    // TODO
   }
 
   function getBaseScrollSpeed():Float
@@ -211,7 +221,7 @@ class SustainTrail extends ZSprite
    */
   public static inline function sustainHeight(susLength:Float, scroll:Float)
   {
-    return (susLength * 0.45 * scroll);
+    return (susLength * Constants.PIXELS_PER_MS * scroll);
   }
 
   function set_sustainLength(s:Float):Float
@@ -249,6 +259,10 @@ class SustainTrail extends ZSprite
    */
   public function updateClipping(songTime:Float = 0):Void
   {
+    if (graphic == null)
+    {
+      return;
+    }
     if (parentStrumline == null || parentStrumline.mods == null)
     {
       // trace("AW FUCK, THERE IS NO WAY TO SAMPLE MOD DATA!");
