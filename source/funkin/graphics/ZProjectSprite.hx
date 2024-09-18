@@ -138,8 +138,8 @@ class ZProjectSprite extends ZSprite
         noteIndices.push(1 + funny);
 
         noteIndices.push(nextRow + funny);
-        noteIndices.push(1 + funny);
         noteIndices.push(nextRow + 1 + funny);
+        noteIndices.push(1 + funny);
       }
     }
     indices = new DrawData<Int>(noteIndices.length, true, noteIndices);
@@ -221,13 +221,13 @@ class ZProjectSprite extends ZSprite
     }
 
     // TODO -> Swap this so that it instead just breaks out of the function if it detects a difference between two points as being negative!
-    switch (hazCullMode)
+    switch (cullMode)
     {
       case "always_positive" | "always_negative":
         if (spriteGraphic != null)
         {
-          spriteGraphic.flipX = hazCullMode == "always_negative" ? true : false;
-          spriteGraphic.flipY = hazCullMode == "always_negative" ? true : false;
+          spriteGraphic.flipX = cullMode == "always_negative" ? true : false;
+          spriteGraphic.flipY = cullMode == "always_negative" ? true : false;
         }
 
         var xFlipCheck_vertTopLeftX = vertices[0];
@@ -260,42 +260,28 @@ class ZProjectSprite extends ZSprite
           }
         }
 
-      case "back" | "positive":
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        }
-      case "front" | "negative":
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        else
-        { // y check
-          xFlipCheck_vertTopLeftX = vertices[1];
-          xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-          if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = true;
-        }
-        culled = !culled;
-      case "always":
-        culled = true;
       default:
         culled = false;
     }
   }
 
-  public var cullMode = TriangleCulling.NONE;
-  public var hazCullMode:String = "none";
+  public var cullMode:String = "none";
 
   var culled:Bool = false;
 
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
+    var c = TriangleCulling.NONE;
+    switch (cullMode)
+    {
+      case "positive" | "front":
+        c = TriangleCulling.POSITIVE;
+      case "negative" | "back":
+        c = TriangleCulling.NEGATIVE;
+      case "always":
+        culled = true;
+    }
     if (culled || alpha == 0 || graphic == null || vertices == null || indices == null || processedGraphic == null)
     {
       return;
@@ -309,7 +295,7 @@ class ZProjectSprite extends ZSprite
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
 
       getScreenPosition(_point, camera).subtractPoint(offset);
-      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.shader ?? null);
+      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.shader ?? null, c);
       // camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
       // trace("we do be drawin... something?\n verts: \n" + vertices);
     }

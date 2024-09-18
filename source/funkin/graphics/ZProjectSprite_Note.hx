@@ -231,7 +231,6 @@ class ZProjectSprite_Note extends FlxSprite
     // return; // TEMP TEMP TEMP TEMP TEMP TEMP OVER HER DUMBASS GET RID OF ME RID OF ME YOU HEAR ME?!!!!
 
     culled = false;
-    return;
 
     // temp fix for now I guess lol?
     // if (spriteGraphic != null)
@@ -245,12 +244,12 @@ class ZProjectSprite_Note extends FlxSprite
     flipX = false;
     flipY = false;
 
-    // TODO -> Swap this so that it instead just breaks out of the function if it detects a difference between two points as being negative!
-    switch (hazCullMode)
+    // TODO -> culMode this so that it instead just breaks out of the function if it detects a difference between two points as being negative!
+    switch (cullMode)
     {
       case "always_positive" | "always_negative":
-        flipX = hazCullMode == "always_positive" ? true : false;
-        flipY = hazCullMode == "always_positive" ? true : false;
+        flipX = cullMode == "always_positive" ? true : false;
+        flipY = cullMode == "always_positive" ? true : false;
 
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
@@ -287,37 +286,12 @@ class ZProjectSprite_Note extends FlxSprite
             flipY = !flipY;
           }
         }
-
-      case "front" | "negative":
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
-        // else
-        // { // y check
-        xFlipCheck_vertTopLeftX = vertices[1];
-        xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
-      // }
-      case "back" | "positive":
-        var xFlipCheck_vertTopLeftX = vertices[0];
-        var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
-        // else
-        // { // y check
-        xFlipCheck_vertTopLeftX = vertices[1];
-        xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
-        if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
-        // }
-        culled = !culled;
-      case "always":
-        culled = true;
       default:
         culled = false;
     }
   }
 
-  public var cullMode = TriangleCulling.NONE;
-  public var hazCullMode:String = "none";
+  public var cullMode:String = "none";
 
   var culled:Bool = false;
 
@@ -371,6 +345,17 @@ class ZProjectSprite_Note extends FlxSprite
 
   public function drawManual(graphicToUse:FlxGraphic = null):Void
   {
+    var c = TriangleCulling.NONE;
+    switch (cullMode)
+    {
+      case "positive" | "front":
+        c = TriangleCulling.POSITIVE;
+      case "negative" | "back":
+        c = TriangleCulling.NEGATIVE;
+      case "always":
+        culled = true;
+    }
+
     if (culled || alpha < 0 || vertices == null || indices == null || graphicToUse == null || uvtData == null || _point == null || offset == null)
     {
       return;
@@ -447,7 +432,7 @@ class ZProjectSprite_Note extends FlxSprite
       // getScreenPosition(_point, camera).subtractPoint(offset);
       getScreenPosition(_point, camera);
       camera.drawTriangles(graphicToUse, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.colorTransform ?? colorTransform,
-        spriteGraphic?.shader ?? null, cullMode);
+        spriteGraphic?.shader ?? null, c);
     }
 
     #if FLX_DEBUG

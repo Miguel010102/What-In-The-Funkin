@@ -12,15 +12,13 @@ class StrumExtraData
   // If true, will make the sprites render in 3D space, kind of.
   public var threeD:Bool = false;
 
-  public var useHazCullMode:Bool = false;
-
   public var cullMode(default, set):String = "none";
 
   function set_cullMode(value:String):String
   {
     if (whichStrumNote?.mesh != null)
     {
-      useHazCullMode ? whichStrumNote.mesh.hazCullMode = value : whichStrumNote.mesh.cullMode = value;
+      whichStrumNote.mesh.cullMode = value;
     }
     this.cullMode = value;
     return this.cullMode;
