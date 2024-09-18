@@ -273,7 +273,7 @@ class TitleState extends MusicBeatState
     }
     #end
 
-    if (Save.instance.charactersSeen.contains("pico"))
+    if (Save.instance.charactersSeen.contains("pico") && false) // why the fuck? -Haz
     {
       Save.instance.charactersSeen.remove("pico");
       Save.instance.oldChar = false;
