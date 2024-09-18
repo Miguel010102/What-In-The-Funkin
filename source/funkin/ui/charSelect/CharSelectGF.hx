@@ -97,7 +97,7 @@ class CharSelectGF extends FlxAtlasSprite implements IBPMSyncedScriptedClass
 
   function drawFFT()
   {
-    if (curGF == NENE)
+    if (curGF == NENE || curGF == HAZARD24)
     {
       var levels = analyzer.getLevels();
       var frame = anim.curSymbol.timeline.get("VIZ_bars").get(anim.curFrame);
@@ -179,6 +179,8 @@ class CharSelectGF extends FlxAtlasSprite implements IBPMSyncedScriptedClass
         curGF = NENE;
       case "bf":
         curGF = GF;
+      case "nobody":
+        curGF = HAZARD24;
       default:
         curGF = GF;
     }
@@ -218,4 +220,5 @@ enum abstract GFChar(String) from String to String
 {
   var GF = "gf";
   var NENE = "nene";
+  var HAZARD24 = "hazard24";
 }

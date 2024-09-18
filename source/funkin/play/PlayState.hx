@@ -1579,18 +1579,9 @@ class PlayState extends MusicBeatSubState
     super.closeSubState();
   }
 
-    /**
-       * Function called when the game window gains focus.
-       */
-    * Function
-
-  called
-  when
-  the
-  game
-  window
-  gains
-  focus. * /
+  /**
+     * Function called when the game window gains focus.
+     */
   public override function onFocus():Void
   {
     if (VideoCutscene.isPlaying() && FlxG.autoPause && isGamePaused) VideoCutscene.pauseVideo();
@@ -1616,18 +1607,9 @@ class PlayState extends MusicBeatSubState
     super.onFocus();
   }
 
-    /**
-       * Function called when the game window loses focus.
-       */
-    * Function
-
-  called
-  when
-  the
-  game
-  window
-  loses
-  focus. * /
+  /**
+     * Function called when the game window loses focus.
+     */
   public override function onFocusLost():Void
   {
     #if html5
@@ -3094,31 +3076,8 @@ class PlayState extends MusicBeatSubState
 
         var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
 
-        if (!Constants.GHOST_TAPPING && notesInDirection.length == 0)
+        if (notesInDirection.length == 0)
         {
-          // Pressed a wrong key with no notes nearby.
-          // Perform a ghost miss (anti-spam).
-          // ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
-
-          // Play the strumline animation.
-          customStrummer.playPress(input.noteDirection);
-          // trace('PENALTY Score: ${songScore}');
-        }
-        else if (Constants.GHOST_TAPPING && (!customStrummer.mayGhostTap()) && notesInDirection.length == 0)
-        {
-          // Pressed a wrong key with notes visible on-screen.
-          // Perform a ghost miss (anti-spam).
-          // ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
-
-          // Play the strumline animation.
-          customStrummer.playPress(input.noteDirection);
-          // trace('PENALTY Score: ${songScore}');
-        }
-        else if (notesInDirection.length == 0)
-        {
-          // Press a key with no penalty.
-
-          // Play the strumline animation.
           customStrummer.playPress(input.noteDirection);
         }
         else
@@ -3512,6 +3471,9 @@ class PlayState extends MusicBeatSubState
     // 3: Lose 5% health.
     if (FlxG.keys.justPressed.THREE) health -= 0.05 * Constants.HEALTH_MAX;
     #end
+
+    // 8: Toggle the old icon.
+    if (FlxG.keys.justPressed.EIGHT) scanForModchart();
 
     // 9: Toggle the old icon.
     if (FlxG.keys.justPressed.NINE) iconP1.toggleOldIcon();

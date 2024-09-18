@@ -8,7 +8,7 @@ import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.graphics.frames.FlxTileFrames;
 import flixel.math.FlxPoint;
-import funkin.play.notes.SustainTrail;
+import funkin.play.notes.SustainTrailVanilla;
 import funkin.data.song.SongData.SongNoteData;
 import flixel.math.FlxMath;
 
@@ -18,7 +18,7 @@ import flixel.math.FlxMath;
  */
 @:access(funkin.ui.debug.charting.ChartEditorState)
 @:nullSafety
-class ChartEditorHoldNoteSprite extends SustainTrail
+class ChartEditorHoldNoteSprite extends SustainTrailVanilla
 {
   /**
    * The ChartEditorState this note belongs to.
@@ -103,7 +103,7 @@ class ChartEditorHoldNoteSprite extends SustainTrail
     width = ChartEditorState.GRID_SIZE;
     height = graphicHeight;
 
-    var xOffset = (ChartEditorState.GRID_SIZE - graphicWidth) / 2;
+    var xOffset:Float = (ChartEditorState.GRID_SIZE - graphicWidth) / 2;
     offset.set(-xOffset, 0);
     origin.set(width * 0.5, height * 0.5);
   }

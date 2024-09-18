@@ -289,11 +289,11 @@ class ModHandler
     {
       try
       {
-        mod.specialMath();
+        mod.specialMath(0, strum);
       }
       catch (e)
       {
-        modDebugNotif(e.toString(), FlxColor.RED);
+        PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
         return;
       }
     }

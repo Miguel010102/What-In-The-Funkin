@@ -123,9 +123,11 @@ class SustainTrail extends ZSprite
   {
     this.isArrowPath = isArrowPath;
     this.parentStrumline = parentStrum;
+
     this.sustainLength = sustainLength;
     this.fullSustainLength = sustainLength;
     this.noteDirection = noteDirection;
+
     if (isArrowPath)
     {
       if (parentStrum != null)
@@ -144,11 +146,11 @@ class SustainTrail extends ZSprite
       super(0, 0, noteStyle.getHoldNoteAssetPath());
     }
 
+    noteModData = new NoteData();
+
     noteStyleName = noteStyle.id;
 
     antialiasing = true;
-
-    noteModData = new NoteData();
 
     this.isPixel = noteStyle.isHoldNotePixel();
     if (isPixel)
@@ -180,6 +182,8 @@ class SustainTrail extends ZSprite
     }
     flipY = Preferences.downscroll;
 
+    indices = new DrawData<Int>(12, true, TRIANGLE_VERTEX_INDICES);
+
     // alpha = 0.6;
     alpha = 1.0;
     // calls updateColorTransform(), which initializes processedGraphic!
@@ -194,7 +198,32 @@ class SustainTrail extends ZSprite
    */
   public function setupHoldNoteGraphic(noteStyle:NoteStyle):Void
   {
-    // TODO
+    loadGraphic(noteStyle.getHoldNoteAssetPath());
+    noteStyleName = noteStyle.id;
+    antialiasing = true;
+
+    this.isPixel = noteStyle.isHoldNotePixel();
+    if (isPixel)
+    {
+      endOffset = bottomClip = 1;
+      antialiasing = false;
+    }
+    else
+    {
+      endOffset = 0.5;
+      bottomClip = 0.9;
+    }
+
+    zoom = 1.0;
+    zoom *= noteStyle.fetchHoldNoteScale();
+    zoom *= 0.7;
+
+    // alpha = 0.6;
+    alpha = 1.0;
+    // calls updateColorTransform(), which initializes processedGraphic!
+    updateColorTransform();
+
+    updateClipping();
   }
 
   function getBaseScrollSpeed():Float
@@ -1032,8 +1061,6 @@ class SustainTrail extends ZSprite
    */
   public function updateClipping_Legacy(songTime:Float = 0):Void
   {
-    // trace("NONONONONONONO ");
-
     var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
     if (clipHeight <= 0.1)
     {
