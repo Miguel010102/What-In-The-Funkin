@@ -321,10 +321,11 @@ class LoadingState extends MusicBeatSubState
     FunkinSprite.cacheTexture(Paths.image('NOTE_hold_assets'));
 
     FunkinSprite.cacheTexture(Paths.image('NOTE_ArrowPath', 'shared'));
-    FunkinSprite.cacheTexture(Paths.image('holdCoverRed', 'shared')); // you forgot hold covers
-    FunkinSprite.cacheTexture(Paths.image('holdCoverPurple', 'shared'));
-    FunkinSprite.cacheTexture(Paths.image('holdCoverGreen', 'shared'));
-    FunkinSprite.cacheTexture(Paths.image('holdCoverBlue', 'shared'));
+    // NVM, DO NOT CACHE THESE!!! IT CRASH OTHERWISE!
+    // FunkinSprite.cacheTexture(Paths.image('holdCoverRed', 'shared')); // you forgot hold covers
+    // FunkinSprite.cacheTexture(Paths.image('holdCoverPurple', 'shared'));
+    // FunkinSprite.cacheTexture(Paths.image('holdCoverGreen', 'shared'));
+    // FunkinSprite.cacheTexture(Paths.image('holdCoverBlue', 'shared'));
 
     FunkinSprite.cacheTexture(Paths.image('ui/countdown/funkin/ready', 'shared'));
     FunkinSprite.cacheTexture(Paths.image('ui/countdown/funkin/set', 'shared'));

@@ -29,6 +29,7 @@ import flixel.math.FlxMath;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import funkin.graphics.ZSprite;
 import openfl.display.BlendMode;
+import openfl.display.TriangleCulling;
 
 using StringTools;
 
@@ -783,6 +784,20 @@ class HScript
 
         default:
           return FlxTextBorderStyle.NONE;
+      }
+    });
+
+    interp.variables.set('culling', function(b:String) {
+      switch (b.toLowerCase())
+      {
+        case "positive":
+          return TriangleCulling.POSITIVE;
+        case "none":
+          return TriangleCulling.NONE;
+        case "negative":
+          return TriangleCulling.NEGATIVE;
+        default:
+          return TriangleCulling.NONE;
       }
     });
 

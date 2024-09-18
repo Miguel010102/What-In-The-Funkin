@@ -12,7 +12,7 @@ class StrumExtraData
   // If true, will make the sprites render in 3D space, kind of.
   public var threeD:Bool = false;
 
-  public var useHazCullMode:Bool = true; // otherwise we get weird behaviour cuz drawTriangles sucks at it's job
+  public var useHazCullMode:Bool = false;
 
   public var cullMode(default, set):String = "none";
 

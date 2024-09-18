@@ -95,8 +95,8 @@ class Strumline extends FlxSpriteGroup
         if (note?.mesh != null)
         {
           var c:String = note.noteModData?.whichStrumNote?.strumExtraModData?.cullModeNotes ?? "none";
-          // note.mesh.cullMode = c;
-          note.mesh.hazCullMode = c;
+          note.mesh.cullMode = c;
+          // note.mesh.hazCullMode = c;
         }
       }
       for (note in notesVwoosh.members)
@@ -104,8 +104,8 @@ class Strumline extends FlxSpriteGroup
         if (note?.mesh != null)
         {
           var c:String = note.noteModData?.whichStrumNote?.strumExtraModData?.cullModeNotes ?? "none";
-          // note.mesh.cullMode = c;
-          note.mesh.hazCullMode = c;
+          note.mesh.cullMode = c;
+          // note.mesh.hazCullMode = c;
         }
       }
     }
@@ -113,14 +113,14 @@ class Strumline extends FlxSpriteGroup
     {
       for (note in holdNotes.members)
       {
-        // note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
-        note.hazCullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+        note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+        // note.hazCullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
       }
       for (note in holdNotesVwoosh.members)
       {
-        note.hazCullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+        // note.hazCullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
 
-        // note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+        note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
       }
     }
   }
@@ -1583,8 +1583,8 @@ class Strumline extends FlxSpriteGroup
 
       if (noteSprite.mesh != null)
       {
-        noteSprite.mesh.hazCullMode = getByIndex(noteSprite.direction).strumExtraModData?.cullModeNotes ?? "none";
-        // noteSprite.mesh.cullMode = getByIndex(noteSprite.direction).strumExtraModData?.cullModeNotes ?? "none";
+        // noteSprite.mesh.hazCullMode = getByIndex(noteSprite.direction).strumExtraModData?.cullModeNotes ?? "none";
+        noteSprite.mesh.cullMode = getByIndex(noteSprite.direction).strumExtraModData?.cullModeNotes ?? "none";
       }
     }
 
@@ -1619,8 +1619,9 @@ class Strumline extends FlxSpriteGroup
 
       holdNoteSprite.whichStrumNote = getByIndex(holdNoteSprite.noteDirection);
 
-      holdNoteSprite.hazCullMode == holdNoteSprite.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+      // holdNoteSprite.hazCullMode == holdNoteSprite.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
       // holdNoteSprite.cullMode == holdNoteSprite.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+      holdNoteSprite.cullMode = getByIndex(holdNoteSprite.noteDirection).strumExtraModData?.cullModeSustain ?? "none";
     }
 
     return holdNoteSprite;

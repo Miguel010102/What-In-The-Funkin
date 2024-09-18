@@ -128,8 +128,8 @@ class ZProjectSprite_Note extends FlxSprite
         noteIndices.push(1 + funny);
 
         noteIndices.push(nextRow + funny);
-        noteIndices.push(1 + funny);
         noteIndices.push(nextRow + 1 + funny);
+        noteIndices.push(1 + funny);
       }
     }
     indices = new DrawData<Int>(noteIndices.length, true, noteIndices);
@@ -231,6 +231,7 @@ class ZProjectSprite_Note extends FlxSprite
     // return; // TEMP TEMP TEMP TEMP TEMP TEMP OVER HER DUMBASS GET RID OF ME RID OF ME YOU HEAR ME?!!!!
 
     culled = false;
+    return;
 
     // temp fix for now I guess lol?
     // if (spriteGraphic != null)
@@ -248,8 +249,8 @@ class ZProjectSprite_Note extends FlxSprite
     switch (hazCullMode)
     {
       case "always_positive" | "always_negative":
-        flipX = hazCullMode == "always_negative" ? true : false;
-        flipY = hazCullMode == "always_negative" ? true : false;
+        flipX = hazCullMode == "always_positive" ? true : false;
+        flipY = hazCullMode == "always_positive" ? true : false;
 
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
@@ -287,7 +288,7 @@ class ZProjectSprite_Note extends FlxSprite
           }
         }
 
-      case "back" | "positive":
+      case "front" | "negative":
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
         if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
@@ -297,7 +298,7 @@ class ZProjectSprite_Note extends FlxSprite
         xFlipCheck_vertBottomRightX = vertices[vertices.length - 1];
         if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;
       // }
-      case "front" | "negative":
+      case "back" | "positive":
         var xFlipCheck_vertTopLeftX = vertices[0];
         var xFlipCheck_vertBottomRightX = vertices[vertices.length - 1 - 1];
         if (xFlipCheck_vertTopLeftX >= xFlipCheck_vertBottomRightX) culled = !culled;

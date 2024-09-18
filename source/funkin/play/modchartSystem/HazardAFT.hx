@@ -166,7 +166,7 @@ class HazardAFT
     {
       if (updateTimer >= 0 && updateRate != 0)
       {
-        updateTimer -= elapsed;
+        updateTimer -= (elapsed / FlxG.timeScale);
       }
       else if (updateTimer < 0 || updateRate == 0)
       {

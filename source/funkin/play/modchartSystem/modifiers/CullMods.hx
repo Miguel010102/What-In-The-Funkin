@@ -23,28 +23,28 @@ class CullAllModifier extends Modifier
   {
     if (currentValue > 2)
     {
-      data.whichStrumNote.strumExtraModData.cullMode = "always_positive";
-      data.whichStrumNote.strumExtraModData.cullModeSustain = "always_positive";
-      data.whichStrumNote.strumExtraModData.cullModeNotes = "always_positive";
+      data.whichStrumNote.strumExtraModData.cullMode = "always_negative";
+      data.whichStrumNote.strumExtraModData.cullModeSustain = "always_negative";
+      data.whichStrumNote.strumExtraModData.cullModeNotes = "always_negative";
       return;
     }
     else if (currentValue < -2)
     {
-      data.whichStrumNote.strumExtraModData.cullMode = "always_negative";
-      data.whichStrumNote.strumExtraModData.cullModeSustain = "always_negative";
-      data.whichStrumNote.strumExtraModData.cullModeNotes = "always_negative";
+      data.whichStrumNote.strumExtraModData.cullMode = "always_positive";
+      data.whichStrumNote.strumExtraModData.cullModeSustain = "always_positive";
+      data.whichStrumNote.strumExtraModData.cullModeNotes = "always_positive";
     }
     else if (currentValue > 0)
-    {
-      data.whichStrumNote.strumExtraModData.cullMode = "positive";
-      data.whichStrumNote.strumExtraModData.cullModeSustain = "positive";
-      data.whichStrumNote.strumExtraModData.cullModeNotes = "positive";
-    }
-    else if (currentValue < 0)
     {
       data.whichStrumNote.strumExtraModData.cullMode = "negative";
       data.whichStrumNote.strumExtraModData.cullModeSustain = "negative";
       data.whichStrumNote.strumExtraModData.cullModeNotes = "negative";
+    }
+    else if (currentValue < 0)
+    {
+      data.whichStrumNote.strumExtraModData.cullMode = "positive";
+      data.whichStrumNote.strumExtraModData.cullModeSustain = "positive";
+      data.whichStrumNote.strumExtraModData.cullModeNotes = "positive";
     }
     else
     {
@@ -69,11 +69,11 @@ class CullNotesModifier extends Modifier
   {
     if (currentValue > 0)
     {
-      data.whichStrumNote.strumExtraModData.cullModeNotes = "positive";
+      data.whichStrumNote.strumExtraModData.cullModeNotes = "negative";
     }
     else if (currentValue < 0)
     {
-      data.whichStrumNote.strumExtraModData.cullModeNotes = "negative";
+      data.whichStrumNote.strumExtraModData.cullModeNotes = "positive";
     }
     else
     {
@@ -96,11 +96,11 @@ class CullSustainModifier extends Modifier
   {
     if (currentValue > 0)
     {
-      data.whichStrumNote.strumExtraModData.cullModeSustain = "positive";
+      data.whichStrumNote.strumExtraModData.cullModeSustain = "negative";
     }
     else if (currentValue < 0)
     {
-      data.whichStrumNote.strumExtraModData.cullModeSustain = "negative";
+      data.whichStrumNote.strumExtraModData.cullModeSustain = "positive";
     }
     else
     {
@@ -123,11 +123,11 @@ class CullStrumModifier extends Modifier
   {
     if (currentValue > 0)
     {
-      data.whichStrumNote.strumExtraModData.cullMode = "positive";
+      data.whichStrumNote.strumExtraModData.cullMode = "negative";
     }
     else if (currentValue < 0)
     {
-      data.whichStrumNote.strumExtraModData.cullMode = "negative";
+      data.whichStrumNote.strumExtraModData.cullMode = "positive";
     }
     else
     {

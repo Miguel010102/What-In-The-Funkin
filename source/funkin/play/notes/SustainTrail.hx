@@ -587,23 +587,43 @@ class SustainTrail extends ZSprite
     var vertices:Array<Float> = [];
     var uvtData:Array<Float> = [];
     var noteIndices:Array<Int> = [];
+
+    var dumbAlt:Bool = true;
+
     for (i in 0...Std.int(holdResolution * 2))
     {
-      for (k in 0...3)
+      // for (k in 0...3)
+      // {
+      //  noteIndices.push(i + k);
+      // }
+      if (dumbAlt)
       {
-        noteIndices.push(i + k);
+        noteIndices.push(i + 0);
+        noteIndices.push(i + 2);
+        noteIndices.push(i + 1);
       }
+      else
+      {
+        noteIndices.push(i + 0);
+        noteIndices.push(i + 1);
+        noteIndices.push(i + 2);
+      }
+      dumbAlt = !dumbAlt;
     }
     // add cap
     var highestNumSoFar_:Int = Std.int((holdResolution * 2) - 1 + 2);
-    for (k in 0...3)
-    {
-      noteIndices.push(highestNumSoFar_ + k + 1);
-    }
-    for (k in 0...3)
-    {
-      noteIndices.push(highestNumSoFar_ + k + 2);
-    }
+    noteIndices.push(highestNumSoFar_ + 0 + 1);
+    noteIndices.push(highestNumSoFar_ + 2 + 1);
+    noteIndices.push(highestNumSoFar_ + 1 + 1);
+
+    noteIndices.push(highestNumSoFar_ + 0 + 2);
+    noteIndices.push(highestNumSoFar_ + 1 + 2);
+    noteIndices.push(highestNumSoFar_ + 2 + 2);
+
+    // for (k in 0...3)
+    // {
+    //  noteIndices.push(highestNumSoFar_ + k + 2);
+    // }
 
     var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
     if (clipHeight <= 0.1)
