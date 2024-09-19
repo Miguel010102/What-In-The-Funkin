@@ -2731,6 +2731,13 @@ class PlayState extends MusicBeatSubState
           {
             if (note.hasBeenHit) continue;
 
+            // Call an event to allow canceling the note hit.
+            var event:NoteScriptEvent = new HitNoteScriptEvent(note, 0.0, 0, 'perfect', false, 0);
+            dispatchEvent(event);
+
+            // Calling event.cancelEvent() skips all the other logic! Neat!
+            if (event.eventCanceled) continue;
+
             // Command the bot to hit the note on time.
             // NOTE: This is what handles the strumline and cleaning up the note itself!
             strummer.hitNote(note);
@@ -3123,6 +3130,7 @@ class PlayState extends MusicBeatSubState
     return result;
   }
 
+  // It's goodNoteHit function but for custom strums!
   public function goodNoteCustom(targetNote:NoteSprite, customStrummer:Strumline, input:PreciseInputEvent):Void
   {
     // all this shit, just to figure out if the note was a combo break note (to be removed or to be desaturated?)
@@ -3145,6 +3153,21 @@ class PlayState extends MusicBeatSubState
       default:
         FlxG.log.error('Wuh? Buh? Guh? Note hit judgement was $daRating!');
     }
+
+    // Send the note hit event.
+    var event:HitNoteScriptEvent = new HitNoteScriptEvent(targetNote, 0, 0, daRating, isComboBreak, Highscore.tallies.combo, noteDiff, daRating == 'sick');
+    dispatchEvent(event);
+
+    // Calling event.cancelEvent() skips all the other logic! Neat!
+    if (event.eventCanceled) return;
+
+    // Display the hit on the strums
+    customStrummer.hitNote(targetNote, !isComboBreak);
+    if (event.doesNotesplash)
+    {
+      customStrummer.playNoteSplash(targetNote.noteData.getDirection());
+    }
+
     customStrummer.hitNote(targetNote, !isComboBreak);
 
     if (targetNote.isHoldNote && targetNote.holdNoteSprite != null)
@@ -3294,13 +3317,6 @@ class PlayState extends MusicBeatSubState
     if (event.doesNotesplash)
     {
       playerStrumline.playNoteSplash(note.noteData.getDirection());
-      for (customStrummer in customStrumLines)
-      {
-        if (customStrummer.isPlayer)
-        {
-          customStrummer.playNoteSplash(note.noteData.getDirection());
-        }
-      }
     }
     if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
     vocals.playerVolume = 1;
