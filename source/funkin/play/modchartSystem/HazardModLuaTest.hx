@@ -271,6 +271,10 @@ class HazardModLuaTest
       PlayState.instance.modchartEventHandler.invertForOpponent = newval;
     });
 
+    Lua_helper.add_callback(lua, "copyZoom", function(newval:Bool = false) {
+      PlayState.instance.noteCamCopyHudZoom = newval;
+    });
+
     Lua_helper.add_callback(lua, "centerPlayer", function(pointless:String = "") {
       trace("attempting to center player 0");
       var playerStrumline:Strumline = PlayState.instance.playerStrumline;

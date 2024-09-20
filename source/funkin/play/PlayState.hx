@@ -804,6 +804,9 @@ class PlayState extends MusicBeatSubState
     modDebugNotif(txtToShow, color);
   }
 
+  // NEW VARIABLE FOR V0.7.5A WHICH DEFAULTS TO TRUE TO COPY HUD ZOOMING!
+  public var noteCamCopyHudZoom:Bool = true;
+
   function updateHazModchartSystem(elapsed:Float):Void
   {
     if (isModchartSong && modchartEventHandler != null)
@@ -820,6 +823,15 @@ class PlayState extends MusicBeatSubState
       }
     }
     if (luaAFT_Capture != null) luaAFT_Capture.update(elapsed);
+
+    if (camNotes != null && noteCamCopyHudZoom)
+    {
+      camNotes.zoom = camHUD.zoom;
+    }
+    if (camAFT != null && noteCamCopyHudZoom)
+    {
+      camAFT.zoom = camHUD.zoom;
+    }
 
     for (fun in perframeFunctions)
     {
