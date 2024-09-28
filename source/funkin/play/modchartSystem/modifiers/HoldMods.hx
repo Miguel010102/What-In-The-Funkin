@@ -6,6 +6,22 @@ import funkin.play.modchartSystem.modifiers.BaseModifier;
 import funkin.play.notes.StrumlineNote;
 
 // Contains all mods that modify holds!
+class Old3DHoldsMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    specialMod = true;
+  }
+
+  override function specialMath(lane:Int, strumLine:Strumline):Void
+  {
+    var whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    whichStrum.strumExtraModData.old3Dholds = (currentValue > 0.5 ? true : false);
+  }
+}
+
 class SpiralHoldsMod extends Modifier
 {
   public function new(name:String)

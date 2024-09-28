@@ -111,8 +111,8 @@ class NoteData
   // Examples: "note", "hurt", "hold", "path", "receptor", "path hold", "my custom note", "roll"
   public var noteType:String = "note";
 
+  // I think these two were for Centered2 mod?
   public var strumPosOffsetThingy:Vector3D;
-
   public var strumPosWasHere:Vector3D;
 
   public function new()
@@ -154,6 +154,7 @@ class NoteData
     this.alpha = spr.alpha;
   }
 
+  // call this to set the values from an already existing sprite! FOR ZSPRITE
   public function setValuesFromZSprite(spr:ZSprite):Void
   {
     this.z = spr.z;
@@ -165,6 +166,7 @@ class NoteData
     setValuesFromSkewSprite(spr);
   }
 
+  // call this to set the values from an already existing sprite! FOR NOTES
   public function setValuesFromNoteSprite(noteSpr:NoteSprite):Void
   {
     setValuesFromZSprite(noteSpr);

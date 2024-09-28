@@ -310,6 +310,7 @@ class SustainTrail extends ZSprite
   }
 
   var fakeNote:ZSprite;
+  var perspectiveShift:Vector2 = new Vector2(0, 0);
 
   function resetFakeNote():Void
   {
@@ -347,6 +348,8 @@ class SustainTrail extends ZSprite
   public var hazCullMode:String = "none";
 
   public var whichStrumNote:StrumlineNote;
+
+  private var old3Dholds:Bool = false;
 
   function susSample(t:Float, yJank:Bool = false, isRoot:Bool = false, dumbHeight:Float = 0):Void
   {
@@ -408,13 +411,20 @@ class SustainTrail extends ZSprite
 
     noteModData.funnyOffMyself();
 
-    // is3D = (noteModData.whichStrumNote?.strumExtraModData?.threeD ?? false); //FOR NOW, 3D DOESN'T WORK FOR SUSTAINS. WILL BE FIXED IN V0.7.2a! (hopefully)
-    is3D = false;
+    is3D = (noteModData.whichStrumNote?.strumExtraModData?.threeD ?? false);
+    old3Dholds = (noteModData.whichStrumNote?.strumExtraModData?.old3Dholds ?? false);
+    // is3D = false;
 
     fakeNote.applyNoteData(noteModData, !is3D);
     if (Preferences.downscroll) fakeNote.y += 27; // fix gap for downscroll lol Moved from verts so it is applied before perspective fucks it up!
 
-    if (!is3D) ModConstants.applyPerspective(fakeNote, graphicWidth, dumbHeight);
+    var rememberMe:Vector2 = new Vector2(fakeNote.x, fakeNote.y);
+
+    if (old3Dholds || !is3D) ModConstants.applyPerspective(fakeNote, graphicWidth, dumbHeight);
+
+    // caluclate diff
+    perspectiveShift.x = fakeNote.x - rememberMe.x;
+    perspectiveShift.y = fakeNote.y - rememberMe.y;
 
     // var notePosModified:Float = parentStrumline.mods.makeHoldCopyStrum_sample(fakeNote, strumTimmy, noteDirection, parentStrumline, notePos, isArrowPath);
     // parentStrumline.mods.sampleModMath(fakeNote, strumTimmy, noteDirection, parentStrumline, true, yJank, notePosModified, isArrowPath, graphicWidth,
@@ -471,7 +481,7 @@ class SustainTrail extends ZSprite
 
   function applyPerspective(pos:Vector3D, rotatePivot:Vector2):Vector2
   {
-    if (!is3D)
+    if (!is3D || old3Dholds)
     {
       return new Vector2(pos.x, pos.y);
     }
@@ -488,21 +498,23 @@ class SustainTrail extends ZSprite
       // pos_modified.x = thing.x;
       // pos_modified.y = thing.y;
 
-      var rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, 0.0);
+      var rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, pos_modified.z); // x, z
       var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.x, pos_modified.z), angleY);
-      pos_modified.x += thing.x - pos_modified.x;
-      pos_modified.z += thing.y - pos_modified.y;
+      pos_modified.x = thing.x;
+      pos_modified.z = thing.y;
+      // pos_modified.x += thing.x - pos_modified.x;
+      // pos_modified.z += thing.y - pos_modified.y;
 
-      if (angleX == 0)
+      if (angleX == 0 && false)
       {
-        var rotateModPivotPoint:Vector2 = new Vector2(0.0, rotatePivot.y);
+        var rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, rotatePivot.y);
         var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
         pos_modified.z = thing.x;
         pos_modified.y = thing.y;
       }
 
-      pos_modified.x -= offset.x;
-      pos_modified.y -= offset.y;
+      // pos_modified.x -= offset.x;
+      // pos_modified.y -= offset.y;
 
       pos_modified.z *= 0.001;
       var thisNotePos:Vector3D = ModConstants.perspectiveMath_OLD(pos_modified, 0, 0);
@@ -511,7 +523,7 @@ class SustainTrail extends ZSprite
   }
 
   var spiralHoldOldMath:Bool = false;
-  private var tinyOffsetForSpiral:Float = 1.0;
+  private var tinyOffsetForSpiral:Float = 5.0;
 
   private var holdRootX:Float = 0.0;
   private var holdRootY:Float = 0.0;
@@ -798,15 +810,11 @@ class SustainTrail extends ZSprite
         var angle:Float = Math.atan2(b, a);
         var calculateAngleDif:Float = angle * (180 / Math.PI);
 
-        // grab left vert
-        // var rotateOrigin:Vector2 = new Vector2(vertices[i * 2], vertices[i * 2 + 1]);
-        // move rotateOrigin to be inbetween the left and right vert so it's centered
-        // rotateOrigin.x += ((fakeNote.x + holdRightSide) - vertices[i * 2]) / 2;
-
         // rotate right point
-        var rotatePoint:Vector2 = new Vector2(fakeNote.x + holdRightSide, vertices[i * 2 + 1]);
-
+        // var rvert:Vector2 = applyPerspective(new Vector3D(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z), rotateOrigin);
+        var rotatePoint:Vector2 = new Vector2(fakeNote.x + holdRightSide, fakeNote.y);
         var thing:Vector2 = ModConstants.rotateAround(rotateOrigin, rotatePoint, calculateAngleDif);
+        thing = applyPerspective(new Vector3D(thing.x, thing.y, fakeNote.z), rotateOrigin);
         rightSideOffX = thing.x;
         rightSideOffY = thing.y;
 
@@ -814,8 +822,10 @@ class SustainTrail extends ZSprite
         vertices[(i + 1) * 2] = rightSideOffX;
         vertices[(i + 1) * 2 + 1] = rightSideOffY;
 
-        rotatePoint = new Vector2(fakeNote.x + holdLeftSide, vertices[i * 2 + 1]);
+        // left
+        rotatePoint = new Vector2(fakeNote.x + holdLeftSide, fakeNote.y);
         thing = ModConstants.rotateAround(rotateOrigin, rotatePoint, calculateAngleDif);
+        thing = applyPerspective(new Vector3D(thing.x, thing.y, fakeNote.z), rotateOrigin);
         rightSideOffX = thing.x;
         rightSideOffY = thing.y;
 
@@ -931,8 +941,15 @@ class SustainTrail extends ZSprite
 
     // Bottom left
     highestNumSoFar += 1;
-    vertices[highestNumSoFar * 2] = fakeNote.x + holdLeftSide;
-    vertices[highestNumSoFar * 2 + 1] = fakeNote.y;
+
+    // grab left vert
+    var rotateOrigin:Vector2 = new Vector2(fakeNote.x + holdLeftSide, fakeNote.y);
+    // move rotateOrigin to be inbetween the left and right vert so it's centered
+    rotateOrigin.x += ((fakeNote.x + holdRightSide) - (fakeNote.x + holdLeftSide)) / 2;
+
+    vert = applyPerspective(new Vector3D(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z), rotateOrigin);
+    vertices[highestNumSoFar * 2] = vert.x;
+    vertices[highestNumSoFar * 2 + 1] = vert.y;
     testCol[highestNumSoFar * 2] = fakeNote.color;
     testCol[highestNumSoFar * 2 + 1] = fakeNote.color;
 
@@ -941,8 +958,9 @@ class SustainTrail extends ZSprite
 
     // Bottom right
     highestNumSoFar += 1;
-    vertices[highestNumSoFar * 2] = fakeNote.x + holdRightSide;
-    vertices[highestNumSoFar * 2 + 1] = vertices[(highestNumSoFar - 1) * 2 + 1]; // Inline with bottom of end cap
+    vert = applyPerspective(new Vector3D(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z), rotateOrigin);
+    vertices[highestNumSoFar * 2] = vert.x;
+    vertices[highestNumSoFar * 2 + 1] = vert.y;
     testCol[highestNumSoFar * 2] = fakeNote.color;
     testCol[highestNumSoFar * 2 + 1] = fakeNote.color;
     if (spiralHolds && !spiralHoldOldMath)
@@ -990,30 +1008,6 @@ class SustainTrail extends ZSprite
 
     // vertices[highestNumSoFar * 2] = holdNoteJankX * -1;
     // vertices[highestNumSoFar * 2 + 1] = holdNoteJankY * -1;
-
-    /*
-      if (this.strumTime < 100 && false)
-      {
-        trace("============");
-        trace("clip time: " + clippingTimeOffset);
-
-        trace("verts: ");
-
-        for (k in 0...vertices.length)
-        {
-          if (k % 2 == 1)
-          { // all y verts
-            trace("y: " + vertices[k]);
-            trace("---------- ");
-          }
-          else
-          {
-            trace("x: " + vertices[k]);
-          }
-        }
-        trace("============");
-      }
-     */
 
     if (uvSetup)
     {
@@ -1194,9 +1188,9 @@ class SustainTrail extends ZSprite
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
 
-      if (is3D) getScreenPosition(_point, camera)
-      else
-        getScreenPosition(_point, camera).subtractPoint(offset);
+      // if (is3D) getScreenPosition(_point, camera)
+      // else
+      getScreenPosition(_point, camera).subtractPoint(offset);
 
       camera.drawTriangles(processedGraphic, vertices, indices, uvtData, colors, _point, blend, true, antialiasing, hsvShader, cullMode);
     }

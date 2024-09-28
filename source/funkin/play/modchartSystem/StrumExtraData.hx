@@ -92,7 +92,7 @@ class StrumExtraData
   // If distance is equal or greater then the value set, then skip doing mod math! 0 or below means don't use this mod!
   public var mathCutOff:Float = 0;
 
-  // lol
+  // If set to higher then 0, then disables a small hold optimisation.
   public var noHoldMathShortcut:Float = 0;
 
   // so the angle can get undone for regular notes
@@ -104,10 +104,19 @@ class StrumExtraData
 
   // The alpha of this lane's arrowpath. This is used so that at 0 or lower alpha, it doesn't do any math for optimisation
   public var arrowPathAlpha:Float = 0;
+  // Length of the arrowpath
   public var arrowpathLength:Float = 1500;
+  // Length of the arrowpath going backwards (behind the receptors)
   public var arrowpathBackwardsLength:Float = 400;
+
+  // The alpha of the note splashes
   public var alphaSplashMod:Float = 0;
+
+  // The alpha of the hold covers
   public var alphaHoldCoverMod:Float = 0;
+
+  // Enable this to re-enable the old 3D math for sustains! This basically just makes them scale on the x axis instead of applying true 3D math for each vert.
+  public var old3Dholds:Bool = false;
 
   public function new(who:StrumlineNote)
   {

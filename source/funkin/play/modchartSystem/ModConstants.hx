@@ -765,6 +765,8 @@ class ModConstants
         newMod = new DrawDistanceMod(tag);
 
       // hold mods
+      case "old3dholds":
+        newMod = new Old3DHoldsMod(tag);
       case "spiralholds":
         newMod = new SpiralHoldsMod(tag);
       case "longholds":
