@@ -709,10 +709,12 @@ class ModConstants
     var modName:String = name.toLowerCase();
 
     // check if the name is okay to use
-    var testIfModAlreadyExists:Modifier = createNewMod(modName);
+    var testIfModAlreadyExists:Modifier = createNewMod(modName, false);
     if (!testIfModAlreadyExists.fuck || ModConstants.isTagSub(modName))
     {
-      PlayState.instance.modDebugNotif(name + " is not a valid mod name", FlxColor.RED);
+      if (PlayState.instance != null) PlayState.instance.modDebugNotif(name + " is not a valid mod name", FlxColor.RED);
+      else
+        trace(name + " is not a valid mod name ");
       return null;
     }
 
@@ -721,7 +723,7 @@ class ModConstants
   }
 
   // Use this to get
-  public static function createNewMod(name:String):Modifier
+  public static function createNewMod(name:String, notif:Bool = true):Modifier
   {
     var tag:String = name.toLowerCase();
     var tag_:String = tag;
@@ -1474,11 +1476,20 @@ class ModConstants
       //  newMod = new CustomModifier(tag);
 
       default:
+        // Alright, we don't know wtf this mod is, let the player know.
         newMod = new Modifier(tag);
         newMod.fuck = true;
+
+        if (notif)
+        {
+          if (PlayState.instance != null) PlayState.instance.modDebugNotif(tag + " mod is unknown", FlxColor.ORANGE);
+          else
+            trace(tag + " mod is unknown");
+        }
     }
 
     newMod.targetLane = lane;
+
     return newMod;
   }
 }

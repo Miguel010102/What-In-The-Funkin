@@ -266,6 +266,11 @@ class HazardModLuaTest
       PlayState.instance.modchartEventHandler.percentageMods = newval;
     });
 
+    Lua_helper.add_callback(lua, "hideNotifs", function(newval:Bool = false) {
+      PlayState.instance.hideNotifs = newval;
+      trace(PlayState.instance.hideNotifs ? "Will no longer display notifs..." : "Showing notifs!");
+    });
+
     Lua_helper.add_callback(lua, "invertForDad", function(newval:Bool = false) {
       trace("set invert mode to: " + newval);
       PlayState.instance.modchartEventHandler.invertForOpponent = newval;
@@ -587,7 +592,7 @@ class HazardModLuaTest
     //    return;
     //  }
     // PlayState.instance.addTextToDebug(text, color);
-    PlayState.instance.modDebugNotif(text, color);
+    PlayState.instance.modDebugNotif(text, color, ignoreCheck);
     trace(text);
     // }
   }

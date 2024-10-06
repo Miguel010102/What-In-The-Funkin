@@ -740,11 +740,14 @@ class PlayState extends MusicBeatSubState
   }
 
   public var debugNotifs:FlxTypedSpriteGroup<DebugNotification>;
+  public var hideNotifs:Bool = false;
 
   // Call this to display a notification in the corner of the screen!
   public function modDebugNotif(txtToShow:String = "", ?color:FlxColor = FlxColor.WHITE, ?howManySeconds:Float = 5, ?fadeInSeconds:Float = 0.25,
-      ?fadeOutSeconds:Float = 1):Void
+      ?fadeOutSeconds:Float = 1, criticalError:Bool = false):Void
   {
+    if (!criticalError && hideNotifs) return; // Don't do shit unless it's a critical error if we don't wanna show notifs!
+
     if (debugNotifs == null)
     {
       debugNotifs = new FlxTypedSpriteGroup<DebugNotification>();
@@ -2099,7 +2102,8 @@ class PlayState extends MusicBeatSubState
         lua.call('modsTimeline', []);
       }
       // check if displayNotif already displaying something in case of an error!
-      if (modDebugNotifTimer == null && showNotif)
+      // if (modDebugNotifTimer == null && showNotif)
+      if (showNotif)
       {
         modDebugNotif("Reloaded modchart...");
       }

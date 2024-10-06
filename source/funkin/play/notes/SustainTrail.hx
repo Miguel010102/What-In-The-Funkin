@@ -1192,7 +1192,10 @@ class SustainTrail extends ZSprite
       // else
       getScreenPosition(_point, camera).subtractPoint(offset);
 
-      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, colors, _point, blend, true, antialiasing, hsvShader, cullMode);
+      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, colors, _point, blend, true, antialiasing, colorTransform, hsvShader, cullMode);
+
+      // camera.drawTriangles(graphicToUse, vertices, indices, uvtData, null, _point, blend, textureRepeat, antialiasing,
+      //   spriteGraphic?.colorTransform ?? colorTransform, spriteGraphic?.shader ?? null, c);
     }
 
     #if FLX_DEBUG
@@ -1242,9 +1245,14 @@ class SustainTrail extends ZSprite
   override function updateColorTransform():Void
   {
     super.updateColorTransform();
-    if (processedGraphic != null) processedGraphic.destroy();
-    processedGraphic = FlxGraphic.fromGraphic(graphic, true);
-    processedGraphic.bitmap.colorTransform(processedGraphic.bitmap.rect, colorTransform);
+
+    // if (processedGraphic != null) processedGraphic.destroy();
+
+    if (processedGraphic == null)
+    {
+      processedGraphic = FlxGraphic.fromGraphic(graphic, true);
+      // processedGraphic.bitmap.colorTransform(processedGraphic.bitmap.rect, colorTransform);
+    }
     if (useShader && this.hsvShader == null)
     {
       this.hsvShader = new HSVShader();

@@ -334,6 +334,8 @@ class ZProjectSprite_Note extends FlxSprite
     }
   }
 
+  public var textureRepeat:Bool = false;
+
   public var debugTesting:Bool = false;
 
   // public var graphicAnimMap:Map<String, FlxGraphic> = new Map<String, FlxGraphic>();
@@ -429,8 +431,8 @@ class ZProjectSprite_Note extends FlxSprite
 
       // getScreenPosition(_point, camera).subtractPoint(offset);
       getScreenPosition(_point, camera);
-      camera.drawTriangles(graphicToUse, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.colorTransform ?? colorTransform,
-        spriteGraphic?.shader ?? null, c);
+      camera.drawTriangles(graphicToUse, vertices, indices, uvtData, null, _point, blend, textureRepeat, antialiasing,
+        spriteGraphic?.colorTransform ?? colorTransform, spriteGraphic?.shader ?? null, c);
     }
 
     #if FLX_DEBUG
