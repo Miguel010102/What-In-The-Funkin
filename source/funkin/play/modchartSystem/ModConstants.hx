@@ -77,6 +77,8 @@ class ModConstants
 
   public static var tempNoteSkinScaleFix:Bool = true;
 
+  public static var tooCloseToCameraFix:Float = 0.975; // dumb fix for preventing freak out on z math or something
+
   // If a mod tag is in this array, it will automatically invert the mod value
   public static var dadInvert:Array<String> = [
     "rotatez", "rotatey", "drunk", "tipsy", "beat", "drunkangle", "beatangle", "confusionoffset", "bumpyx", "bouncex", "linearx", "circx", "dizzy", "zigzag",
@@ -639,22 +641,25 @@ class ModConstants
         found from this website https://ogldev.org/www/tutorial12/tutorial12.html
        */
 
-      // var newz = pos.z - 1;
-      var newz:Float = pos.z - 1;
+      var newz:Float = pos.z;
+      // Too close to camera!
+      if (newz > zNear + ModConstants.tooCloseToCameraFix)
+      {
+        newz = zNear + ModConstants.tooCloseToCameraFix;
+      }
+      // else if (newz < (zFar * -1)) // Too far from camera!
+      // {
+      //  culled = true;
+      // }
+      newz = newz - 1;
 
       var zRange:Float = zNear - zFar;
       // var tanHalfFOV:Float = Math.tan(_FOV * 0.5 * (Math.PI / 180.0));
 
-      var tanHalfFOV:Float = 1;
+      var tanHalfFOV:Float = FlxMath.fastSin(_FOV * 0.5) / FlxMath.fastCos(_FOV * 0.5);
 
-      var dividebyzerofix:Float = FlxMath.fastCos(_FOV * 0.5);
-      if (dividebyzerofix != 0)
-      {
-        tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / dividebyzerofix; // faster tan
-      }
-
-      if (pos.z > 1) // if above 1000 z basically
-        newz = 0; // should stop weird mirroring with high z values
+      // if (pos.z > 1) // if above 1000 z basically
+      //  newz = 0; // should stop weird mirroring with high z values
 
       // var m00 = 1/(tanHalfFOV);
       // var m11 = 1/tanHalfFOV;

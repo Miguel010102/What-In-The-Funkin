@@ -99,6 +99,7 @@ class ZProjectSprite extends ZSprite
 
   function set_subdivisions(value:Int):Int
   {
+    if (subdivisions == value) return subdivisions;
     if (value < 0) value = 0;
     subdivisions = value;
     return subdivisions;
@@ -165,6 +166,8 @@ class ZProjectSprite extends ZSprite
     var w:Float = spriteGraphic?.frameWidth ?? frameWidth;
     var h:Float = spriteGraphic?.frameHeight ?? frameHeight;
 
+    culled = false;
+
     var i:Int = 0;
     for (x in 0...subdivisions + 2) // x
     {
@@ -210,8 +213,6 @@ class ZProjectSprite extends ZSprite
     }
 
     // if (debugTrace) trace("\nverts: \n" + vertices + "\n");
-
-    culled = false;
 
     // temp fix for now I guess lol?
     if (spriteGraphic != null)
@@ -259,9 +260,6 @@ class ZProjectSprite extends ZSprite
             }
           }
         }
-
-      default:
-        culled = false;
     }
   }
 
@@ -408,22 +406,21 @@ class ZProjectSprite extends ZSprite
 
       _FOV *= (Math.PI / 180.0);
 
-      var newz:Float = pos.z - 1;
+      var newz:Float = pos.z;
+      // Too close to camera!
+      if (newz > zNear + ModConstants.tooCloseToCameraFix)
+      {
+        newz = zNear + ModConstants.tooCloseToCameraFix;
+      }
+      else if (newz < (zFar * -1)) // To far from camera!
+      {
+        culled = true;
+      }
+
+      newz = newz - 1;
       var zRange:Float = zNear - zFar;
       var tanHalfFOV:Float = 1;
-      var dividebyzerofix:Float = FlxMath.fastCos(_FOV * 0.5);
-      if (dividebyzerofix != 0)
-      {
-        tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / dividebyzerofix;
-      }
-      else
-        culled = true;
-
-      if (pos.z > 1)
-      {
-        newz = 0;
-        culled = true;
-      }
+      tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / FlxMath.fastCos(_FOV * 0.5);
 
       var xOffsetToCenter:Float = pos.x - (FlxG.width * 0.5);
       var yOffsetToCenter:Float = pos.y - (FlxG.height * 0.5);

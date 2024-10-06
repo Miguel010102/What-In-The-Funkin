@@ -85,10 +85,12 @@ class ZProjectSprite_Note extends FlxSprite
   public var uvtData:DrawData<Float> = new DrawData<Float>();
 
   // custom setter to prevent values below 0, cuz otherwise we'll devide by 0!
-  public var subdivisions(default, set):Int = 2;
+  public var subdivisions(default, set):Int = 3;
 
   function set_subdivisions(value:Int):Int
   {
+    if (subdivisions == value) return subdivisions;
+
     if (value < 0) value = 0;
     subdivisions = value;
     return subdivisions;
@@ -230,8 +232,6 @@ class ZProjectSprite_Note extends FlxSprite
 
     // return; // TEMP TEMP TEMP TEMP TEMP TEMP OVER HER DUMBASS GET RID OF ME RID OF ME YOU HEAR ME?!!!!
 
-    culled = false;
-
     // temp fix for now I guess lol?
     // if (spriteGraphic != null)
     // {
@@ -286,8 +286,6 @@ class ZProjectSprite_Note extends FlxSprite
             flipY = !flipY;
           }
         }
-      default:
-        culled = false;
     }
   }
 
@@ -560,22 +558,21 @@ class ZProjectSprite_Note extends FlxSprite
 
       _FOV *= (Math.PI / 180.0);
 
-      var newz:Float = pos.z - 1;
+      var newz:Float = pos.z;
+      // Too close to camera!
+      if (newz > zNear + ModConstants.tooCloseToCameraFix)
+      {
+        newz = zNear + ModConstants.tooCloseToCameraFix;
+      }
+      else if (newz < (zFar * -1)) // To far from camera!
+      {
+        culled = true;
+      }
+
+      newz = newz - 1;
       var zRange:Float = zNear - zFar;
       var tanHalfFOV:Float = 1;
-      var dividebyzerofix:Float = FlxMath.fastCos(_FOV * 0.5);
-      if (dividebyzerofix != 0)
-      {
-        tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / dividebyzerofix;
-      }
-      else
-        culled = true;
-
-      if (pos.z > 1)
-      {
-        newz = 0;
-        culled = true;
-      }
+      tanHalfFOV = FlxMath.fastSin(_FOV * 0.5) / FlxMath.fastCos(_FOV * 0.5);
 
       var xOffsetToCenter:Float = pos.x - (FlxG.width * 0.5);
       var yOffsetToCenter:Float = pos.y - (FlxG.height * 0.5);
