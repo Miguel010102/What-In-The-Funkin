@@ -218,12 +218,12 @@ class ZSortMod extends Modifier
     else if (currentValue < 0.0)
     {
       PlayState.instance.noteRenderMode = false;
-      strumLine.zSortMode = true;
+      strumLine.zSortMode = false;
     }
     else
     {
       PlayState.instance.noteRenderMode = false;
-      strumLine.zSortMode = false;
+      strumLine.zSortMode = true;
     }
   }
 }

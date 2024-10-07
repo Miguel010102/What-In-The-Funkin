@@ -676,19 +676,19 @@ class PlayState extends MusicBeatSubState
 
   function compareZSprites_playfields(order:Int, a:ZSprite, b:ZSprite):Int
   {
-    return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
-    /*
-      if (Std.isOfType(a, SustainTrail))
-      {
-        // sustain always goes behind!
-        return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01) - 1, b?.z + ((b?.zIndex ?? 0) * 0.01));
-      }
-      else
-      {
-        // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
-        return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
-      }
-     */
+    // return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+
+    if (Std.isOfType(a, SustainTrail))
+    {
+      // sustain always goes behind!
+      // return -1;
+      return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01) - 1, b?.z + ((b?.zIndex ?? 0) * 0.01));
+    }
+    else
+    {
+      // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
+      return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+    }
   }
 
   /*
