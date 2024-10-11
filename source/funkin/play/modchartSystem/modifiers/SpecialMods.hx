@@ -99,6 +99,8 @@ class OrientMod extends Modifier
   {
     super(name, 0);
     modPriority = -50;
+    modPriority = -200;
+    modPriority = -999999; // ALWAYS APPLY LAST!!
     unknown = false;
     notesMod = true;
     // holdsMod = true;

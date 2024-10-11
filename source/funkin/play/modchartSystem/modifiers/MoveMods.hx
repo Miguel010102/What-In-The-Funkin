@@ -142,7 +142,9 @@ class CenteredXMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
-    modPriority = -999999; // Apply this mod last so it doesn't fuck with mods like the rotate mods lmfao
+    modPriority = -199;
+    // modPriority = -999999; // Apply this mod last so it doesn't fuck with mods like the rotate mods lmfao
+
     unknown = false;
     strumsMod = true;
     createSubMod("always_calculate", 0.0);

@@ -1904,6 +1904,12 @@ class PlayState extends MusicBeatSubState
     cameraBopMultiplier = 1.0;
   }
 
+  public static function fetchCharacterData(who:String):BaseCharacter
+  {
+    var char:BaseCharacter = CharacterDataParser.fetchCharacter(who);
+    return char;
+  }
+
   /**
      * Generates the character sprites and adds them to the stage.
      */
