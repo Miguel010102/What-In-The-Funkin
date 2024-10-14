@@ -409,6 +409,12 @@ class SustainTrail extends ZSprite
       mod.noteMath(noteModData, parentStrumline, true, isArrowPath);
     }
 
+    for (mod in noteModData.noteMods)
+    {
+      if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
+      mod.noteMath(noteModData, parentStrumline, true, isArrowPath);
+    }
+
     noteModData.funnyOffMyself();
 
     is3D = (noteModData.whichStrumNote?.strumExtraModData?.threeD ?? false);

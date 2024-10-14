@@ -428,7 +428,15 @@ class Strumline extends FlxSpriteGroup
       for (mod in mods.mods_special)
       {
         if (mod.targetLane != -1 && lane != mod.targetLane) continue;
-        mod.specialMath(lane, this);
+        try
+        {
+          mod.specialMath(lane, this);
+        }
+        catch (e)
+        {
+          PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
+          return;
+        }
       }
     }
   }
@@ -1567,6 +1575,8 @@ class Strumline extends FlxSpriteGroup
       noteSprite.direction = note.getDirection();
       noteSprite.noteData = note;
 
+      noteSprite.noteModData.clearNoteMods();
+
       noteSprite.x = this.x;
       noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
       noteSprite.x -= (noteSprite.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
@@ -1604,6 +1614,8 @@ class Strumline extends FlxSpriteGroup
       holdNoteSprite.hitNote = false;
       holdNoteSprite.visible = true;
       holdNoteSprite.alpha = 1.0;
+
+      @:privateAccess holdNoteSprite.noteModData.clearNoteMods();
 
       holdNoteSprite.x = this.x;
       holdNoteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
