@@ -145,9 +145,10 @@ class SustainTrail extends ZSprite
     else
     {
       super(0, 0, noteStyle.getHoldNoteAssetPath());
-      setupHoldNoteGraphic(noteStyle);
+      // setupHoldNoteGraphic(noteStyle);// still need to support this lmfao
     }
-    noteStyleOffsets = noteStyle.getHoldNoteOffsets();
+
+    // noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
     noteModData = new NoteData();
 
@@ -277,7 +278,10 @@ class SustainTrail extends ZSprite
   {
     width = graphicWidth;
     height = graphicHeight;
-    offset.set(noteStyleOffsets[0], noteStyleOffsets[1]);
+
+    if (noteStyleOffsets != null) offset.set(noteStyleOffsets[0], noteStyleOffsets[1]);
+
+    offset.set(0, 0);
     origin.set(width * 0.5, height * 0.5);
   }
 
