@@ -73,28 +73,90 @@ import funkin.play.modchartSystem.modifiers.*; // if only you worked ;_;
 
 class ModConstants
 {
-  public static var MODCHART_VERSION:String = "v0.7.4a";
-
-  public static var tempNoteSkinScaleFix:Bool = true;
+  public static var MODCHART_VERSION:String = "v0.7.5a";
 
   public static var tooCloseToCameraFix:Float = 0.975; // dumb fix for preventing freak out on z math or something
 
   // If a mod tag is in this array, it will automatically invert the mod value
   public static var dadInvert:Array<String> = [
-    "rotatez", "rotatey", "drunk", "tipsy", "beat", "drunkangle", "beatangle", "confusionoffset", "bumpyx", "bouncex", "linearx", "circx", "dizzy", "zigzag",
-    "spiralx", "tandrunk", "square", "saw", "noteskewx"
+    "rotatez",
+    "rotatey",
+    "drunk",
+    "tipsy",
+    "beat",
+    "drunkangle",
+    "beatangle",
+    "confusionoffset",
+    "bumpyx",
+    "bouncex",
+    "linearx",
+    "circx",
+    "dizzy",
+    "zigzag",
+    "spiralx",
+    "tandrunk",
+    "square",
+    "saw",
+    "noteskewx"
   ];
 
   public static var hideSomeDebugBois:Array<String> = [
-    "showsubmods", "showzerovalue", "debugx", "debugy", "arrowpathred", "arrowpathgreen", "arrowpathblue", "spiralholds", "grain", "arrowpathgrain",
-    "arrowpathlength", "arrowpathbacklength", "showlanemods", "showallmods", "showextra", "arrowpath_notitg", "stealthglowred", "stealthglowblue",
-    "stealthglowgreen", "arrowpathwidth", "noholdmathshortcut", "mathcutoff"
+    "showsubmods",
+    "showzerovalue",
+    "debugx",
+    "debugy",
+    "arrowpathred",
+    "arrowpathgreen",
+    "arrowpathblue",
+    "spiralholds",
+    "grain",
+    "arrowpathgrain",
+    "arrowpathlength",
+    "arrowpathbacklength",
+    "showlanemods",
+    "showallmods",
+    "showextra",
+    "arrowpath_notitg",
+    "stealthglowred",
+    "stealthglowblue",
+    "stealthglowgreen",
+    "arrowpathwidth",
+    "noholdmathshortcut",
+    "mathcutoff"
   ];
 
   public static var specialMods:Array<String> = [
-    "showsubmods", "showzerovalue", "debugx", "debugy", "showlanemods", "showallmods", "showextra", "noholdmathshortcut", "invertmodvalues", "mathcutoff",
-    "strumx", "strumy", "strumz", "zsort", "drive2", "spiralholds", "grain", "arrowpath", "arrowpath_notitg", "arrowpathbacklength", "arrowpathlength",
-    "arrowpathgrain", "zsort", "invertmodvalues", "drawdistance", "drawdistanceback", "straightholds", "longholds", "strumx", "strumy", "strumz"
+    "showsubmods",
+    "showzerovalue",
+    "debugx",
+    "debugy",
+    "showlanemods",
+    "showallmods",
+    "showextra",
+    "noholdmathshortcut",
+    "invertmodvalues",
+    "mathcutoff",
+    "strumx",
+    "strumy",
+    "strumz",
+    "zsort",
+    "drive2",
+    "spiralholds",
+    "grain",
+    "arrowpath",
+    "arrowpath_notitg",
+    "arrowpathbacklength",
+    "arrowpathlength",
+    "arrowpathgrain",
+    "zsort",
+    "invertmodvalues",
+    "drawdistance",
+    "drawdistanceback",
+    "straightholds",
+    "longholds",
+    "strumx",
+    "strumy",
+    "strumz"
   ];
 
   // Was going to use this for sorting out the new mod arrays (from mods_sorted to the new method).

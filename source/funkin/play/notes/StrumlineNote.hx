@@ -211,6 +211,8 @@ class StrumlineNote extends ZSprite
     }
   }
 
+  public var targetScale:Float = 1.0;
+
   function setup(noteStyle:NoteStyle):Void
   {
     if (noteStyle == null)
@@ -225,6 +227,7 @@ class StrumlineNote extends ZSprite
 
     var scale = noteStyle.getStrumlineScale();
     this.scale.set(scale, scale);
+    targetScale = this.scale.x;
     this.updateHitbox();
     noteStyle.applyStrumlineOffsets(this);
 

@@ -59,6 +59,9 @@ class StrumExtraData
     return this.cullModeSustain;
   }
 
+  public var noteStyleOffsetX:Float = 0.0;
+  public var noteStyleOffsetY:Float = 0.0;
+
   // Who we belong too, in case we need to reference it
   public var whichStrumNote:StrumlineNote;
 

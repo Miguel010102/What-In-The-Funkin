@@ -37,7 +37,7 @@ class RotateXModifier extends Modifier
 
     // grab strum x
     var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
-    var yyyy:Float = whichStrumNote.y;
+    var yyyy:Float = whichStrumNote.y - whichStrumNote.strumExtraModData.noteStyleOffsetY;
     var strumZ:Float = whichStrumNote.z;
 
     if (data.noteType != "receptor")
@@ -89,6 +89,7 @@ class RotateXModifier extends Modifier
     rotateModPivotPoint.x += getSubVal("offset_x");
     rotateModPivotPoint.y = (FlxG.height / 2) - (ModConstants.strumSize / 2);
     rotateModPivotPoint.y += getSubVal("offset_y");
+
     if (!Preferences.downscroll) // make it more like downscroll if upscroll (so 180 rotatex is like reverse 100%)
     {
       rotateModPivotPoint.y += -23;
@@ -130,7 +131,8 @@ class RotateYMod extends Modifier
     // grab strum x
 
     var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
-    var strumX:Float = whichStrumNote.x;
+
+    var strumX:Float = whichStrumNote.x - whichStrumNote.strumExtraModData.noteStyleOffsetX;
     var strumZ:Float = whichStrumNote.z;
     if (data.noteType == "receptor")
     {
@@ -169,6 +171,8 @@ class RotateYMod extends Modifier
     rotateModPivotPoint.y = data.z;
     rotateModPivotPoint.y += getSubVal("offset_y");
 
+    rotateModPivotPoint.x += strumLine.getByIndex(data.direction % Strumline.KEY_COUNT).strumExtraModData.noteStyleOffsetX;
+
     var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(data.x, data.z), currentValue);
     data.x = thing.x;
     data.z = thing.y;
@@ -205,8 +209,8 @@ class RotateZMod extends Modifier
 
     // grab strum x
     var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
-    var strumX:Float = whichStrumNote.x;
-    var strumY:Float = whichStrumNote.y;
+    var strumX:Float = whichStrumNote.x - whichStrumNote.strumExtraModData.noteStyleOffsetX;
+    var strumY:Float = whichStrumNote.y - whichStrumNote.strumExtraModData.noteStyleOffsetY;
 
     if (data.noteType != "receptor")
     {
@@ -263,6 +267,9 @@ class RotateZMod extends Modifier
     rotateModPivotPoint.y = strumLine.y;
     rotateModPivotPoint.y = (FlxG.height / 2) - (ModConstants.strumSize / 2);
     rotateModPivotPoint.y += getSubVal("offset_y");
+
+    rotateModPivotPoint.x += strumLine.getByIndex(data.direction % Strumline.KEY_COUNT).strumExtraModData.noteStyleOffsetX;
+
     var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(data.x, data.y), currentValue);
     data.x = thing.x;
     data.y = thing.y;
@@ -290,6 +297,7 @@ class StrumRotateXMod extends Modifier
     rotateModPivotPoint.x += getSubVal("offset_x");
     rotateModPivotPoint.y = (FlxG.height / 2) - (ModConstants.strumSize / 2);
     rotateModPivotPoint.y += getSubVal("offset_y");
+
     if (!Preferences.downscroll) // make it more like downscroll if upscroll (so 180 rotatex is like reverse 100%)
     {
       rotateModPivotPoint.y += -23;
@@ -323,6 +331,7 @@ class StrumRotateYMod extends Modifier
     rotateModPivotPoint.x += getSubVal("offset_x");
     rotateModPivotPoint.y = data.z;
     rotateModPivotPoint.y += getSubVal("offset_y");
+    rotateModPivotPoint.x += strumLine.getByIndex(data.direction % Strumline.KEY_COUNT).strumExtraModData.noteStyleOffsetX;
 
     var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(data.x, data.z), currentValue);
     data.x = thing.x;
@@ -352,6 +361,7 @@ class StrumRotateZMod extends Modifier
     rotateModPivotPoint.y = strumLine.y;
     rotateModPivotPoint.y = (FlxG.height / 2) - (ModConstants.strumSize / 2);
     rotateModPivotPoint.y += getSubVal("offset_y");
+    rotateModPivotPoint.x += strumLine.getByIndex(data.direction % Strumline.KEY_COUNT).strumExtraModData.noteStyleOffsetX;
     var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(data.x, data.y), currentValue);
     data.x = thing.x;
     data.y = thing.y;

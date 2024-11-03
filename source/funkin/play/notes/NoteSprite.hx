@@ -226,6 +226,8 @@ class NoteSprite extends ZSprite
     vwooshing = false;
   }
 
+  public var targetScale:Float = 1.0;
+
   /**
    * Creates frames and animations
    * @param noteStyle The `NoteStyle` instance
@@ -233,6 +235,7 @@ class NoteSprite extends ZSprite
   public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
+    targetScale = this.scale.x;
 
     this.shader = hsvShader;
     stealthGlow = 0.0;

@@ -11,6 +11,7 @@ class NoteOffsetXMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -24,6 +25,7 @@ class NoteOffsetYMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -37,6 +39,7 @@ class NoteOffsetZMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -50,6 +53,7 @@ class HoldOffsetXMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -63,6 +67,7 @@ class HoldOffsetYMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -76,6 +81,7 @@ class HoldOffsetZMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -89,6 +95,7 @@ class StrumOffsetXMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -107,6 +114,7 @@ class StrumOffsetYMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -125,6 +133,7 @@ class StrumOffsetZMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority = -670;
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void

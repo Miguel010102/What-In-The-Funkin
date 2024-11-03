@@ -111,11 +111,11 @@ class Strumline extends FlxSpriteGroup
     {
       for (note in holdNotes.members)
       {
-        note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+        if (note != null && note.alive) note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
       }
       for (note in holdNotesVwoosh.members)
       {
-        note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
+        if (note != null && note.alive) note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeSustain ?? "none";
       }
     }
   }
@@ -296,6 +296,10 @@ class Strumline extends FlxSpriteGroup
       child.x += INITIAL_OFFSET;
       child.y = 0;
       noteStyle.applyStrumlineOffsets(child);
+      var strumlineOffsets = noteStyle.getStrumlineOffsets();
+      child.strumExtraModData.noteStyleOffsetX = strumlineOffsets[0];
+      child.strumExtraModData.noteStyleOffsetY = strumlineOffsets[1];
+
       this.strumlineNotes.add(child);
 
       child.weBelongTo = this;
@@ -304,17 +308,6 @@ class Strumline extends FlxSpriteGroup
         if (PlayState.instance.allStrumSprites != null && PlayState.instance.noteRenderMode)
         {
           PlayState.instance.allStrumSprites.add(child);
-        }
-      }
-
-      if (ModConstants.tempNoteSkinScaleFix)
-      {
-        // Dumb fucking fix for scale difference between normal and modchart gameplay for custom noteskins
-        var isPixel:Bool = noteStyle.id.toLowerCase() == "pixel"; // dumb fucking fix lmfao
-        if (!isPixel) // Don't apply this fix for pixel since it's already fine in vanilla, it's only custom noteskins which are fucked
-        {
-          var sizeMod:Float = isPixel ? dumbfuckingpixelnotesfix : 1;
-          child.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale * sizeMod);
         }
       }
     }
@@ -457,6 +450,7 @@ class Strumline extends FlxSpriteGroup
       notitgPath.updateAFT();
 
       var isPixel:Bool = noteStyle.id.toLowerCase() == "pixel"; // dumb fucking fix lmfao
+      isPixel = false;
       notitgPathSprite.x = isPixel ? -12 : 0; // temp fix lmao
 
       notitgPathSprite.y = 0;
@@ -548,10 +542,8 @@ class Strumline extends FlxSpriteGroup
     note.y = this.y;
     note.alpha = 1;
     note.angle = 0;
-    var isPixel:Bool = noteStyle.id.toLowerCase() == "pixel"; // dumb fucking fix lmfao
-    var sizeMod:Float = isPixel ? dumbfuckingpixelnotesfix : 1;
-
-    note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale * sizeMod);
+    // note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale * sizeMod);
+    note.scale.set(note.targetScale, note.targetScale);
     note.z = 0.0;
 
     note.skew.x = 0;
@@ -907,8 +899,7 @@ class Strumline extends FlxSpriteGroup
       Constants.PIXELS_PER_MS * (conductorInUse.songPosition - strumTime - Conductor.instance.inputOffset) * scrollSpeed * vwoosh * (Preferences.downscroll ? 1 : -1);
   }
 
-  var dumbfuckingpixelnotesfix:Float = 8;
-  var dumbMagicNumberForX:Float = 28;
+  var dumbMagicNumberForX:Float = 0;
 
   public function getNoteXOffset():Float
   {
@@ -937,22 +928,32 @@ class Strumline extends FlxSpriteGroup
     }
     note.noteModData.curPos = calculateNoteYPos(timmy, vwoosh) * note.noteModData.speedMod;
 
-    var isPixel:Bool = noteStyle.id.toLowerCase() == "pixel"; // dumb fucking fix lmfao
-    var sizeMod:Float = isPixel ? dumbfuckingpixelnotesfix : 1;
+    // note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale);
+    note.scale.set(note.targetScale, note.targetScale);
+    note.noteModData.scaleX = note.scale.x;
+    note.noteModData.scaleY = note.scale.y;
 
     note.noteModData.angleZ = note.noteModData.whichStrumNote.angle;
-    note.noteModData.x = note.noteModData.whichStrumNote.x + note.noteModData.getNoteXOffset();
+    // note.noteModData.x = note.noteModData.whichStrumNote.x + note.noteModData.getNoteXOffset();
     note.noteModData.y = note.noteModData.whichStrumNote.y + note.noteModData.getNoteYOffset() + note.noteModData.curPos;
     note.noteModData.z = note.noteModData.whichStrumNote.z;
 
-    if (isPixel)
+    // noteSprite.x = this.x;
+    // noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
+    // noteSprite.x -= (noteSprite.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
+    // noteSprite.x -= NUDGE;
+
+    note.noteModData.x = note.noteModData.whichStrumNote.x + note.noteModData.getNoteXOffset();
+    note.noteModData.x -= (note.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
+    note.noteModData.x -= note.noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
+    note.noteModData.y -= note.noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetY;
+    note.noteModData.x -= NUDGE;
+
+    if (false)
     {
       note.noteModData.x -= note.noteModData.getNoteXOffset();
       note.noteModData.y -= 10;
     }
-    note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale * sizeMod);
-    note.noteModData.scaleX = note.scale.x;
-    note.noteModData.scaleY = note.scale.y;
 
     if (!mods.mathCutOffCheck(note.noteModData.curPos, note.noteModData.direction))
     {
@@ -1074,6 +1075,7 @@ class Strumline extends FlxSpriteGroup
       }
     }
     var isPixel:Bool = noteStyle.id.toLowerCase() == "pixel"; // dumb fucking fix lmfao
+    isPixel = false;
 
     // Update rendering of hold notes.
     for (holdNote in holdNotes.members)
@@ -1475,10 +1477,18 @@ class Strumline extends FlxSpriteGroup
     var whichStrumNote:StrumlineNote = getByIndex(cover.holdNoteDir % KEY_COUNT);
 
     cover.x = whichStrumNote.x;
-    cover.y = whichStrumNote.y;
+    cover.x += STRUMLINE_SIZE / 2;
+    cover.x -= cover.width / 2;
+    cover.x += -12; // Manual tweaking because fuck.
+    cover.x += 26; // Manual tweaking because fuck.
 
-    cover.x -= (112.0 / 1.4);
-    cover.y -= (112.0 / 1.5);
+    cover.y = whichStrumNote.y;
+    cover.y += INITIAL_OFFSET;
+    cover.y += STRUMLINE_SIZE / 2;
+    cover.y += -96; // Manual tweaking because fuck.
+
+    cover.x -= whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
+    cover.y -= whichStrumNote.strumExtraModData.noteStyleOffsetY;
 
     // cover.z = whichStrumNote.z; // copy Z!
     cover.scale.set(1.0, 1.0);
@@ -1525,6 +1535,9 @@ class Strumline extends FlxSpriteGroup
     // splash.scale.set(funny, funny);
     splash.scale.set(1, 1);
 
+    splash.x -= whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
+    splash.y -= whichStrumNote.strumExtraModData.noteStyleOffsetY;
+
     var ay:Float = whichStrumNote.alpha;
     ay -= whichStrumNote.strumExtraModData.alphaSplashMod;
     // ay -= alphaSplashMod[direction % KEY_COUNT];
@@ -1560,6 +1573,8 @@ class Strumline extends FlxSpriteGroup
       cover.y += INITIAL_OFFSET;
       cover.y += STRUMLINE_SIZE / 2;
       cover.y += -96; // Manual tweaking because fuck.
+
+      noteCoverSetPos(cover);
     }
   }
 

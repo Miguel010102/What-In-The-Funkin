@@ -148,7 +148,7 @@ class SustainTrail extends ZSprite
       // setupHoldNoteGraphic(noteStyle);// still need to support this lmfao
     }
 
-    // noteStyleOffsets = noteStyle.getHoldNoteOffsets();
+    noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
     noteModData = new NoteData();
 
@@ -279,9 +279,15 @@ class SustainTrail extends ZSprite
     width = graphicWidth;
     height = graphicHeight;
 
-    if (noteStyleOffsets != null) offset.set(noteStyleOffsets[0], noteStyleOffsets[1]);
-
     offset.set(0, 0);
+    if (noteStyleOffsets != null)
+    {
+      if (!usingHazModHolds || parentStrumline == null || parentStrumline.mods == null)
+      {
+        offset.set(noteStyleOffsets[0], noteStyleOffsets[1]);
+      }
+    }
+
     origin.set(width * 0.5, height * 0.5);
   }
 
@@ -408,6 +414,12 @@ class SustainTrail extends ZSprite
     }
     noteModData.z = noteModData.whichStrumNote.z;
     noteModData.curPos = sillyPos;
+
+    noteModData.x -= noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
+    noteModData.y -= noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetY;
+
+    noteModData.x -= noteStyleOffsets[0]; // apply notestyle offset here for z math reasons lol
+    noteModData.y -= noteStyleOffsets[1];
 
     for (mod in (isArrowPath ? parentStrumline.mods.mods_arrowpath : parentStrumline.mods.mods_notes))
     {
