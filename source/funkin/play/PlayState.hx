@@ -1664,6 +1664,11 @@ class PlayState extends MusicBeatSubState
     if (iconP1 != null) iconP1.onStepHit(Std.int(Conductor.instance.currentStep));
     if (iconP2 != null) iconP2.onStepHit(Std.int(Conductor.instance.currentStep));
 
+    for (lua in luaArray)
+    {
+      lua.call('onStepHit', []);
+    }
+
     return true;
   }
 
@@ -1747,6 +1752,11 @@ class PlayState extends MusicBeatSubState
     for (strumLine in allStrumLines)
     {
       strumLine.onBeatHit();
+    }
+
+    for (lua in luaArray)
+    {
+      lua.call('onBeatHit', []);
     }
 
     // Make the characters dance on the beat

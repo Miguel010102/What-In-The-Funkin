@@ -904,6 +904,21 @@ class HScript
         PlayState.instance.perframeFunctions.push(func);
       }
     });
+    interp.variables.set('print', function(text:String, color:FlxColor = FlxColor.WHITE) {
+      PlayState.instance.modDebugNotif(text, color);
+    });
+
+    interp.variables.set('stringSplit', function(inputString:String, splitThing:String) {
+      var split:Array<String> = inputString.split(splitThing);
+      return split;
+    });
+
+    interp.variables.set('existsFromMap', function(theMap:Dynamic, thingToGet:Dynamic) {
+      return theMap.exists(thingToGet);
+    });
+    interp.variables.set('getFromMap', function(theMap:Dynamic, thingToGet:Dynamic) {
+      return theMap.get(thingToGet);
+    });
 
     interp.variables.set('setVar', function(name:String, value:Dynamic) {
       PlayState.instance.variables.set(name, value);
