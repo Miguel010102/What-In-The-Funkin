@@ -104,6 +104,7 @@ class SustainTrail extends ZSprite
   public var bottomClip:Float = 0.9;
 
   public var isPixel:Bool;
+  public var noteStyleOffsets:Array<Float>;
 
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
@@ -144,7 +145,9 @@ class SustainTrail extends ZSprite
     else
     {
       super(0, 0, noteStyle.getHoldNoteAssetPath());
+      setupHoldNoteGraphic(noteStyle);
     }
+    noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
     noteModData = new NoteData();
 
@@ -166,7 +169,6 @@ class SustainTrail extends ZSprite
 
     zoom = 1.0;
     zoom *= noteStyle.fetchHoldNoteScale();
-    zoom *= 0.7;
 
     // CALCULATE SIZE
     graphicWidth = graphic.width / 8 * zoom; // amount of notes * 2
@@ -275,7 +277,7 @@ class SustainTrail extends ZSprite
   {
     width = graphicWidth;
     height = graphicHeight;
-    offset.set(0, 0);
+    offset.set(noteStyleOffsets[0], noteStyleOffsets[1]);
     origin.set(width * 0.5, height * 0.5);
   }
 

@@ -2,7 +2,7 @@ package funkin.play.notes;
 
 import funkin.play.notes.notestyle.NoteStyle;
 import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.FlxSprite;
+import funkin.graphics.FunkinSprite;
 import funkin.play.notes.NoteSprite;
 import funkin.graphics.ZSprite;
 import funkin.graphics.shaders.HSVShader;
@@ -32,13 +32,15 @@ class StrumlineNote extends ZSprite
     return this.strumDistance;
   }
 
+  /**
+   * Whether this strumline note is on the player's side or the opponent's side.
+   */
   public var isPlayer(default, null):Bool;
 
+  /**
+   * The direction which this strumline note is facing.
+   */
   public var direction(default, set):NoteDirection;
-
-  var confirmHoldTimer:Float = -1;
-
-  static final CONFIRM_HOLD_TIME:Float = 0.1;
 
   function set_direction(value:NoteDirection):NoteDirection
   {
@@ -48,6 +50,22 @@ class StrumlineNote extends ZSprite
 
   // for identifying what noteStyle this notesprite is using in hxScript or even lua
   public var noteStyleName:String = "funkin";
+
+  /**
+   * Set this flag to `true` to disable performance optimizations that cause
+   * the Strumline note sprite to ignore `velocity` and `acceleration`.
+   */
+  public var forceActive:Bool = false;
+
+  /**
+   * How long to continue the hold note animation after a note is pressed.
+   */
+  static final CONFIRM_HOLD_TIME:Float = 0.1;
+
+  /**
+   * How long the hold note animation has been playing after a note is pressed.
+   */
+  var confirmHoldTimer:Float = -1;
 
   public function new(noteStyle:NoteStyle, isPlayer:Bool, direction:NoteDirection)
   {
@@ -144,7 +162,10 @@ class StrumlineNote extends ZSprite
     this.hsvShader.stealthGlowRed = stealthGlowRed;
   }
 
-  function onAnimationFrame(name:String, frameNumber:Int, frameIndex:Int):Void {}
+  function onAnimationFrame(name:String, frameNumber:Int, frameIndex:Int):Void
+  {
+    // Do nothing.
+  }
 
   function onAnimationFinished(name:String):Void
   {
@@ -188,7 +209,8 @@ class StrumlineNote extends ZSprite
     noteStyle.applyStrumlineFrames(this);
     noteStyle.applyStrumlineAnimations(this, this.direction);
 
-    this.setGraphicSize(Std.int(Strumline.STRUMLINE_SIZE * noteStyle.getStrumlineScale()));
+    var scale = noteStyle.getStrumlineScale();
+    this.scale.set(scale, scale);
     this.updateHitbox();
     noteStyle.applyStrumlineOffsets(this);
 
@@ -206,19 +228,19 @@ class StrumlineNote extends ZSprite
 
   public function playStatic():Void
   {
-    this.active = false;
+    this.active = (forceActive || isAnimationDynamic('static'));
     this.playAnimation('static', true);
   }
 
   public function playPress():Void
   {
-    this.active = true;
+    this.active = (forceActive || isAnimationDynamic('press'));
     this.playAnimation('press', true);
   }
 
   public function playConfirm():Void
   {
-    this.active = true;
+    this.active = (forceActive || isAnimationDynamic('confirm'));
     this.playAnimation('confirm', true);
   }
 

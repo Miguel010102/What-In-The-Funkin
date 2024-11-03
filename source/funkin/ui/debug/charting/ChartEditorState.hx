@@ -79,7 +79,6 @@ import funkin.ui.debug.charting.commands.SetItemSelectionCommand;
 import funkin.ui.debug.charting.components.ChartEditorEventSprite;
 import funkin.ui.debug.charting.components.ChartEditorHoldNoteSprite;
 import funkin.ui.debug.charting.components.ChartEditorMeasureTicks;
-import funkin.ui.debug.charting.components.ChartEditorMeasureTicks;
 import funkin.ui.debug.charting.components.ChartEditorNotePreview;
 import funkin.ui.debug.charting.components.ChartEditorNoteSprite;
 import funkin.ui.debug.charting.components.ChartEditorPlaybarHead;
@@ -2274,7 +2273,24 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
         this.openBackupAvailableDialog(welcomeDialog);
       }
     }
+
+    #if FEATURE_DISCORD_RPC
+    updateDiscordRPC();
+    #end
   }
+
+  #if FEATURE_DISCORD_RPC
+  function updateDiscordRPC():Void
+  {
+    funkin.api.discord.DiscordClient.instance.setPresence(
+      {
+        // TODO: Make this display the song name and update when it changes.
+        // state: '${currentSongName} [${selectedDifficulty}]',
+        state: null,
+        details: 'Chart Editor [Charting]'
+      });
+  }
+  #end
 
   function setupWelcomeMusic()
   {
@@ -3840,7 +3856,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     // Handle scroll anchor
     if (scrollAnchorScreenPos != null)
     {
-      var currentScreenPos = new FlxPoint(FlxG.mouse.viewX, FlxG.mouse.viewY);
+      var currentScreenPos = new FlxPoint(FlxG.mouse.viewX, FlxG.mouse.viewX);
       var distance = currentScreenPos - scrollAnchorScreenPos;
 
       var verticalDistance = distance.y;
@@ -4251,8 +4267,8 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
               }
               else
               {
-                // Minimum of 0.
-                return 0;
+                // Minimum of -1.
+                return -1;
               }
             });
 
@@ -5143,8 +5159,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     var songPosSeconds:String = Std.string(Math.floor((Math.abs(songPos) / 1000) % 60)).lpad('0', 2);
     var songPosMinutes:String = Std.string(Math.floor((Math.abs(songPos) / 1000) / 60)).lpad('0', 2);
     if (songPos < 0) songPosMinutes = '-' + songPosMinutes;
-    // var songPosString:String = '${songPosMinutes}:${songPosSeconds}';
-    var songPosString:String = '${songPosMinutes}:${songPosSeconds}:${songPosMilliseconds}';
+    var songPosString:String = '${songPosMinutes}:${songPosSeconds}.${songPosMilliseconds}';
 
     if (playbarSongPos.value != songPosString) playbarSongPos.value = songPosString;
 
@@ -5616,7 +5631,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     }
     else
     {
-      trace('Ignoring keybinds for View menu items because we are in live input mode (${currentLiveInputStyle}).');
+      // trace('Ignoring keybinds for View menu items because we are in live input mode (${currentLiveInputStyle}).');
     }
   }
 
@@ -5639,7 +5654,9 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   function handleHelpKeybinds():Void
   {
     // F1 = Open Help
-    if (FlxG.keys.justPressed.F1) this.openUserGuideDialog();
+    if (FlxG.keys.justPressed.F1 && !isHaxeUIDialogOpen) {
+      this.openUserGuideDialog();
+    }
   }
 
   function handleQuickWatch():Void
