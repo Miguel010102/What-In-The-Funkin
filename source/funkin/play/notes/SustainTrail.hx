@@ -418,9 +418,6 @@ class SustainTrail extends ZSprite
     noteModData.x -= noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
     noteModData.y -= noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetY;
 
-    noteModData.x -= noteStyleOffsets[0]; // apply notestyle offset here for z math reasons lol
-    noteModData.y -= noteStyleOffsets[1];
-
     for (mod in (isArrowPath ? parentStrumline.mods.mods_arrowpath : parentStrumline.mods.mods_notes))
     {
       if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
@@ -438,6 +435,9 @@ class SustainTrail extends ZSprite
     is3D = (noteModData.whichStrumNote?.strumExtraModData?.threeD ?? false);
     old3Dholds = (noteModData.whichStrumNote?.strumExtraModData?.old3Dholds ?? false);
     // is3D = false;
+
+    noteModData.x -= noteStyleOffsets[0]; // apply notestyle offset here for z math reasons lol
+    noteModData.y -= noteStyleOffsets[1];
 
     fakeNote.applyNoteData(noteModData, !is3D);
     if (Preferences.downscroll) fakeNote.y += 27; // fix gap for downscroll lol Moved from verts so it is applied before perspective fucks it up!

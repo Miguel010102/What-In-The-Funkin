@@ -899,11 +899,17 @@ class Strumline extends FlxSpriteGroup
       Constants.PIXELS_PER_MS * (conductorInUse.songPosition - strumTime - Conductor.instance.inputOffset) * scrollSpeed * vwoosh * (Preferences.downscroll ? 1 : -1);
   }
 
-  var dumbMagicNumberForX:Float = 0;
+  // WAIT THIS GETS USED FOR MOD MATH? WHY? WHY PAST ME? WTF NOW THIS IS SPAGHETTI!!!
+  // TODO - FIX THIS!
+  var dumbMagicNumberForX:Float = 24;
+  var dumbTempScaleTargetThing:Float = 666;
 
   public function getNoteXOffset():Float
   {
-    return dumbMagicNumberForX;
+    // so errr, noteScale (0.697blahblah...) = 28?
+    var idk:Float = dumbMagicNumberForX / ModConstants.noteScale;
+    idk *= dumbTempScaleTargetThing;
+    return idk;
   }
 
   public function getNoteYOffset():Float
@@ -927,6 +933,8 @@ class Strumline extends FlxSpriteGroup
       note.noteModData.speedMod *= mod.speedMath(note.noteModData.direction, note.noteModData.curPos_unscaled, this, false);
     }
     note.noteModData.curPos = calculateNoteYPos(timmy, vwoosh) * note.noteModData.speedMod;
+
+    if (this.dumbTempScaleTargetThing == 666) dumbTempScaleTargetThing = note.targetScale;
 
     // note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale);
     note.scale.set(note.targetScale, note.targetScale);
