@@ -226,7 +226,7 @@ class NoteSprite extends ZSprite
     vwooshing = false;
   }
 
-  public var targetScale:Float = 1.0;
+  public var targetScale:Float = 0.7;
 
   /**
    * Creates frames and animations
@@ -235,7 +235,6 @@ class NoteSprite extends ZSprite
   public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
-    targetScale = this.scale.x;
 
     this.shader = hsvShader;
     stealthGlow = 0.0;
@@ -244,6 +243,8 @@ class NoteSprite extends ZSprite
     stealthGlowRed = 1.0;
     updateStealthGlow();
     if (mesh != null) mesh.updateCol();
+
+    targetScale = this.scale.x;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();

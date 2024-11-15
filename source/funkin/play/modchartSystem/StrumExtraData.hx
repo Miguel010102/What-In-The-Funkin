@@ -102,6 +102,9 @@ class StrumExtraData
   public var orientStrumAngle:Float = 0;
   public var orientExtraMath:Float = 0;
 
+  // Goes from 0 -> 1 during the arrow fade in tween
+  public var introTweenPercentage:Float = 0;
+
   // I errr, forgot. I think it's like strum curpos for drive2?
   public var strumPos:Float = 0;
 

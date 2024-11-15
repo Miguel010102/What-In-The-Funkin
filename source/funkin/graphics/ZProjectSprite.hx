@@ -24,6 +24,9 @@ import flixel.util.FlxColor;
 
 class ZProjectSprite extends ZSprite
 {
+  // Makes the mesh all wobbly!
+  public var vibrateEffect:Float = 0.0;
+
   // If set, will reference this sprites graphic! Very useful for animations!
   public var spriteGraphic(default, set):FlxSprite;
 
@@ -191,6 +194,13 @@ class ZProjectSprite extends ZSprite
           point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w;
         if (skewZ != 0) //
           point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h;
+
+        if (vibrateEffect != 0)
+        {
+          point3D.x += FlxG.random.float(-1, 1) * vibrateEffect;
+          point3D.y += FlxG.random.float(-1, 1) * vibrateEffect;
+          point3D.z += FlxG.random.float(-1, 1) * vibrateEffect;
+        }
 
         // scale
         var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);

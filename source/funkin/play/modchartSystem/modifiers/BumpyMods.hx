@@ -24,11 +24,230 @@ class BumpyModBase extends Modifier
     return currentValue * FlxMath.fastSin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * getSubVal("mult")) * (Strumline.STRUMLINE_SIZE / 2.0);
   }
 
+  function cosBumpyMath(curPos:Float):Float
+  {
+    if (currentValue == 0) return 0.0; // skip math if mod is 0
+    var scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+    return currentValue * FlxMath.fastCos(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * getSubVal("mult")) * (Strumline.STRUMLINE_SIZE / 2.0);
+  }
+
   function tanBumpyMath(curPos:Float):Float
   {
     if (currentValue == 0) return 0.0; // skip math if mod is 0
     var scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
     return currentValue * Math.tan(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * getSubVal("mult")) * (Strumline.STRUMLINE_SIZE / 2.0);
+  }
+}
+
+class CosBumpyXMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.x -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0);
+    data.x += cosBumpyMath(data.curPos);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.x += cosBumpyMath(data.curPos);
+  }
+}
+
+class CosBumpyYMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.y -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0);
+    data.y += cosBumpyMath(data.curPos);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.y += cosBumpyMath(data.curPos);
+  }
+}
+
+class CosBumpyZMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.z -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0);
+    data.z += cosBumpyMath(data.curPos);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.z += cosBumpyMath(data.curPos);
+  }
+}
+
+class CosBumpyAngleMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.angleZ -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0);
+    data.angleZ += cosBumpyMath(data.curPos);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.angleZ += cosBumpyMath(data.curPos);
+  }
+}
+
+class CosBumpyAngleYMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.angleY -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0);
+    data.angleY += cosBumpyMath(data.curPos);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.angleY += cosBumpyMath(data.curPos);
+  }
+}
+
+class CosBumpyAngleXMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.angleX -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0);
+    data.angleX += cosBumpyMath(data.curPos);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.angleX += cosBumpyMath(data.curPos);
+  }
+}
+
+class CosBumpyScaleMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.scaleX -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0) * 0.01;
+    data.scaleY -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0) * 0.01;
+    data.scaleX += cosBumpyMath(data.curPos) * 0.01;
+    data.scaleY += cosBumpyMath(data.curPos) * 0.01;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.scaleX += cosBumpyMath(data.curPos) * 0.01;
+    data.scaleY += cosBumpyMath(data.curPos) * 0.01;
+  }
+}
+
+class CosBumpyScaleYMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.scaleY -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0) * 0.01;
+    data.scaleY += cosBumpyMath(data.curPos) * 0.01;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.scaleY += cosBumpyMath(data.curPos) * 0.01;
+  }
+}
+
+class CosBumpyScaleXMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.scaleX -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0) * 0.01;
+    data.scaleX += cosBumpyMath(data.curPos) * 0.01;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.scaleX += cosBumpyMath(data.curPos) * 0.01;
+  }
+}
+
+class CosBumpySkewXMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.skewX -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0) * 0.01;
+    data.skewX += cosBumpyMath(data.curPos) * 0.01;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.skewX += cosBumpyMath(data.curPos) * 0.01;
+  }
+}
+
+class CosBumpySkewYMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.skewY -= cosBumpyMath(data.whichStrumNote?.strumDistance ?? 0) * 0.01;
+    data.skewY += cosBumpyMath(data.curPos) * 0.01;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    data.skewY += cosBumpyMath(data.curPos) * 0.01;
   }
 }
 
@@ -100,6 +319,32 @@ class BumpyAngleMod extends BumpyModBase
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     data.angleZ += bumpyMath(data.curPos);
+  }
+}
+
+class BumpyAngleXMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.angleX += bumpyMath(data.curPos);
+  }
+}
+
+class BumpyAngleYMod extends BumpyModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    data.angleY += bumpyMath(data.curPos);
   }
 }
 

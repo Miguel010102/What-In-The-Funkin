@@ -98,8 +98,8 @@ class OrientMod extends Modifier
   public function new(name:String)
   {
     super(name, 0);
-    modPriority = -50;
-    modPriority = -200;
+    // modPriority = -50;
+    // modPriority = -200;
     modPriority = -999999; // ALWAYS APPLY LAST!!
     unknown = false;
     notesMod = true;
@@ -212,6 +212,8 @@ class ZSortMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
+    // IMPORTANT NOTE -> ONLY WORKS FOR BOYFRIEND!
+    if (strumLine != PlayState.instance.playerStrumline) return;
     if (currentValue >= 0.5)
     {
       PlayState.instance.noteRenderMode = true;

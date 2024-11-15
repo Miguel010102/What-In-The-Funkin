@@ -215,7 +215,19 @@ typedef NoteStyleData_Countdown =
   var audioPath:String;
 }
 
-typedef NoteStyleData_HoldNote = {}
+// typedef NoteStyleData_HoldNote = {}
+
+typedef NoteStyleData_HoldNote =
+{
+  /**
+   * If true, holds are rendered behind the strums / receptors!
+   * @default Holds are rendered in front by default!
+   */
+  @:optional
+  @:default(false)
+  var behindStrums:Bool;
+};
+
 typedef NoteStyleData_Judgement = {}
 typedef NoteStyleData_ComboNum = {}
 

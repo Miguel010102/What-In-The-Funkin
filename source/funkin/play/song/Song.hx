@@ -953,6 +953,8 @@ class SongDifficulty
    */
   public function buildVocals(?instId:String = ''):VoicesGroup
   {
+    // https://github.com/FunkinCrew/Funkin/pull/3861/commits/be506ad5964dd0f4812ac4b4feca1ed4e46a3245
+
     var result:VoicesGroup = new VoicesGroup();
 
     var playerVoiceList:Array<String> = this.buildPlayerVoiceList();
@@ -961,12 +963,14 @@ class SongDifficulty
     // Add player vocals.
     for (playerVoice in playerVoiceList)
     {
+      if (!Assets.exists(playerVoice)) continue;
       result.addPlayerVoice(FunkinSound.load(playerVoice));
     }
 
     // Add opponent vocals.
     for (opponentVoice in opponentVoiceList)
     {
+      if (!Assets.exists(opponentVoice)) continue;
       result.addOpponentVoice(FunkinSound.load(opponentVoice));
     }
 

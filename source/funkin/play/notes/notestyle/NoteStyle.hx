@@ -2,14 +2,13 @@ package funkin.play.notes.notestyle;
 
 import funkin.play.Countdown;
 import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.graphics.frames.FlxFramesCollection;
 import funkin.data.animation.AnimationData;
 import funkin.data.IRegistryEntry;
 import funkin.graphics.FunkinSprite;
 import funkin.data.notestyle.NoteStyleData;
 import funkin.data.notestyle.NoteStyleRegistry;
-import funkin.data.notestyle.NoteStyleRegistry;
 import funkin.util.assets.FlxAnimationUtil;
+import flixel.graphics.frames.FlxFramesCollection;
 
 using funkin.data.animation.AnimationData.AnimationDataUtil;
 
@@ -344,6 +343,65 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
   public function isNoteSplashEnabled():Bool
   {
     return _data?.assets?.noteSplash?.data?.enabled ?? fallback?.isNoteSplashEnabled() ?? false;
+  }
+
+  public function checkForNoteSplashAsset():Bool
+  {
+    var rawPath:Null<String> = _data?.assets?.noteSplash?.assetPath;
+    if (rawPath == null) rawPath = fallback?.getNoteSplashAssetPath();
+    if (rawPath == null) return false;
+    else
+    {
+      if (rawPath.length <= 0 || rawPath == "") return false;
+    }
+    return true;
+  }
+
+  public function getNoteSplashAssetPath(raw:Bool = false):Null<String>
+  {
+    if (raw)
+    {
+      var rawPath:Null<String> = _data?.assets?.noteSplash?.assetPath;
+      if (rawPath == null) return fallback?.getNoteSplashAssetPath(true);
+      return rawPath;
+    }
+
+    // library:path
+    var parts = getNoteSplashAssetPath(true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
+    if (parts.length == 0) return null;
+    if (parts.length == 1) return getNoteSplashAssetPath(true);
+    return parts[1];
+  }
+
+  var frameCollection:Null<FlxFramesCollection>;
+  var triedConstructingNotesplash:Bool = false;
+
+  public function getNoteSplashAssetLibrary():Null<String>
+  {
+    // library:path
+    var parts = getNoteSplashAssetPath(true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
+    if (parts.length == 0) return null;
+    if (parts.length == 1) return null;
+    return parts[0];
+  }
+
+  public function getNoteSplashFrames():Null<FlxFramesCollection>
+  {
+    if (triedConstructingNotesplash)
+    {
+      triedConstructingNotesplash = true;
+      var noteAssetPath = getNoteSplashAssetPath();
+
+      if (noteAssetPath == null) return null;
+      frameCollection = Paths.getSparrowAtlas(noteAssetPath, getNoteSplashAssetLibrary());
+      frameCollection.parent.persist = true;
+    }
+    return frameCollection;
+  }
+
+  public function holdsBehindStrums():Bool
+  {
+    return _data?.assets?.holdNote?.data?.behindStrums ?? false;
   }
 
   public function isHoldNoteCoverEnabled():Bool

@@ -73,6 +73,38 @@ class SawtoothAngleMod extends Modifier
   }
 }
 
+class SawtoothAngleXMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name);
+    createSubMod("mult", 1);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    var mult:Float = ModConstants.strumSize * getSubVal("mult");
+    data.angleX += (data.curPos % mult) * currentValue;
+  }
+}
+
+class SawtoothAngleYMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name);
+    createSubMod("mult", 1);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    var mult:Float = ModConstants.strumSize * getSubVal("mult");
+    data.angleY += (data.curPos % mult) * currentValue;
+  }
+}
+
 class SawtoothScaleMod extends Modifier
 {
   public function new(name:String)

@@ -78,19 +78,31 @@ class ModConstants
   public static var tooCloseToCameraFix:Float = 0.975; // dumb fix for preventing freak out on z math or something
 
   // If a mod tag is in this array, it will automatically invert the mod value
+  // Best to only use this for more simple modcharts.
   public static var dadInvert:Array<String> = [
     "rotatez",
     "rotatey",
     "drunk",
-    "tipsy",
-    "beat",
     "drunkangle",
+    "drunkangley",
+    "tipsy",
+    "tipsyx",
+    "beat",
+    "beatangley",
     "beatangle",
     "confusionoffset",
     "bumpyx",
+    "bumpyangle",
+    "bumpyangley",
     "bouncex",
+    "bounceangley",
+    "bounceangle",
+    "digital",
+    "digitalangle",
+    "digitalangley",
     "linearx",
     "circx",
+    "twirl",
     "dizzy",
     "zigzag",
     "spiralx",
@@ -993,6 +1005,12 @@ class ModConstants
         newMod = new StrumRotateYMod(tag);
       case "strumrotatez":
         newMod = new StrumRotateZMod(tag);
+      case "notesrotatex":
+        newMod = new NotesRotateXModifier(tag);
+      case "notesrotatey":
+        newMod = new NotesRotateYMod(tag);
+      case "notesrotatez":
+        newMod = new NotesRotateZMod(tag);
 
       // stealth mods
       case "stealthglowred":
@@ -1049,6 +1067,10 @@ class ModConstants
         newMod = new DrunkScaleYMod(tag);
       case "drunkspeed":
         newMod = new DrunkSpeedMod(tag);
+      case "drunkangley":
+        newMod = new DrunkAngleYMod(tag);
+      case "drunkanglex":
+        newMod = new DrunkAngleXMod(tag);
 
       case "tandrunk":
         newMod = new TanDrunkXMod(tag);
@@ -1097,6 +1119,10 @@ class ModConstants
         newMod = new BeatZMod(tag);
       case "beatangle":
         newMod = new BeatAngleMod(tag);
+      case "beatanglex":
+        newMod = new BeatAngleXMod(tag);
+      case "beatangley":
+        newMod = new BeatAngleYMod(tag);
       case "beatscale":
         newMod = new BeatScaleMod(tag);
       case "beatscalex":
@@ -1180,6 +1206,10 @@ class ModConstants
         newMod = new SawtoothZMod(tag);
       case "sawangle":
         newMod = new SawtoothAngleMod(tag);
+      case "sawanglex":
+        newMod = new SawtoothAngleXMod(tag);
+      case "sawangley":
+        newMod = new SawtoothAngleYMod(tag);
       case "sawskewx":
         newMod = new SawtoothSkewXMod(tag);
       case "sawskewy":
@@ -1202,6 +1232,10 @@ class ModConstants
         newMod = new ZigZagZMod(tag);
       case "zigzagangle":
         newMod = new ZigZagAngleMod(tag);
+      case "zigzaganglex":
+        newMod = new ZigZagAngleXMod(tag);
+      case "zigzagangley":
+        newMod = new ZigZagAngleYMod(tag);
       case "zigzagscale":
         newMod = new ZigZagScaleMod(tag);
       case "zigzagscalex":
@@ -1242,6 +1276,10 @@ class ModConstants
         newMod = new DigitalZMod(tag);
       case "digitalangle":
         newMod = new DigitalAngleMod(tag);
+      case "digitalanglex":
+        newMod = new DigitalAngleXMod(tag);
+      case "digitalangley":
+        newMod = new DigitalAngleYMod(tag);
       case "digitalscale":
         newMod = new DigitalScaleMod(tag);
       case "digitalskewx":
@@ -1260,6 +1298,10 @@ class ModConstants
         newMod = new BounceZMod(tag);
       case "bounceangle":
         newMod = new BounceAngleMod(tag);
+      case "bounceanglex":
+        newMod = new BounceAngleXMod(tag);
+      case "bounceangley":
+        newMod = new BounceAngleYMod(tag);
       case "bouncescale":
         newMod = new BounceScaleMod(tag);
       case "bouncescalex":
@@ -1272,6 +1314,29 @@ class ModConstants
         newMod = new BounceSkewYMod(tag);
       case "bouncespeed":
         newMod = new BounceSpeedMod(tag);
+
+      case "cosbouncex":
+        newMod = new CosBounceXMod(tag);
+      case "cosbouncey":
+        newMod = new CosBounceYMod(tag);
+      case "cosbouncez":
+        newMod = new CosBounceZMod(tag);
+      case "cosbounceangle":
+        newMod = new CosBounceAngleMod(tag);
+      case "cosbounceanglex":
+        newMod = new CosBounceAngleXMod(tag);
+      case "cosbounceangley":
+        newMod = new CosBounceAngleYMod(tag);
+      case "cosbouncescale":
+        newMod = new CosBounceScaleMod(tag);
+      case "cosbouncescalex":
+        newMod = new CosBounceScaleXMod(tag);
+      case "cosbouncescaley":
+        newMod = new CosBounceScaleYMod(tag);
+      case "cosbounceskewx":
+        newMod = new CosBounceSkewXMod(tag);
+      case "cosbounceskewy":
+        newMod = new CosBounceSkewYMod(tag);
 
       case "tanbouncex":
         newMod = new TanBounceXMod(tag);
@@ -1297,6 +1362,10 @@ class ModConstants
         newMod = new BumpyZMod(tag);
       case "bumpyangle":
         newMod = new BumpyAngleMod(tag);
+      case "bumpyanglex":
+        newMod = new BumpyAngleXMod(tag);
+      case "bumpyangley":
+        newMod = new BumpyAngleYMod(tag);
       case "bumpyscale":
         newMod = new BumpyScaleMod(tag);
       case "bumpyscalex":
@@ -1309,6 +1378,29 @@ class ModConstants
         newMod = new BumpySkewYMod(tag);
       case "bumpyspeed":
         newMod = new BumpySpeedMod(tag);
+
+      case "cosbumpy":
+        newMod = new CosBumpyZMod(tag);
+      case "cosbumpyy":
+        newMod = new CosBumpyYMod(tag);
+      case "cosbumpyx":
+        newMod = new CosBumpyXMod(tag);
+      case "cosbumpyangle":
+        newMod = new CosBumpyAngleMod(tag);
+      case "cosbumpyanglex":
+        newMod = new CosBumpyAngleXMod(tag);
+      case "cosbumpyangley":
+        newMod = new CosBumpyAngleYMod(tag);
+      case "cosbumpyskewx":
+        newMod = new CosBumpySkewXMod(tag);
+      case "cosbumpyskewy":
+        newMod = new CosBumpySkewYMod(tag);
+      case "cosbumpyscale":
+        newMod = new CosBumpyScaleMod(tag);
+      case "cosbumpyscalex":
+        newMod = new CosBumpyScaleXMod(tag);
+      case "cosbumpyscaley":
+        newMod = new CosBumpyScaleYMod(tag);
 
       case "tanbumpyx":
         newMod = new TanBumpyXMod(tag);

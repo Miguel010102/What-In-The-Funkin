@@ -149,6 +149,48 @@ class DrunkAngleMod extends DrunkModBase
   }
 }
 
+class DrunkAngleYMod extends DrunkModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleY -= drunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement.
+    data.angleY += drunkMath(data.direction, data.curPos); // re apply but now with notePos
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleY += drunkMath(data.direction, data.curPos);
+  }
+}
+
+class DrunkAngleXMod extends DrunkModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleX -= drunkMath(data.direction, data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement.
+    data.angleX += drunkMath(data.direction, data.curPos); // re apply but now with notePos
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleX += drunkMath(data.direction, data.curPos);
+  }
+}
+
 class DrunkScaleMod extends DrunkModBase
 {
   public function new(name:String)

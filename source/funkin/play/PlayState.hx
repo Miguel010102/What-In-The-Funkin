@@ -2290,7 +2290,9 @@ class PlayState extends MusicBeatSubState
     add(newStrummer);
 
     newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2);
-    newStrummer.y = Preferences.downscroll ? FlxG.height - newStrummer.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+    newStrummer.y = Preferences.downscroll ? FlxG.height - (useHeightForStrumY ? newStrummer.height : heightOffset) - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+
+    // newStrummer.y = Preferences.downscroll ? FlxG.height - newStrummer.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
     newStrummer.zIndex = 1003 + allStrumLines.length + 1;
     newStrummer.cameras = playerStrumline.cameras;
 
@@ -2301,6 +2303,9 @@ class PlayState extends MusicBeatSubState
 
     return newStrummer;
   }
+
+  var useHeightForStrumY:Bool = false;
+  var heightOffset:Float = 162;
 
   /**
      * Constructs the strumlines for each player.
@@ -2324,13 +2329,17 @@ class PlayState extends MusicBeatSubState
     // Position the player strumline on the right half of the screen
     playerStrumline.x = FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET; // Classic style
     // playerStrumline.x = FlxG.width - playerStrumline.width - Constants.STRUMLINE_X_OFFSET; // Centered style
-    playerStrumline.y = Preferences.downscroll ? FlxG.height - playerStrumline.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+    playerStrumline.y = Preferences.downscroll ? FlxG.height
+      - (useHeightForStrumY ? playerStrumline.height : heightOffset)
+      - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
     playerStrumline.zIndex = 1001;
     playerStrumline.cameras = [camHUD];
 
     // Position the opponent strumline on the left half of the screen
     opponentStrumline.x = Constants.STRUMLINE_X_OFFSET;
-    opponentStrumline.y = Preferences.downscroll ? FlxG.height - opponentStrumline.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+    opponentStrumline.y = Preferences.downscroll ? FlxG.height
+      - (useHeightForStrumY ? opponentStrumline.height : heightOffset)
+      - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
     opponentStrumline.zIndex = 1000;
     opponentStrumline.cameras = [camHUD];
 
@@ -2361,7 +2370,7 @@ class PlayState extends MusicBeatSubState
           add(newStrummer);
 
           newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2);
-          newStrummer.y = Preferences.downscroll ? FlxG.height - newStrummer.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+          newStrummer.y = Preferences.downscroll ? FlxG.height - (useHeightForStrumY ? newStrummer.height : heightOffset) - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
           newStrummer.zIndex = 1003 + i;
           newStrummer.cameras = playerStrumline.cameras;
 
@@ -2546,6 +2555,8 @@ class PlayState extends MusicBeatSubState
     var playerNoteData:Array<SongNoteData> = [];
     var opponentNoteData:Array<SongNoteData> = [];
 
+    var excludeNoteKindFromTotalNotes:Array<String> = ["hurt", "fake"];
+
     for (songNote in builtNoteData)
     {
       var strumTime:Float = songNote.time;
@@ -2561,7 +2572,11 @@ class PlayState extends MusicBeatSubState
         case 0:
           playerNoteData.push(songNote);
           // increment totalNotes for total possible notes able to be hit by the player
-          Highscore.tallies.totalNotes++;
+          if (!(excludeNoteKindFromTotalNotes.contains(songNote?.kind ?? "normal")))
+          {
+            Highscore.tallies.totalNotes++;
+          }
+
         case 1:
           opponentNoteData.push(songNote);
       }

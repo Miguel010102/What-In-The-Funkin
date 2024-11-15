@@ -90,6 +90,34 @@ class DigitalAngleMod extends DigitalModBase
   }
 }
 
+class DigitalAngleXMod extends DigitalModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleX += digitalMath(data.curPos);
+  }
+}
+
+class DigitalAngleYMod extends DigitalModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleY += digitalMath(data.curPos);
+  }
+}
+
 class DigitalScaleMod extends DigitalModBase
 {
   public function new(name:String)

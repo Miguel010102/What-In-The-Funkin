@@ -144,6 +144,48 @@ class BeatAngleMod extends BeatModBase
   }
 }
 
+class BeatAngleXMod extends BeatModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleX -= beatMath(data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement.
+    data.angleX += beatMath(data.curPos); // re apply but now with notePos
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleX += beatMath(data.curPos);
+  }
+}
+
+class BeatAngleYMod extends BeatModBase
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleY -= beatMath(data.whichStrumNote?.strumDistance ?? 0); // undo the strum  movement.
+    data.angleY += beatMath(data.curPos); // re apply but now with notePos
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleY += beatMath(data.curPos);
+  }
+}
+
 class BeatScaleMod extends BeatModBase
 {
   public function new(name:String)

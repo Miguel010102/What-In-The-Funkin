@@ -221,6 +221,8 @@ class Strumline extends FlxSpriteGroup
 
   var heldKeys:Array<Bool> = [];
 
+  var holdsBehindStrums:Bool = false;
+
   public function new(noteStyle:NoteStyle, isPlayer:Bool, modchartSong:Bool = false)
   {
     super();
@@ -229,16 +231,18 @@ class Strumline extends FlxSpriteGroup
     isActuallyPlayerStrum = isPlayer;
     this.noteStyle = noteStyle;
 
+    holdsBehindStrums = noteStyle.holdsBehindStrums();
+
     if (modchartSong)
     {
       this.arrowPaths = new FlxTypedSpriteGroup<SustainTrail>();
-      this.arrowPaths.zIndex = 8;
+      this.arrowPaths.zIndex = 6;
       this.add(this.arrowPaths);
 
       notitgPathSprite = new ZSprite();
       notitgPathSprite.x = 0;
       notitgPathSprite.y = 0;
-      this.notitgPathSprite.zIndex = 8;
+      this.notitgPathSprite.zIndex = 6;
       this.add(notitgPathSprite);
 
       if (PlayState.instance != null)
@@ -250,18 +254,36 @@ class Strumline extends FlxSpriteGroup
       }
     }
 
-    this.strumlineNotes = new FlxTypedSpriteGroup<StrumlineNote>();
-    this.strumlineNotes.zIndex = 10;
-    this.add(this.strumlineNotes);
+    if (holdsBehindStrums)
+    {
+      // Hold notes are added first so they render behind regular notes.
+      this.holdNotes = new FlxTypedSpriteGroup<SustainTrail>();
+      this.holdNotes.zIndex = 8;
+      this.add(this.holdNotes);
 
-    // Hold notes are added first so they render behind regular notes.
-    this.holdNotes = new FlxTypedSpriteGroup<SustainTrail>();
-    this.holdNotes.zIndex = 20;
-    this.add(this.holdNotes);
+      this.holdNotesVwoosh = new FlxTypedSpriteGroup<SustainTrail>();
+      this.holdNotesVwoosh.zIndex = 9;
+      this.add(this.holdNotesVwoosh);
 
-    this.holdNotesVwoosh = new FlxTypedSpriteGroup<SustainTrail>();
-    this.holdNotesVwoosh.zIndex = 21;
-    this.add(this.holdNotesVwoosh);
+      this.strumlineNotes = new FlxTypedSpriteGroup<StrumlineNote>();
+      this.strumlineNotes.zIndex = 10;
+      this.add(this.strumlineNotes);
+    }
+    else
+    {
+      this.strumlineNotes = new FlxTypedSpriteGroup<StrumlineNote>();
+      this.strumlineNotes.zIndex = 10;
+      this.add(this.strumlineNotes);
+
+      // Hold notes are added first so they render behind regular notes.
+      this.holdNotes = new FlxTypedSpriteGroup<SustainTrail>();
+      this.holdNotes.zIndex = 20;
+      this.add(this.holdNotes);
+
+      this.holdNotesVwoosh = new FlxTypedSpriteGroup<SustainTrail>();
+      this.holdNotesVwoosh.zIndex = 21;
+      this.add(this.holdNotesVwoosh);
+    }
 
     this.notes = new FlxTypedSpriteGroup<NoteSprite>();
     this.notes.zIndex = 30;
@@ -540,6 +562,8 @@ class Strumline extends FlxSpriteGroup
     note.x += this.x;
     note.x += Strumline.INITIAL_OFFSET;
     note.y = this.y;
+    noteStyle.applyStrumlineOffsets(note);
+
     note.alpha = 1;
     note.angle = 0;
     // note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale * sizeMod);
@@ -549,7 +573,13 @@ class Strumline extends FlxSpriteGroup
     note.skew.x = 0;
     note.skew.y = 0;
 
-    noteStyle.applyStrumlineOffsets(note);
+    if (note.strumExtraModData.introTweenPercentage != 1)
+    {
+      var p:Float = note.strumExtraModData.introTweenPercentage;
+      note.alpha = p;
+      p = 1 - p;
+      note.y -= p * 10;
+    }
 
     note.resetStealthGlow(true);
     note.noteModData.defaultValues();
@@ -920,6 +950,9 @@ class Strumline extends FlxSpriteGroup
   function setNotePos(note:NoteSprite, vwoosh:Bool = false):Void
   {
     note.noteModData.defaultValues();
+    note.noteModData.strumTime = note.strumTime;
+    note.noteModData.noteType = note.kind;
+    note.noteModData.direction = note.direction;
     note.color = FlxColor.WHITE;
     note.noteModData.strumTime = note.strumTime;
     note.noteModData.direction = note.direction % KEY_COUNT;
@@ -1665,7 +1698,7 @@ class Strumline extends FlxSpriteGroup
     if (noteSplashes.length < noteSplashes.maxSize)
     {
       // Create a new note splash.
-      result = new NoteSplash();
+      result = new NoteSplash(noteStyle);
       this.noteSplashes.add(result);
       result.weBelongTo = this;
       if (PlayState.instance != null)
@@ -1820,9 +1853,17 @@ class Strumline extends FlxSpriteGroup
    */
   function fadeInArrow(index:Int, arrow:StrumlineNote):Void
   {
-    arrow.y -= 10;
-    arrow.alpha = 0.0;
-    FlxTween.tween(arrow, {y: arrow.y + 10, alpha: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    if (mods != null)
+    {
+      arrow.strumExtraModData.introTweenPercentage = 0;
+      FlxTween.tween(arrow.strumExtraModData, {introTweenPercentage: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    }
+    else
+    {
+      arrow.y -= 10;
+      arrow.alpha = 0.0;
+      FlxTween.tween(arrow, {y: arrow.y + 10, alpha: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    }
   }
 
   public function fadeInArrows():Void

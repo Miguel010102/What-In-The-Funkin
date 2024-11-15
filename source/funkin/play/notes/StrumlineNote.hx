@@ -211,7 +211,7 @@ class StrumlineNote extends ZSprite
     }
   }
 
-  public var targetScale:Float = 1.0;
+  public var targetScale:Float = 0.7;
 
   function setup(noteStyle:NoteStyle):Void
   {
@@ -227,11 +227,11 @@ class StrumlineNote extends ZSprite
 
     var scale = noteStyle.getStrumlineScale();
     this.scale.set(scale, scale);
-    targetScale = this.scale.x;
     this.updateHitbox();
     noteStyle.applyStrumlineOffsets(this);
 
     this.playStatic();
+    targetScale = this.scale.x;
   }
 
   public function playAnimation(name:String = 'static', force:Bool = false, reversed:Bool = false, startFrame:Int = 0):Void

@@ -23,6 +23,9 @@ import funkin.play.PlayState;
 
 class ZProjectSprite_Note extends FlxSprite
 {
+  // Makes the mesh all wobbly!
+  public var vibrateEffect:Float = 0.0;
+
   public var z:Float = 0.0;
 
   // If set, will reference this sprites graphic! Very useful for animations!
@@ -149,11 +152,129 @@ class ZProjectSprite_Note extends FlxSprite
         i++;
       }
     }
-    updateTris();
+    updateTris(true);
   }
 
-  public function updateTris(debugTrace:Bool = false):Void
+  private var oldX:Float = 0;
+  private var oldY:Float = 0;
+  private var oldZ:Float = 0;
+  private var oldAngleX:Float = 0;
+  private var oldAngleY:Float = 0;
+  private var oldAngleZ:Float = 0;
+  private var oldScaleX:Float = 0;
+  private var oldScaleY:Float = 0;
+  private var oldScaleZ:Float = 0;
+  private var oldMoveX:Float = 0;
+  private var oldMoveY:Float = 0;
+  private var oldMoveZ:Float = 0;
+  private var oldSkewX:Float = 0;
+  private var oldSkewY:Float = 0;
+  private var oldSkewZ:Float = 0;
+  private var oldSkewX_offset:Float = 0;
+  private var oldSkewY_offset:Float = 0;
+  private var oldSkewZ_offset:Float = 0;
+  private var oldFovOffsetX:Float = 0;
+  private var oldFovOffsetY:Float = 0;
+  private var oldPivotOffsetX:Float = 0;
+  private var oldPivotOffsetY:Float = 0;
+  private var oldPivotOffsetZ:Float = 0;
+  private var oldOffset:FlxPoint;
+  private var oldFrameName:String = "";
+
+  public function updateOldVars()
   {
+    oldOffset = this.offset;
+    oldX = this.x;
+    oldY = this.y;
+    oldZ = this.z;
+    oldScaleX = this.scaleX;
+    oldScaleY = this.scaleY;
+    oldScaleZ = this.scaleZ;
+    oldAngleY = this.angleY;
+    oldAngleX = this.angleX;
+    oldAngleZ = this.angleZ;
+    oldMoveX = this.moveX;
+    oldMoveY = this.moveY;
+    oldMoveZ = this.moveZ;
+    oldFovOffsetX = this.fovOffsetX;
+    oldFovOffsetY = this.fovOffsetY;
+    oldPivotOffsetX = this.pivotOffsetX;
+    oldPivotOffsetZ = this.pivotOffsetZ;
+    oldPivotOffsetY = this.pivotOffsetY;
+    oldSkewX_offset = this.skewX_offset;
+    oldSkewY_offset = this.skewY_offset;
+    oldSkewZ_offset = this.skewZ_offset;
+    oldSkewX = this.skewX;
+    oldSkewY = this.skewY;
+    oldSkewZ = this.skewZ;
+    if (spriteGraphic != null)
+    {
+      oldFrameName = spriteGraphic.animation.frameName;
+    }
+  }
+
+  public function trisNeedUpdate():Bool
+  {
+    @:privateAccess
+    if (PlayState.instance.isGamePaused)
+    {
+      return false; // Never update if paused!
+    }
+
+    if (vibrateEffect != 0)
+    {
+      return true; // Since this effect needs to be updated constantly!
+    }
+
+    // animation changed?
+    if (spriteGraphic != null)
+    {
+      if (spriteGraphic.animation.frameName != oldFrameName) return true;
+    }
+
+    if (oldOffset != this.offset) return true;
+
+    if (oldX != this.x) return true;
+    if (oldY != this.y) return true;
+    if (oldZ != this.z) return true;
+
+    if (oldAngleX != this.angleX) return true;
+    if (oldAngleY != this.angleY) return true;
+    if (oldAngleZ != this.angleZ) return true;
+
+    if (oldScaleX != this.scaleX) return true;
+    if (oldScaleY != this.scaleY) return true;
+    if (oldScaleZ != this.scaleZ) return true;
+
+    if (oldSkewX != this.skewX) return true;
+    if (oldSkewY != this.skewY) return true;
+    if (oldSkewZ != this.skewZ) return true;
+
+    if (oldSkewX_offset != this.skewX_offset) return true;
+    if (oldSkewY_offset != this.skewY_offset) return true;
+    if (oldSkewZ_offset != this.skewZ_offset) return true;
+
+    if (oldFovOffsetX != this.fovOffsetX) return true;
+    if (oldFovOffsetY != this.fovOffsetY) return true;
+
+    if (oldPivotOffsetX != this.pivotOffsetX) return true;
+    if (oldPivotOffsetY != this.pivotOffsetY) return true;
+    if (oldPivotOffsetZ != this.pivotOffsetZ) return true;
+
+    if (oldMoveX != this.moveX) return true;
+    if (oldMoveY != this.moveY) return true;
+    if (oldMoveZ != this.moveZ) return true;
+
+    // All the variables are the same, return false as we don't need to update!
+    return false;
+  }
+
+  public function updateTris(forceUpdate:Bool = false, debugTrace:Bool = false):Void
+  {
+    if (!trisNeedUpdate() && !forceUpdate)
+    {
+      return;
+    }
     var wasAlreadyFlipped_X:Bool = flipX;
     var wasAlreadyFlipped_Y:Bool = flipY;
 
@@ -187,6 +308,13 @@ class ZProjectSprite_Note extends FlxSprite
           point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w;
         if (skewZ != 0) //
           point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h;
+
+        if (vibrateEffect != 0)
+        {
+          point3D.x += FlxG.random.float(-1, 1) * vibrateEffect;
+          point3D.y += FlxG.random.float(-1, 1) * vibrateEffect;
+          point3D.z += FlxG.random.float(-1, 1) * vibrateEffect;
+        }
 
         // scale
         var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);
@@ -287,6 +415,7 @@ class ZProjectSprite_Note extends FlxSprite
           }
         }
     }
+    updateOldVars();
   }
 
   public var cullMode:String = "none";

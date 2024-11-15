@@ -47,6 +47,9 @@ class HazardAFT
 
   var framesSinceStarted:Int = 0;
 
+  public var copyFilters:Bool = false;
+  public var testTEST:Bool = false;
+
   public function updateAFT():Void
   {
     bitmap.lock();
@@ -115,8 +118,22 @@ class HazardAFT
       {
         clearAFT();
       }
-      bitmap.draw(targetCAM.canvas);
+      if (testTEST)
+      {
+        var wasX:Float = targetCAM.flashSprite.x;
+        var wasY:Float = targetCAM.flashSprite.y;
+        targetCAM.flashSprite.x = 0;
+        targetCAM.flashSprite.y = 0;
+        bitmap.draw(targetCAM.flashSprite);
+        targetCAM.flashSprite.x = wasX;
+        targetCAM.flashSprite.y = wasY;
+      }
+      else
+      {
+        bitmap.draw(targetCAM.canvas);
+      }
     }
+
     /*
       if (!recursive || alpha == 0) // clear out the old bitmap data before drawing
       {
@@ -145,6 +162,15 @@ class HazardAFT
         // trace("end.bitmapdata-previous: \n" + previousBitmapData);
       }
      */
+
+    if (copyFilters && targetCAM.filtersEnabled)
+    {
+      // for each(i in iterable) x 1000
+      for (f in targetCAM.filters)
+      {
+        bitmap.applyFilter(bitmap, rec, null, f);
+      }
+    }
 
     bitmap.unlock();
   }

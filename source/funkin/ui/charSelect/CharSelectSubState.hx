@@ -474,7 +474,13 @@ class CharSelectSubState extends MusicBeatSubState
       }
       else
       {
-        if (availableChars.exists(i)) nonLocks.push(i);
+
+        // https://github.com/FunkinCrew/Funkin/pull/3748/commits/d81d105688889c3efe12546e7dc03c9a7942de2c
+        //if (availableChars.exists(i)) nonLocks.push(i);
+         var playableCharacterId:String = availableChars.get(i);
+        var player:Null<PlayableCharacter> = PlayerRegistry.instance.fetchEntry(playableCharacterId);
+        var isPlayerUnlocked:Bool = player?.isUnlocked() ?? false;
+        if (availableChars.exists(i) && isPlayerUnlocked) nonLocks.push(i);
 
         var temp:Lock = new Lock(0, 0, i);
         temp.ID = 1;

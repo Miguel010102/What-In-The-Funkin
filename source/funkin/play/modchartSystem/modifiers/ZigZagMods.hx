@@ -108,6 +108,34 @@ class ZigZagAngleMod extends ZigZagBaseMod
   }
 }
 
+class ZigZagAngleXMod extends ZigZagBaseMod
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleX += ziggyMath(data.curPos) * currentValue;
+  }
+}
+
+class ZigZagAngleYMod extends ZigZagBaseMod
+{
+  public function new(name:String)
+  {
+    super(name);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    data.angleY += ziggyMath(data.curPos) * currentValue;
+  }
+}
+
 class ZigZagScaleMod extends ZigZagBaseMod
 {
   public function new(name:String)

@@ -472,9 +472,16 @@ class Project extends HXProject {
 		FEATURE_PARTIAL_SOUNDS.apply(this, true);
 		FEATURE_VIDEO_PLAYBACK.apply(this, true);
 
+
+		//https://github.com/FunkinCrew/Funkin/pull/3728/commits/d6b0b83f45de4d12b1eae93cdb6374ee53a0a25b
 		// Should be true on debug builds or if GITHUB_BUILD is enabled.
 		FEATURE_DEBUG_FUNCTIONS.apply(this, isDebug() || GITHUB_BUILD.isEnabled(this));
-		FEATURE_LOG_TRACE.apply(this, isDebug());
+	  //	FEATURE_LOG_TRACE.apply(this, isDebug());
+		// Got a lot of complains about this being turned off by default on some builds.
+		// TODO: Look into ways to optimize logging (maybe by using a thread pool?)
+		FEATURE_LOG_TRACE.apply(this, true);
+
+
 
 		// Should default to true on workspace builds and false on release builds.
 		REDIRECT_ASSETS_FOLDER.apply(this, isDebug() && isDesktop());

@@ -6,6 +6,7 @@ import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
 import funkin.graphics.ZSprite;
+import funkin.play.notes.notestyle.NoteStyle;
 
 class NoteSplash extends ZSprite
 {
@@ -23,9 +24,12 @@ class NoteSplash extends ZSprite
     frameCollection.parent.persist = true;
   }
 
-  public function new()
+  var noteStyle:NoteStyle = null;
+
+  public function new(noteStyle:NoteStyle)
   {
     super(0, 0);
+    this.noteStyle = noteStyle;
 
     setup();
 
@@ -42,6 +46,12 @@ class NoteSplash extends ZSprite
     if (frameCollection == null) preloadFrames();
 
     this.frames = frameCollection;
+    if (noteStyle.checkForNoteSplashAsset())
+    {
+      this.frames = Paths.getSparrowAtlas(noteStyle.getNoteSplashAssetPath(), noteStyle.getNoteSplashAssetLibrary());
+      // var customNoteSplashFrames = noteStyle.getNoteSplashFrames();
+      // if (customNoteSplashFrames != null) this.frames = customNoteSplashFrames;
+    }
 
     this.animation.addByPrefix('splash1Left', 'note impact 1 purple0', FRAMERATE_DEFAULT, false, false, false);
     this.animation.addByPrefix('splash1Down', 'note impact 1  blue0', FRAMERATE_DEFAULT, false, false, false);

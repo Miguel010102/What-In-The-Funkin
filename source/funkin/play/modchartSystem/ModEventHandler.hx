@@ -176,16 +176,20 @@ class ModEventHandler
       if (!timeEventTest.target.modifiers.exists(timeEventTest.modName))
       {
         timeEventTest.target.addMod(timeEventTest.modName, 0.0, 0.0);
+
         var mmm:Float = ModConstants.invertValueCheck(timeEventTest.modName, timeEventTest.target.invertValues);
-        timeEventTest.target.modifiers.get(timeEventTest.modName).setVal(0.0 * mmm);
+        timeEventTest.target.modifiers.get(timeEventTest.modName).currentValue *= mmm;
+        // timeEventTest.target.modifiers.get(timeEventTest.modName).setVal(timeEventTest.target.modifiers.get(timeEventTest.modName).currentValue * mmm);
       }
     }
 
-    PlayState.instance.playerStrumline.mods.sortMods();
-    PlayState.instance.opponentStrumline.mods.sortMods();
-    for (customStrummer in PlayState.instance.customStrumLines)
+    var lol:Int = 1;
+    for (strumLine in PlayState.instance.allStrumLines)
     {
-      customStrummer.mods.sortMods();
+      strumLine.mods.sortMods();
+
+      trace("\nSTRUM-" + lol + " mods list: \n" + strumLine.mods.modifiers);
+      lol++;
     }
   }
 
