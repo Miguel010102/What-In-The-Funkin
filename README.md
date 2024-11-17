@@ -6,7 +6,8 @@
 
 A modified fork of the latest version of Friday Night Funkin' which allows the player to create and play modcharts in a very similar method to modcharting in NotITG with Mirin Template.
 
-Note: If you're trying to compile the code yourself, you might need to grab the arrowpath image from a stable release to put into the assets folder (cuz idk how to modify assets folder here lol)
+Do note that the aim of this fork is strictly focused on modcharting, it doesn't aim to fix any issues that may arise whenever the base game gets updated and breaks everything.
+
 
 # What does it have?
 
@@ -24,14 +25,22 @@ Useful debugging stuff to aid in modchart creation
 
 
 
-# Friday Night Funkin' 
+# Credits
 
-Friday Night Funkin' is a rhythm game. Built using HaxeFlixel for Ludum Dare 47.
+- Me! [(Hazard24)](https://linktr.ee/Hazard24)
 
-This game was made with love to Newgrounds and its community. Extra love to Tom Fulp.
+- [Edwhak_KB](https://github.com/EdwhakKB)
 
-- [Original Github Source!](https://github.com/FunkinCrew/Funkin)
-- [Playable web demo on Newgrounds!](https://www.newgrounds.com/portal/view/770371)
-- [Demo download builds for Windows, Mac, and Linux from Itch.io!](https://ninja-muffin24.itch.io/funkin)
-  
+- [Modcharting-Tools](https://github.com/TheZoroForce240/FNF-Modcharting-Tools)
+
+- [Mirin Template](https://github.com/XeroOl/notitg-mirin)
+
+- [Friday Night Funkin'](https://github.com/FunkinCrew/Funkin)
+
+
+
+
+
+
+Note: If you're trying to compile the code yourself, you might need to grab the arrowpath image from a stable release to put into the assets folder (cuz idk how to modify assets folder here lol)
 
