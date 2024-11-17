@@ -8,6 +8,9 @@ A modified fork of the latest version of Friday Night Funkin' which allows the p
 
 Do note that the aim of this fork is strictly focused on modcharting, it doesn't aim to fix any issues that may arise whenever the base game gets updated and breaks everything.
 
+![]()
+
+Eventually resources will be added here to help explain how to get started making your own modcharts, starting from basic beginner stuff all the way to the more advanced stuff. And of course, all of this is open source so you can just dive into the code and see what the hell is going on (though expect it to be a bit messy, I'm not the best programmer)
 
 # What does it have?
 
