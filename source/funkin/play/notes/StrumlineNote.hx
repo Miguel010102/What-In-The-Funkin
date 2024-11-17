@@ -112,6 +112,7 @@ class StrumlineNote extends ZSprite
     if (mesh == null)
     {
       mesh = new ZProjectSprite_Note();
+      mesh.graphicCacheSuffix = noteStyleName;
       mesh.spriteGraphic = this;
       mesh.doDraw = false;
       mesh.copySpriteGraphic = false;

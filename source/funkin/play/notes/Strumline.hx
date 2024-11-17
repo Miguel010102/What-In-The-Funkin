@@ -440,6 +440,7 @@ class Strumline extends FlxSpriteGroup
   {
     for (lane in 0...KEY_COUNT)
     {
+      // for (mod in mods.mods_special)
       for (mod in mods.mods_special)
       {
         if (mod.targetLane != -1 && lane != mod.targetLane) continue;
@@ -641,6 +642,38 @@ class Strumline extends FlxSpriteGroup
         if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
         mod.strumMath(note.noteModData, this);
       }
+      /*
+        if (note.direction == 1)
+        {
+          trace("ATTEMPTING BENCHMARK");
+          var startTime:Float = Sys.time() * 1000.0; // Date.now().getTime();
+
+          for (mod in mods.mods_strums)
+          {
+            if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+            mod.strumMath(note.noteModData, this);
+          }
+
+          var endTime:Float = Sys.time() * 1000.0; // Date.now().getTime();
+
+          var timeDifference:Float = endTime - startTime;
+          var output:String = "\nSTART TIME: " + startTime;
+          output += "\n";
+          output += "END TIME: " + endTime;
+          output += "\n";
+          output += "TIME DIFFERENCE: " + timeDifference;
+          output += "\n";
+          trace(output);
+        }
+        else
+        {
+          for (mod in mods.mods_strums)
+          {
+            if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+            mod.strumMath(note.noteModData, this);
+          }
+        }
+       */
     }
     note.applyNoteData(note.noteModData);
     note.updateLastKnownPos();

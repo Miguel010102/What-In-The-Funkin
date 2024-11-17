@@ -31,10 +31,46 @@ class ZProjectSprite_Note extends FlxSprite
   // If set, will reference this sprites graphic! Very useful for animations!
   public var spriteGraphic(default, set):FlxSprite;
 
+  var precacheSpriteGraphic:Bool = true;
+
   function set_spriteGraphic(value:FlxSprite):FlxSprite
   {
     spriteGraphic = value;
+    this.antialiasing = spriteGraphic.antialiasing;
+    // SCAN THROUGH ALL THE ANIMATIONS OF THIS GRAPHIC AND CACHE EVERY ANIMATION FRAME!
+    if (precacheSpriteGraphic)
+    {
+      ZProjectSprite_Note.precacheSpriteAnims(spriteGraphic, graphicCacheSuffix);
+    }
     return spriteGraphic;
+  }
+
+  public static function precacheSpriteAnims(s:FlxSprite, suffix:String)
+  {
+    var allFrames = s.frames;
+    for (i in 0...allFrames.frames.length)
+    {
+      var frame = allFrames.frames[i];
+      var animFrameName:String = frame.name + " - " + suffix;
+
+      // trace(animFrameName);
+
+      // check to see if we have this frame of animation saved
+      if (ZProjectSprite_Note.graphicCache3D.exists(animFrameName))
+      {
+        continue; // already cached...
+      }
+      else
+      {
+        trace("PRECACHE -> New frame for: " + animFrameName);
+        var graphicToUse:FlxGraphic;
+
+        // grab the bitmap
+        // grab only
+        graphicToUse = FlxGraphic.fromFrame(frame, true, animFrameName);
+        ZProjectSprite_Note.graphicCache3D.set(animFrameName, graphicToUse);
+      }
+    }
   }
 
   public var projectionEnabled:Bool = true;

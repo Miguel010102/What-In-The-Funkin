@@ -2533,6 +2533,8 @@ class PlayState extends MusicBeatSubState
     generatedMusic = true;
   }
 
+  public var excludeNoteKindFromTotalNotes:Array<String> = ["hurt", "fake"];
+
   /**
      * Read note data from the chart and generate the notes.
      */
@@ -2554,8 +2556,6 @@ class PlayState extends MusicBeatSubState
     // Reset the notes on each strumline.
     var playerNoteData:Array<SongNoteData> = [];
     var opponentNoteData:Array<SongNoteData> = [];
-
-    var excludeNoteKindFromTotalNotes:Array<String> = ["hurt", "fake"];
 
     for (songNote in builtNoteData)
     {
