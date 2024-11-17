@@ -10,10 +10,17 @@ Note: If you're trying to compile the code yourself, you might need to grab the 
 
 # What does it have?
 
+Z Axis stuff, Arrowpath stuff, fancy hold stuff
+
 ![](https://github.com/Hazardous2468/Funkin_Hazard-Modcharting-Fork/blob/main/docs/example1.gif)
 
-![](https://github.com/TheZoroForce240/FNF-Modcharting-Tools/blob/main/readme/custommods.gif)
+A few demo songs, including whatever the fuck this is
 
+![](https://github.com/Hazardous2468/Funkin_Hazard-Modcharting-Fork/blob/main/docs/example2.gif)
+
+Useful debugging stuff to aid in modchart creation
+
+![](https://github.com/Hazardous2468/Funkin_Hazard-Modcharting-Fork/blob/main/docs/example3.gif)
 
 
 
