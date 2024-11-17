@@ -10,7 +10,7 @@ Note: If you're trying to compile the code yourself, you might need to grab the 
 
 # What does it have?
 
-Z Axis stuff, Arrowpath stuff, fancy hold stuff
+Z Axis (3D) stuff, Arrowpath stuff, fancy holds, errr
 
 ![](https://github.com/Hazardous2468/Funkin_Hazard-Modcharting-Fork/blob/main/docs/example1.gif)
 
