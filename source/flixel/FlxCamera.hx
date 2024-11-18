@@ -1139,6 +1139,9 @@ class FlxCamera extends FlxBasic
     super.destroy();
   }
 
+  // When set to true, will instantly remove all filters and reapply them 1 frame later.
+  public var filterRefresh:Bool = false;
+
   /**
    * Updates the camera scroll as well as special effects like screen-shake or fades.
    */
@@ -1155,7 +1158,16 @@ class FlxCamera extends FlxBasic
     updateFlash(elapsed);
     updateFade(elapsed);
 
-    flashSprite.filters = filtersEnabled ? filters : null;
+    if (filterRefresh)
+    {
+      // trace("Window resized, reapplying shaders!");
+      flashSprite.filters = [];
+      filterRefresh = false;
+    }
+    else
+    {
+      flashSprite.filters = filtersEnabled ? _filters : null;
+    }
 
     updateFlashSpritePosition();
     updateShake(elapsed);
@@ -1856,6 +1868,7 @@ class FlxCamera extends FlxBasic
    */
   public function onResize():Void
   {
+    filterRefresh = true;
     updateFlashOffset();
     setScale(scaleX, scaleY);
   }
