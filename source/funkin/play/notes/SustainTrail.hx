@@ -574,6 +574,9 @@ class SustainTrail extends ZSprite
   // If set to false, will disable the hold being hidden when being dropped
   public var hideOnMiss:Bool = true;
 
+  // The angle the hold note is coming from with spiral holds! used for hold covers!
+  public var baseAngle:Float = 0;
+
   /**
    * Sets up new vertex and UV data to clip the trail.
    * @param songTime	The time to clip the note at, in milliseconds.
@@ -858,6 +861,8 @@ class SustainTrail extends ZSprite
 
         if (affectRoot)
         {
+          baseAngle = calculateAngleDif;
+
           var rotateOrigin_rooter:Vector2 = new Vector2(vertices[(i - 2) * 2], vertices[(i - 2) * 2 + 1]);
           // move rotateOrigin to be inbetween the left and right vert so it's centered
           rotateOrigin_rooter.x += (vertices[(i - 2 + 1) * 2] - vertices[(i - 2) * 2]) / 2;

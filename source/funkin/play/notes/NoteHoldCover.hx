@@ -76,6 +76,9 @@ class NoteHoldCover extends FlxTypedSpriteGroup<ZSprite>
     {
       trace('WARNING: NoteHoldCover failed to initialize all animations.');
     }
+
+    glow.origin.set(160.5, 150); // Magic numbers which make it rotate from the center properly!
+    glow.offset.set(13.375, -47.575); // Offset correction
   }
 
   public override function update(elapsed):Void

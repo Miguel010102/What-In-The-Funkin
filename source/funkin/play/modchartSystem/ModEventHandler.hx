@@ -102,17 +102,21 @@ class ModEventHandler
   var beatTime:Float = 0;
   var lastReportedSongTime:Float = 0.0;
 
+  var backInTimeLeniency:Float = 250; // in Miliseconds. Done because V-Slice sometimes often tries to go backwards in time? (???)
+
   public function update(elapsed:Float):Void
   {
     songTime = Conductor.instance.songPosition;
     timeBetweenBeats = Conductor.instance.beatLengthMs / 1000;
     timeBetweenBeats_ms = Conductor.instance.beatLengthMs;
-    beatTime = (songTime / 1000) * (Conductor.instance.bpm / 60);
+    beatTime = Conductor.instance.currentBeatTime;
+    // beatTime = (songTime / 1000) * (Conductor.instance.bpm / 60);
 
     // we went, BACK IN TIME?!
-    if (songTime < lastReportedSongTime)
+    if (songTime + backInTimeLeniency < lastReportedSongTime)
     {
       resetMods(); // Just reset everything and let the event handler put everything back.
+      // trace("BACK IN TIME");
     }
 
     var timeBetweenLastReport:Float = (songTime - lastReportedSongTime) / 1000; // Because the elapsed from flxg or the playstate doesn't account for lagspikes? okay, sure.

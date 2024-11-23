@@ -426,6 +426,15 @@ class Strumline extends FlxSpriteGroup
       updateArrowPaths(elapsed);
       updateModDebug();
       updatePerspective();
+
+      // Do this after perspective so covers and splashes match strum scale and position (no need for z calcs for these since they just copy strum pos)
+      for (cover in noteHoldCovers)
+      {
+        if (cover.alive)
+        {
+          noteCoverSetPos(cover);
+        }
+      }
     }
     else
     {
@@ -529,13 +538,13 @@ class Strumline extends FlxSpriteGroup
       if (!(note.noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false)) ModConstants.applyPerspective(note);
       // ModConstants.applyPerspective(note);
     }
-    for (cover in noteHoldCovers)
-    {
-      if (cover.alive)
-      {
-        cover.applyPerspective();
-      }
-    }
+    // for (cover in noteHoldCovers)
+    // {
+    //  if (cover.alive)
+    //  {
+    //    cover.applyPerspective();
+    //  }
+    // }
     for (splash in noteSplashes)
     {
       if (splash.alive)
@@ -709,16 +718,6 @@ class Strumline extends FlxSpriteGroup
       updateStrums_single(note);
       // i++;
     });
-
-    // if (strumlineNotes.members.length > 1) strumlineNotes.members.insertionSort(compareNoteSprites.bind(FlxSort.ASCENDING));
-
-    for (cover in noteHoldCovers)
-    {
-      if (cover.alive)
-      {
-        noteCoverSetPos(cover);
-      }
-    }
 
     for (splash in noteSplashes)
     {
@@ -1547,54 +1546,90 @@ class Strumline extends FlxSpriteGroup
 
   function noteCoverSetPos(cover:NoteHoldCover):Void
   {
-    // var whichStrumNote = strumlineNotes.group.members[cover.holdNote.noteDirection % KEY_COUNT];
     var whichStrumNote:StrumlineNote = getByIndex(cover.holdNoteDir % KEY_COUNT);
-
-    cover.x = whichStrumNote.x;
-    cover.x += STRUMLINE_SIZE / 2;
-    cover.x -= cover.width / 2;
-    cover.x += -12; // Manual tweaking because fuck.
-    cover.x += 26; // Manual tweaking because fuck.
-
-    cover.y = whichStrumNote.y;
-    cover.y += INITIAL_OFFSET;
-    cover.y += STRUMLINE_SIZE / 2;
-    cover.y += -96; // Manual tweaking because fuck.
-
-    cover.x -= whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
-    cover.y -= whichStrumNote.strumExtraModData.noteStyleOffsetY;
-
-    // cover.z = whichStrumNote.z; // copy Z!
-    cover.scale.set(1.0, 1.0);
-
+    var scaleX:Float = FlxMath.remapToRange(whichStrumNote.scale.x, 0.0, whichStrumNote.targetScale ?? 0.7, 0, 1.0);
+    var scaleY:Float = FlxMath.remapToRange(whichStrumNote.scale.y, 0.0, whichStrumNote.targetScale ?? 0.7, 0, 1.0);
     var ay:Float = whichStrumNote.alpha;
     ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
-    // ay -= alphaHoldCoverMod[cover.holdNoteDir % KEY_COUNT];
 
     if (cover.glow != null)
     {
+      cover.glow.scale.set(scaleX, scaleY);
+
+      cover.x = whichStrumNote.x;
+      cover.x += whichStrumNote.width / 2;
+      cover.x -= cover.glow.width / 2;
+      cover.y = whichStrumNote.y;
+      cover.y += whichStrumNote.height / 2;
+      cover.y -= cover.glow.height / 2;
+
       cover.glow.x = cover.x;
       cover.glow.y = cover.y;
-      cover.glow.z = 0;
-      cover.glow.scale.set(1.0, 1.0);
+
       cover.glow.z = whichStrumNote.z;
       cover.glow.alpha = ay;
-      cover.glow.skew.x = whichStrumNote.skew.x;
-      cover.glow.skew.y = whichStrumNote.skew.y;
-    }
-    if (cover.sparks != null)
-    {
-      cover.sparks.x = cover.x;
-      cover.sparks.y = cover.y;
-      cover.sparks.z = 0;
-      cover.sparks.scale.set(1.0, 1.0);
-      cover.sparks.z = whichStrumNote.z;
-      cover.sparks.alpha = ay;
-      cover.sparks.skew.x = whichStrumNote.skew.x;
-      cover.sparks.skew.y = whichStrumNote.skew.y;
+
+      var spiralHolds:Bool = whichStrumNote.strumExtraModData?.spiralHolds ?? false;
+      if (spiralHolds)
+      {
+        cover.glow.angle = cover.holdNote.baseAngle;
+      }
+
+      // cover.glow.skew.x = whichStrumNote.skew.x;
+      // cover.glow.skew.y = whichStrumNote.skew.y;
     }
   }
 
+  /*
+    function noteCoverSetPos(cover:NoteHoldCover):Void
+    {
+      var whichStrumNote:StrumlineNote = getByIndex(cover.holdNoteDir % KEY_COUNT);
+
+      cover.x = whichStrumNote.x;
+      cover.x += STRUMLINE_SIZE / 2;
+      cover.x -= cover.width / 2;
+      cover.x += -12; // Manual tweaking because fuck.
+      cover.x += 26; // Manual tweaking because fuck.
+
+      cover.y = whichStrumNote.y;
+      cover.y += INITIAL_OFFSET;
+      cover.y += STRUMLINE_SIZE / 2;
+      cover.y += -96; // Manual tweaking because fuck.
+
+      cover.x -= whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
+      cover.y -= whichStrumNote.strumExtraModData.noteStyleOffsetY;
+
+      // cover.z = whichStrumNote.z; // copy Z!
+      cover.scale.set(1.0, 1.0);
+
+      var ay:Float = whichStrumNote.alpha;
+      ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
+      // ay -= alphaHoldCoverMod[cover.holdNoteDir % KEY_COUNT];
+
+      if (cover.glow != null)
+      {
+        cover.glow.x = cover.x;
+        cover.glow.y = cover.y;
+        cover.glow.z = 0;
+        cover.glow.scale.set(1.0, 1.0);
+        cover.glow.z = whichStrumNote.z;
+        cover.glow.alpha = ay;
+        cover.glow.skew.x = whichStrumNote.skew.x;
+        cover.glow.skew.y = whichStrumNote.skew.y;
+      }
+      if (cover.sparks != null)
+      {
+        cover.sparks.x = cover.x;
+        cover.sparks.y = cover.y;
+        cover.sparks.z = 0;
+        cover.sparks.scale.set(1.0, 1.0);
+        cover.sparks.z = whichStrumNote.z;
+        cover.sparks.alpha = ay;
+        cover.sparks.skew.x = whichStrumNote.skew.x;
+        cover.sparks.skew.y = whichStrumNote.skew.y;
+      }
+    }
+   */
   function noteSplashSetPos(splash:NoteSplash, direction:Int):Void
   {
     // var funny:Float = (FlxMath.fastSin(conductorInUse.songPosition / 1000) + 1) * 0.5;

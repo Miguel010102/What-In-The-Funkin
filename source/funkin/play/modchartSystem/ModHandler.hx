@@ -100,7 +100,8 @@ class ModHandler
     songTime = Conductor.instance.songPosition;
     timeBetweenBeats = Conductor.instance.beatLengthMs / 1000;
     timeBetweenBeats_ms = Conductor.instance.beatLengthMs;
-    beatTime = (songTime / 1000) * (Conductor.instance.bpm / 60);
+    beatTime = Conductor.instance.currentBeatTime;
+    // beatTime = (songTime / 1000) * (Conductor.instance.bpm / 60);
 
     for (mod in mods_all)
     {
@@ -342,9 +343,30 @@ class ModHandler
   }
 
   var specialModCases:Array<String> = [
-    "straightholds", "spiralholds", "longholds", "grain", "debugx", "debugy", "strumx", "strumz", "strumy", "drawdistanceback", "drawdistance", "showsubmods",
-    "showallmods", "showextra", "showlanemods", "showzerovalue", "arrowpathgrain", "arrowpathlength", "arrowpathbacklength", "arrowpathstraighthold",
-    "arrowpath", "arrowpath_notitg", "zsort", "mathcutoff"
+    "straightholds",
+    "spiralholds",
+    "longholds",
+    "grain",
+    "debugx",
+    "debugy",
+    "strumx",
+    "strumz",
+    "strumy",
+    "drawdistanceback",
+    "drawdistance",
+    "showsubmods",
+    "showallmods",
+    "showextra",
+    "showlanemods",
+    "showzerovalue",
+    "arrowpathgrain",
+    "arrowpathlength",
+    "arrowpathbacklength",
+    "arrowpathstraighthold",
+    "arrowpath",
+    "arrowpath_notitg",
+    "zsort",
+    "mathcutoff"
   ];
 
   function propeModMath(m:Modifier, type:String):Bool

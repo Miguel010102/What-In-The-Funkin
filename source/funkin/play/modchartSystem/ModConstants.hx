@@ -640,7 +640,8 @@ class ModConstants
 
     var noteScaleX = note.scale.x;
     var noteScaleY = note.scale.y;
-    if (thisNotePos.z * -1 != 0)
+    // if (thisNotePos.z * -1 != 0)
+    if (thisNotePos.z != 0)
     {
       noteScaleY *= (1 / -thisNotePos.z);
       noteScaleX *= (1 / -thisNotePos.z);
