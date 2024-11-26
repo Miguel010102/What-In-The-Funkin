@@ -402,12 +402,17 @@ class SustainTrail extends ZSprite
   {
     this.hsvShader.setFloat('_stealthSustainSuddenAmount', 0.0);
     this.hsvShader.setFloat('_stealthSustainHiddenAmount', 0.0);
+    this.hsvShader.setFloat('_stealthSustainVanishAmount', 0.0);
 
     useOldStealthGlowStyle = whichStrumNote?.strumExtraModData?.useOldStealthGlowStyle ?? false;
     if (useOldStealthGlowStyle)
     {
       return;
     }
+
+    this.hsvShader.setFloat('_stealthSustainSuddenNoGlow', whichStrumNote?.strumExtraModData?.sudden_noGlow ?? 0.0);
+    this.hsvShader.setFloat('_stealthSustainHiddenNoGlow', whichStrumNote?.strumExtraModData?.hidden_noGlow ?? 0.0);
+    this.hsvShader.setFloat('_stealthSustainVanishNoGlow', whichStrumNote?.strumExtraModData?.vanish_noGlow ?? 0.0);
 
     // get the info we need
     var sStart:Float = whichStrumNote?.strumExtraModData?.suddenStart ?? 500.0;
@@ -418,6 +423,7 @@ class SustainTrail extends ZSprite
 
     this.hsvShader.setFloat('_stealthSustainSuddenAmount', whichStrumNote?.strumExtraModData?.suddenModAmount ?? 0.0);
     this.hsvShader.setFloat('_stealthSustainHiddenAmount', whichStrumNote?.strumExtraModData?.hiddenModAmount ?? 0.0);
+    this.hsvShader.setFloat('_stealthSustainVanishAmount', whichStrumNote?.strumExtraModData?.vanishModAmount ?? 0.0);
 
     this.hsvShader.setBool('_isHold', true);
     this.hsvShader.setFloat('_holdHeight', holdResolution);
@@ -450,6 +456,32 @@ class SustainTrail extends ZSprite
 
     this.hsvShader.setFloat('_stealthSustainHiddenStart', test1);
     this.hsvShader.setFloat('_stealthSustainHiddenEnd', test2);
+
+    // FUCK ME
+
+    sStart = whichStrumNote?.strumExtraModData?.vanish_SuddenStart ?? 202.5;
+    sEnd = whichStrumNote?.strumExtraModData?.vanish_SuddenEnd ?? 125.0;
+
+    hStart = whichStrumNote?.strumExtraModData?.vanish_HiddenStart ?? 475.0;
+    hEnd = whichStrumNote?.strumExtraModData?.vanish_HiddenEnd ?? 397.5;
+
+    var holdPosFromSuddenStart:Float = holdPosFromReceptor - sStart;
+    var holdPosFromSuddenEnd:Float = holdPosFromReceptor - sEnd;
+
+    var test1:Float = holdPosFromSuddenStart / spacingBetweenEachUVpiece * -1;
+    var test2:Float = holdPosFromSuddenEnd / spacingBetweenEachUVpiece * -1;
+
+    this.hsvShader.setFloat('_stealthSustainVanish_SuddenStart', test2);
+    this.hsvShader.setFloat('_stealthSustainVanish_SuddenEnd', test1);
+
+    var holdPosFromHiddenStart:Float = holdPosFromReceptor - hStart;
+    var holdPosFromHiddenEnd:Float = holdPosFromReceptor - hEnd;
+
+    var test1:Float = holdPosFromHiddenStart / spacingBetweenEachUVpiece * -1;
+    var test2:Float = holdPosFromHiddenEnd / spacingBetweenEachUVpiece * -1;
+
+    this.hsvShader.setFloat('_stealthSustainVanish_HiddenStart', test1);
+    this.hsvShader.setFloat('_stealthSustainVanish_HiddenEnd', test2);
   }
 
   function susSample(t:Float, yJank:Bool = false, isRoot:Bool = false, dumbHeight:Float = 0):Void

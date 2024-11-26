@@ -128,9 +128,18 @@ class StrumExtraData
   public var suddenModAmount:Float = 0;
   public var suddenStart:Float = 500;
   public var suddenEnd:Float = 300;
+  public var sudden_noGlow:Float = 0;
   public var hiddenModAmount:Float = 0;
   public var hiddenStart:Float = 500;
   public var hiddenEnd:Float = 300;
+  public var hidden_noGlow:Float = 0;
+
+  public var vanishModAmount:Float = 0;
+  public var vanish_noGlow:Float = 0;
+  public var vanish_HiddenStart:Float = 475;
+  public var vanish_HiddenEnd:Float = 397.5;
+  public var vanish_SuddenStart:Float = 202.5;
+  public var vanish_SuddenEnd:Float = 125;
 
   public var useOldStealthGlowStyle:Bool = false;
 

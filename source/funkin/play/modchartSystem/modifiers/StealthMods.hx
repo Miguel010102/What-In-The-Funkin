@@ -207,6 +207,7 @@ class SuddenMod extends Modifier
     whichStrum.strumExtraModData.suddenModAmount = currentValue;
     whichStrum.strumExtraModData.suddenStart = getSubVal("start") + getSubVal("offset");
     whichStrum.strumExtraModData.suddenEnd = getSubVal("end") + getSubVal("offset");
+    whichStrum.strumExtraModData.sudden_noGlow = getSubVal("noglow");
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -225,7 +226,7 @@ class SuddenMod extends Modifier
 
     a = FlxMath.bound(a, 0, 1); // clamp
 
-    if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+    if (getSubVal("noglow") >= 2.0) // If 2.0 -> just control alpha
     {
       data.alpha -= a * currentValue;
       return;
@@ -233,10 +234,10 @@ class SuddenMod extends Modifier
 
     a *= currentValue;
 
-    if (getSubVal("noglow") < 0.5) // if not set to 0.5, then we apply stealth glow.
+    if (getSubVal("noglow") < 1) // if below 0, then we apply stealth glow.
     {
       var stealthGlow:Float = a * 2; // so it reaches max at 0.5
-      data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+      data.stealth += FlxMath.bound(stealthGlow, 0, 1) * (1.0 - getSubVal("noglow")); // clamp
     }
 
     // extra math so alpha doesn't start fading until 0.5
@@ -269,6 +270,7 @@ class HiddenMod extends Modifier
     whichStrum.strumExtraModData.hiddenModAmount = currentValue;
     whichStrum.strumExtraModData.hiddenStart = getSubVal("start") + getSubVal("offset");
     whichStrum.strumExtraModData.hiddenEnd = getSubVal("end") + getSubVal("offset");
+    whichStrum.strumExtraModData.hidden_noGlow = getSubVal("noglow");
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -288,17 +290,17 @@ class HiddenMod extends Modifier
     var a:Float = FlxMath.remapToRange(curPos2, getSubVal("start") + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 0, 1);
     a = FlxMath.bound(a, 0, 1); // clamp
 
-    if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+    if (getSubVal("noglow") >= 2.0) // If 2.0 -> just control alpha
     {
       data.alpha -= a * currentValue;
       return;
     }
     a *= currentValue;
 
-    if (getSubVal("noglow") < 0.5) // if below 0.5 -> then we apply stealth glow.
+    if (getSubVal("noglow") < 1) // if below 1 -> then we apply stealth glow.
     {
       var stealthGlow:Float = a * 2; // so it reaches max at 0.5
-      data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+      data.stealth += FlxMath.bound(stealthGlow, 0, 1) * (1.0 - getSubVal("noglow")); // clamp
     }
 
     // extra math so alpha doesn't start fading until 0.5
@@ -322,13 +324,32 @@ class VanishMod extends Modifier
     unknown = false;
     notesMod = true;
     holdsMod = true;
-    strumsMod = false;
+    strumsMod = true;
     pathMod = false;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    var whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    whichStrum.strumExtraModData.vanishModAmount = currentValue;
+
+    var sizeThingy:Float = getSubVal("size") / 2;
+    var midPoint:Float = getSubVal("start") + getSubVal("end");
+    midPoint /= 2;
+
+    whichStrum.strumExtraModData.vanish_HiddenStart = getSubVal("start") + getSubVal("offset");
+    whichStrum.strumExtraModData.vanish_HiddenEnd = midPoint + sizeThingy + getSubVal("offset");
+
+    whichStrum.strumExtraModData.vanish_SuddenStart = midPoint - sizeThingy + getSubVal("offset");
+    whichStrum.strumExtraModData.vanish_SuddenEnd = getSubVal("end") + getSubVal("offset");
+
+    whichStrum.strumExtraModData.vanish_noGlow = getSubVal("noglow");
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || data.noteType == "receptor") return;
+    var useOldStealthGlowStyle:Bool = data.whichStrumNote.strumExtraModData.useOldStealthGlowStyle;
+    if (isArrowPath || data.noteType == "receptor" || (isHoldNote && !useOldStealthGlowStyle)) return;
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
     curPos2 *= Preferences.downscroll ? -1 : 1;
@@ -342,12 +363,12 @@ class VanishMod extends Modifier
 
     a = FlxMath.bound(a, 0, 1); // clamp
 
-    var b:Float = FlxMath.remapToRange(curPos2, midPoint - sizeThingy + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 0, 1); // scale
+    var b:Float = FlxMath.remapToRange(curPos2, midPoint - sizeThingy + getSubVal("offset"), getSubVal("end") + getSubVal("offset"), 0, 1);
 
     b = FlxMath.bound(b, 0, 1); // clamp
     var result:Float = a - b;
 
-    if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+    if (getSubVal("noglow") >= 2.0) // If 2.0 -> just control alpha
     {
       data.alpha -= result * currentValue;
       return;
@@ -355,10 +376,10 @@ class VanishMod extends Modifier
 
     result *= currentValue;
 
-    if (getSubVal("noglow") < 0.5) // if not set to 0.5, then we apply stealth glow.
+    if (getSubVal("noglow") < 1) // if below 1, then we apply stealth glow.
     {
       var stealthGlow:Float = result * 2; // so it reaches max at 0.5
-      data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+      data.stealth += FlxMath.bound(stealthGlow, 0, 1) * (1.0 - getSubVal("noglow")); // clamp
     }
 
     // extra math so alpha doesn't start fading until 0.5
@@ -393,17 +414,17 @@ class BlinkMod extends Modifier
     // var a:Float = FlxMath.remapToRange(f, 0, 1, -1, 0);
     a = FlxMath.bound(a, 0, 1); // clamp
 
-    if (getSubVal("noglow") >= 1.0) // If 1.0 -> just control alpha
+    if (getSubVal("noglow") >= 2.0) // If 2.0 -> just control alpha
     {
       data.alpha -= a * currentValue;
       return;
     }
     a *= currentValue;
 
-    if (getSubVal("noglow") < 0.5) // if below 0.5 -> then we apply stealth glow.
+    if (getSubVal("noglow") < 1) // if below 0.5 -> then we apply stealth glow.
     {
       var stealthGlow:Float = a * 2; // so it reaches max at 0.5
-      data.stealth += FlxMath.bound(stealthGlow, 0, 1); // clamp
+      data.stealth += FlxMath.bound(stealthGlow, 0, 1) * (1.0 - getSubVal("noglow")); // clamp
     }
 
     // extra math so alpha doesn't start fading until 0.5
