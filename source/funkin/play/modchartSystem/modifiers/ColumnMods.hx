@@ -103,6 +103,9 @@ class BlackSphereInvertMod extends Modifier
     {
       if (lane % 2 == 1) yValue *= -1;
     }
+
+    if (!Preferences.downscroll) yValue *= -1;
+
     retu_val += yValue * 0.125 * speedAffectM;
 
     return retu_val;
@@ -170,6 +173,7 @@ class BlackSphereFlipMod extends Modifier
     {
       if (lane % 2 == 1) yValue *= -1;
     }
+    if (!Preferences.downscroll) yValue *= -1;
     retu_val += yValue * 0.125 * speedAffectM;
 
     return retu_val;

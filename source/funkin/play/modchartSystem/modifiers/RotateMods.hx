@@ -230,6 +230,8 @@ class RotateZMod extends Modifier
       }
       else
       {
+        // strumX += data.getNoteXOffset();
+        // strumX += data.getNoteXOffset();
         strumX += strumLine.getNoteXOffset();
         strumY += strumLine.getNoteYOffset();
       }

@@ -169,21 +169,34 @@ class HazardModLuaTest
       });
 
     Lua_helper.add_callback(lua, "setasleep", function(time:Float, playerTarget:String, newSleepState:Bool = false) {
+      if (playerTarget == "bf" || playerTarget == "boyfriend" || playerTarget == "0" || playerTarget == "1")
+      {
+        PlayState.instance.modDebugNotif("Player strumline cannot be set to sleep!", FlxColor.ORANGE);
+        return;
+      }
+
       if (playerTarget == "both" || playerTarget == "all")
       {
         for (customStrummer in PlayState.instance.allStrumLines)
         {
-          PlayState.instance.modchartEventHandler.funcModEvent(customStrummer.mods, time, function() {
-            customStrummer.asleep = newSleepState;
-          });
+          // DO NOT ASLEEP BF!
+          if (customStrummer != PlayState.instance.playerStrumline)
+          {
+            PlayState.instance.modchartEventHandler.funcModEvent(customStrummer.mods, time, function() {
+              customStrummer.asleep = newSleepState;
+            });
+          }
         }
       }
       else
       {
         var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
-        PlayState.instance.modchartEventHandler.funcModEvent(modsTarget, time, function() {
-          modsTarget.strum.asleep = newSleepState;
-        });
+        if (modsTarget.strum != PlayState.instance.playerStrumline)
+        {
+          PlayState.instance.modchartEventHandler.funcModEvent(modsTarget, time, function() {
+            modsTarget.strum.asleep = newSleepState;
+          });
+        }
       }
     });
 

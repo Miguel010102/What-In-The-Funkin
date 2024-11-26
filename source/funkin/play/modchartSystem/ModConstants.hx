@@ -401,7 +401,9 @@ class ModConstants
     modName = StringTools.replace(modName, "alphareceptors", "alphastrum");
     modName = StringTools.replace(modName, "alphastrums", "alphastrum");
 
+    modName = StringTools.replace(modName, "drawsize", "drawdistance");
     modName = StringTools.replace(modName, "renderdistance", "drawdistance");
+
     modName = StringTools.replace(modName, "renderdistanceforward", "drawdistance");
     modName = StringTools.replace(modName, "drawdistanceforward", "drawdistance");
     modName = StringTools.replace(modName, "renderdistanceforwards", "drawdistance");
@@ -564,9 +566,14 @@ class ModConstants
   public static function grabStrumModTarget(playerTarget:String = "bf"):ModHandler
   {
     var modsTarget:ModHandler = PlayState.instance.playerStrumline.mods;
-    if (playerTarget == "dad" || playerTarget == "opponent")
+    if (playerTarget == "dad" || playerTarget == "opponent" || playerTarget == "2")
     {
       modsTarget = PlayState.instance.opponentStrumline.mods;
+      return modsTarget;
+    }
+    else if (playerTarget == "bf" || playerTarget == "boyfriend" || playerTarget == "1")
+    {
+      modsTarget = PlayState.instance.playerStrumline.mods;
       return modsTarget;
     }
 
@@ -577,8 +584,11 @@ class ModConstants
       if (k > 0 && k < PlayState.instance.allStrumLines.length)
       {
         modsTarget = PlayState.instance.allStrumLines[k].mods;
+        return modsTarget;
       }
     }
+
+    PlayState.instance.modDebugNotif("Player '" + playerTarget + "' not found! Defaulting to BF.", FlxColor.ORANGE);
 
     return modsTarget;
   }
@@ -1014,6 +1024,8 @@ class ModConstants
         newMod = new NotesRotateZMod(tag);
 
       // stealth mods
+      case "oldstealthholds":
+        newMod = new UseOldStealthHoldsModifier(tag);
       case "stealthglowred":
         newMod = new StealthGlowRedMod(tag);
       case "stealthglowgreen":

@@ -1001,32 +1001,19 @@ class Strumline extends FlxSpriteGroup
 
     if (this.dumbTempScaleTargetThing == 666) dumbTempScaleTargetThing = note.targetScale;
 
-    // note.scale.set(ModConstants.noteScale * sizeMod, ModConstants.noteScale);
     note.scale.set(note.targetScale, note.targetScale);
     note.noteModData.scaleX = note.scale.x;
     note.noteModData.scaleY = note.scale.y;
 
     note.noteModData.angleZ = note.noteModData.whichStrumNote.angle;
-    // note.noteModData.x = note.noteModData.whichStrumNote.x + note.noteModData.getNoteXOffset();
     note.noteModData.y = note.noteModData.whichStrumNote.y + note.noteModData.getNoteYOffset() + note.noteModData.curPos;
     note.noteModData.z = note.noteModData.whichStrumNote.z;
-
-    // noteSprite.x = this.x;
-    // noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
-    // noteSprite.x -= (noteSprite.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
-    // noteSprite.x -= NUDGE;
 
     note.noteModData.x = note.noteModData.whichStrumNote.x + note.noteModData.getNoteXOffset();
     note.noteModData.x -= (note.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
     note.noteModData.x -= note.noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
     note.noteModData.y -= note.noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetY;
     note.noteModData.x -= NUDGE;
-
-    if (false)
-    {
-      note.noteModData.x -= note.noteModData.getNoteXOffset();
-      note.noteModData.y -= 10;
-    }
 
     if (!mods.mathCutOffCheck(note.noteModData.curPos, note.noteModData.direction))
     {

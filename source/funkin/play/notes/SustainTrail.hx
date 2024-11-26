@@ -363,9 +363,98 @@ class SustainTrail extends ZSprite
 
   private var old3Dholds:Bool = false;
 
+  private var holdResolution:Int = 4;
+
+  private var useOldStealthGlowStyle:Bool = false;
+
+  // Extra math for if you need information about the hold's TRUE curPos (not affected by being held down or not).
+  function extraHoldRootInfo(t:Float):Void
+  {
+    if (this.hsvShader == null) return;
+    var strumTimmy:Float = t - whichStrumNote?.strumExtraModData?.strumPos ?? 0.0;
+
+    var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy, false);
+    distanceFromReceptor_unscaledpos = notePos;
+    /*
+      noteModData.defaultValues();
+      noteModData.setValuesFromZSprite(fakeNote);
+      noteModData.strumTime = strumTimmy;
+      noteModData.direction = noteDirection % Strumline.KEY_COUNT;
+      noteModData.curPos_unscaled = notePos;
+      noteModData.whichStrumNote = whichStrumNote;
+
+      var scrollMult:Float = 1.0;
+      for (mod in parentStrumline.mods.mods_speed)
+      {
+        if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
+        scrollMult *= mod.speedMath(noteModData.direction, noteModData.curPos_unscaled, parentStrumline, true);
+      }
+      noteModData.speedMod = scrollMult;
+
+      var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime, true) * scrollMult;
+
+      distanceFromReceptor_pos = sillyPos;
+     */
+    updateStealthGlowV2();
+  }
+
+  function updateStealthGlowV2():Void
+  {
+    this.hsvShader.setFloat('_stealthSustainSuddenAmount', 0.0);
+    this.hsvShader.setFloat('_stealthSustainHiddenAmount', 0.0);
+
+    useOldStealthGlowStyle = whichStrumNote?.strumExtraModData?.useOldStealthGlowStyle ?? false;
+    if (useOldStealthGlowStyle)
+    {
+      return;
+    }
+
+    // get the info we need
+    var sStart:Float = whichStrumNote?.strumExtraModData?.suddenStart ?? 500.0;
+    var sEnd:Float = whichStrumNote?.strumExtraModData?.suddenEnd ?? 300.0;
+
+    var hStart:Float = whichStrumNote?.strumExtraModData?.hiddenStart ?? 500.0;
+    var hEnd:Float = whichStrumNote?.strumExtraModData?.hiddenEnd ?? 300.0;
+
+    this.hsvShader.setFloat('_stealthSustainSuddenAmount', whichStrumNote?.strumExtraModData?.suddenModAmount ?? 0.0);
+    this.hsvShader.setFloat('_stealthSustainHiddenAmount', whichStrumNote?.strumExtraModData?.hiddenModAmount ?? 0.0);
+
+    this.hsvShader.setBool('_isHold', true);
+    this.hsvShader.setFloat('_holdHeight', holdResolution);
+
+    var holdPosFromReceptor:Float = distanceFromReceptor_unscaledpos * (Preferences.downscroll ? -1 : 1);
+
+    // 1.125 works really well for 2.5 scroll speed so let's go from there
+    // 2.5 = 1.125
+    // 1 = 0.45 (WAIT I RECONGISE THAT NUMBER!!!)
+    var magicNumber:Float = Constants.PIXELS_PER_MS * parentStrumline?.scrollSpeed ?? 1.0;
+
+    var spacingBetweenEachUVpiece:Float = this.fullSustainLength * magicNumber; // magic number?
+
+    // Sudden math
+    var holdPosFromSuddenStart:Float = holdPosFromReceptor - sStart;
+    var holdPosFromSuddenEnd:Float = holdPosFromReceptor - sEnd;
+
+    var test1:Float = holdPosFromSuddenStart / spacingBetweenEachUVpiece * -1;
+    var test2:Float = holdPosFromSuddenEnd / spacingBetweenEachUVpiece * -1;
+
+    this.hsvShader.setFloat('_stealthSustainSuddenStart', test2);
+    this.hsvShader.setFloat('_stealthSustainSuddenEnd', test1);
+
+    // Hidden math
+    var holdPosFromHiddenStart:Float = holdPosFromReceptor - hStart;
+    var holdPosFromHiddenEnd:Float = holdPosFromReceptor - hEnd;
+
+    var test1:Float = holdPosFromHiddenStart / spacingBetweenEachUVpiece * -1;
+    var test2:Float = holdPosFromHiddenEnd / spacingBetweenEachUVpiece * -1;
+
+    this.hsvShader.setFloat('_stealthSustainHiddenStart', test1);
+    this.hsvShader.setFloat('_stealthSustainHiddenEnd', test2);
+  }
+
   function susSample(t:Float, yJank:Bool = false, isRoot:Bool = false, dumbHeight:Float = 0):Void
   {
-    var strumTimmy:Float = t - whichStrumNote.strumExtraModData.strumPos; // parentStrumline.mods.strumPos[noteDirection % 4];
+    var strumTimmy:Float = t - whichStrumNote?.strumExtraModData?.strumPos ?? 0;
 
     var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy, false);
     if (parentStrumline.mods.mathCutOffCheck(notePos, noteDirection % 4)
@@ -388,7 +477,6 @@ class SustainTrail extends ZSprite
     noteModData.strumTime = strumTimmy;
     noteModData.direction = noteDirection % Strumline.KEY_COUNT;
     noteModData.curPos_unscaled = notePos;
-
     noteModData.whichStrumNote = whichStrumNote;
 
     var straightHoldsModAmount:Float = isArrowPath ? whichStrumNote.strumExtraModData.arrowpathStraightHold : whichStrumNote.strumExtraModData.straightHolds;
@@ -412,6 +500,7 @@ class SustainTrail extends ZSprite
     {
       noteModData.y = (noteModData.whichStrumNote.y - Strumline.INITIAL_OFFSET + sillyPos + Strumline.STRUMLINE_SIZE / 2);
     }
+
     noteModData.z = noteModData.whichStrumNote.z;
     noteModData.curPos = sillyPos;
 
@@ -547,7 +636,7 @@ class SustainTrail extends ZSprite
   }
 
   var spiralHoldOldMath:Bool = false;
-  private var tinyOffsetForSpiral:Float = 5.0;
+  private var tinyOffsetForSpiral:Float = 0.01;
 
   private var holdRootX:Float = 0.0;
   private var holdRootY:Float = 0.0;
@@ -565,7 +654,7 @@ class SustainTrail extends ZSprite
     if (songTimmy >= strumtimm)
     {
       returnVal = songTimmy - strumtimm;
-      returnVal -= tinyOffsetForSpiral * piece;
+      returnVal -= (grain * tinyOffsetForSpiral) * piece;
     }
     if (returnVal < 0) returnVal = 0;
     return returnVal;
@@ -576,6 +665,13 @@ class SustainTrail extends ZSprite
 
   // The angle the hold note is coming from with spiral holds! used for hold covers!
   public var baseAngle:Float = 0;
+
+  // TEST
+  // public var distanceFromReceptor_pos:Float = 0;
+  public var distanceFromReceptor_unscaledpos:Float = 0;
+
+  // The lower the number, the more hold segments are rendered and calculated!
+  public var grain:Float = 82.0;
 
   /**
    * Sets up new vertex and UV data to clip the trail.
@@ -588,7 +684,7 @@ class SustainTrail extends ZSprite
 
     if (fakeNote == null) fakeNote = new ZSprite();
 
-    var holdGrain:Float = isArrowPath ? (whichStrumNote?.strumExtraModData?.pathGrain ?? 95) : (whichStrumNote?.strumExtraModData?.holdGrain ?? 82);
+    grain = isArrowPath ? (whichStrumNote?.strumExtraModData?.pathGrain ?? 95) : (whichStrumNote?.strumExtraModData?.holdGrain ?? 82);
     var songTimmy:Float = (Conductor?.instance?.songPosition ?? songTime);
 
     var longHolds:Float = 0;
@@ -609,7 +705,7 @@ class SustainTrail extends ZSprite
     }
     longHolds += 1;
 
-    var holdResolution:Int = Math.floor(fullSustainLength * longHolds / holdGrain);
+    holdResolution = Math.floor(fullSustainLength * longHolds / grain);
 
     if (holdResolution < 1) // To ensure UV's to break (lol???)
     {
@@ -693,6 +789,7 @@ class SustainTrail extends ZSprite
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
+    extraHoldRootInfo(this.strumTime);
     susSample(this.strumTime + clippingTimeOffset, false, true, 0);
     var scaleTest = fakeNote.scale.x;
     var widthScaled = holdWidth * scaleTest;
@@ -737,10 +834,7 @@ class SustainTrail extends ZSprite
     testCol[1 * 2 + 1] = fakeNote.color;
 
     this.color = fakeNote.color;
-    // if (!isArrowPath)
-    // {
     this.alpha = fakeNote.alpha;
-    // }
     this.z = fakeNote.z; // for z ordering
 
     if (useShader && this.hsvShader != null)
@@ -776,7 +870,8 @@ class SustainTrail extends ZSprite
       var tm:Float = holdPieceStrumTime;
       if (spiralHolds && !spiralHoldOldMath)
       {
-        tm += (k + 1) * tinyOffsetForSpiral; // ever so slightly offset the time so that it never hits 0, 0 on the strum time so spiral hold can do its magic
+        tm += (k +
+          1) * (grain * tinyOffsetForSpiral); // ever so slightly offset the time so that it never hits 0, 0 on the strum time so spiral hold can do its magic
       }
       susSample(tm + clipTimeThing(songTimmy, holdPieceStrumTime), true, false, sussyLength / holdResolution);
 
@@ -935,7 +1030,7 @@ class SustainTrail extends ZSprite
     var tm_end:Float = holdPieceStrumTime;
     if (spiralHolds && !spiralHoldOldMath)
     {
-      tm_end += holdResolution * tinyOffsetForSpiral; // ever so slightly offset the time so that it never hits 0, 0 on the strum time so spiral hold can do its magic
+      tm_end += holdResolution * (grain * tinyOffsetForSpiral); // ever so slightly offset the time so that it never hits 0, 0 on the strum time so spiral hold can do its magic
     }
     susSample(tm_end + clipTimeThing(songTimmy, holdPieceStrumTime), true, false, sillyEndOffset);
 

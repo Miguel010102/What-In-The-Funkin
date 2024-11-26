@@ -12,6 +12,26 @@ import flixel.math.FlxMath;
 
 // Contains all the mods related to stealth and alpha
 // ...
+
+class UseOldStealthHoldsModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    notesMod = false;
+    holdsMod = false;
+    strumsMod = true;
+    pathMod = false;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    var whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    whichStrum.strumExtraModData.useOldStealthGlowStyle = currentValue >= 0.5;
+  }
+}
+
 class StealthGlowRedMod extends Modifier
 {
   public function new(name:String)
@@ -177,13 +197,22 @@ class SuddenMod extends Modifier
     unknown = false;
     notesMod = true;
     holdsMod = true;
-    strumsMod = false;
+    strumsMod = true;
     pathMod = false;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    var whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    whichStrum.strumExtraModData.suddenModAmount = currentValue;
+    whichStrum.strumExtraModData.suddenStart = getSubVal("start") + getSubVal("offset");
+    whichStrum.strumExtraModData.suddenEnd = getSubVal("end") + getSubVal("offset");
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || data.noteType == "receptor") return;
+    var useOldStealthGlowStyle:Bool = data.whichStrumNote.strumExtraModData.useOldStealthGlowStyle;
+    if (isArrowPath || data.noteType == "receptor" || (isHoldNote && !useOldStealthGlowStyle)) return;
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
     curPos2 *= Preferences.downscroll ? -1 : 1;
@@ -230,13 +259,22 @@ class HiddenMod extends Modifier
     unknown = false;
     notesMod = true;
     holdsMod = true;
-    strumsMod = false;
+    strumsMod = true;
     pathMod = false;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    var whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    whichStrum.strumExtraModData.hiddenModAmount = currentValue;
+    whichStrum.strumExtraModData.hiddenStart = getSubVal("start") + getSubVal("offset");
+    whichStrum.strumExtraModData.hiddenEnd = getSubVal("end") + getSubVal("offset");
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || data.noteType == "receptor") return;
+    var useOldStealthGlowStyle:Bool = data.whichStrumNote.strumExtraModData.useOldStealthGlowStyle;
+    if (isArrowPath || data.noteType == "receptor" || (isHoldNote && !useOldStealthGlowStyle)) return;
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
     curPos2 *= Preferences.downscroll ? -1 : 1;

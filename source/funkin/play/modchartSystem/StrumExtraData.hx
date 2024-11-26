@@ -124,6 +124,16 @@ class StrumExtraData
   // Enable this to re-enable the old 3D math for sustains! This basically just makes them scale on the x axis instead of applying true 3D math for each vert.
   public var old3Dholds:Bool = false;
 
+  // For hold hidden / sudden shader to work
+  public var suddenModAmount:Float = 0;
+  public var suddenStart:Float = 500;
+  public var suddenEnd:Float = 300;
+  public var hiddenModAmount:Float = 0;
+  public var hiddenStart:Float = 500;
+  public var hiddenEnd:Float = 300;
+
+  public var useOldStealthGlowStyle:Bool = false;
+
   public function new(who:StrumlineNote)
   {
     whichStrumNote = who;
@@ -132,6 +142,14 @@ class StrumExtraData
 
   public function reset():Void
   {
+    useOldStealthGlowStyle = false;
+    suddenModAmount = 0;
+    suddenStart = 500;
+    suddenEnd = 300;
+    hiddenModAmount = 0;
+    hiddenStart = 500;
+    hiddenEnd = 300;
+
     mathCutOff = 0;
     drawdistanceForward = 0;
     drawdistanceBack = 0;

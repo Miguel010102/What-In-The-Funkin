@@ -542,7 +542,7 @@ class PlayState extends MusicBeatSubState
    * - The Game Over screen is open.
    * - The Chart Editor screen is open.
    */
-  var isGamePaused(get, never):Bool;
+  public var isGamePaused(get, never):Bool; // Made public for v0.7.6a (I think a variable like this being public makes sense, right?)
 
   function get_isGamePaused():Bool
   {
@@ -703,6 +703,7 @@ class PlayState extends MusicBeatSubState
     {
       for (strumLine in allStrumLines)
       {
+        if (strumLine.asleep) continue; // Skip this strumline if it's asleep lol
         strumLine.notes.visible = !v;
         strumLine.holdNotes.visible = !v;
         strumLine.strumlineNotes.visible = !v;

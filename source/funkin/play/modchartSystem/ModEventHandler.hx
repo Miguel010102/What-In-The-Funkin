@@ -104,6 +104,8 @@ class ModEventHandler
 
   var backInTimeLeniency:Float = 250; // in Miliseconds. Done because V-Slice sometimes often tries to go backwards in time? (???)
 
+  // Note that when paused, it will ignore this!
+
   public function update(elapsed:Float):Void
   {
     songTime = Conductor.instance.songPosition;
@@ -113,7 +115,7 @@ class ModEventHandler
     // beatTime = (songTime / 1000) * (Conductor.instance.bpm / 60);
 
     // we went, BACK IN TIME?!
-    if (songTime + backInTimeLeniency < lastReportedSongTime)
+    if (songTime + ((PlayState.instance?.isGamePaused ?? false) ? 0 : backInTimeLeniency) < lastReportedSongTime)
     {
       resetMods(); // Just reset everything and let the event handler put everything back.
       // trace("BACK IN TIME");

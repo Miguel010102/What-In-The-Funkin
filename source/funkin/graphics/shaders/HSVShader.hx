@@ -21,6 +21,8 @@ class HSVShader extends FlxRuntimeShader
     saturation = 1;
     value = 1;
     stealthGlow = 0;
+
+    this.setBool('_isHold', false);
   }
 
   function set_stealthGlowRed(value:Float):Float
