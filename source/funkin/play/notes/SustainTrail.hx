@@ -428,7 +428,7 @@ class SustainTrail extends ZSprite
     this.hsvShader.setBool('_isHold', true);
     this.hsvShader.setFloat('_holdHeight', holdResolution);
 
-    var holdPosFromReceptor:Float = distanceFromReceptor_unscaledpos * (Preferences.downscroll ? -1 : 1);
+    var holdPosFromReceptor:Float = (distanceFromReceptor_unscaledpos - (whichStrumNote?.noteModData?.curPos_unscaled ?? 0)) * (Preferences.downscroll ? -1 : 1);
 
     // 1.125 works really well for 2.5 scroll speed so let's go from there
     // 2.5 = 1.125

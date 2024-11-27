@@ -69,6 +69,7 @@ import funkin.play.modchartSystem.modifiers.CosecantMods;
 import funkin.play.modchartSystem.modifiers.ExtraMods;
 import funkin.play.modchartSystem.modifiers.CullMods;
 import funkin.play.modchartSystem.modifiers.GridFloorMods;
+import funkin.play.modchartSystem.modifiers.CustomPathModifier;
 import funkin.play.modchartSystem.modifiers.*; // if only you worked ;_;
 
 class ModConstants
@@ -263,6 +264,21 @@ class ModConstants
         return SUBTRACT;
     }
     return NORMAL;
+  }
+
+  public static function getDefaultStrumPosition(strumLine:Strumline, lane:Float):Vector3D
+  {
+    var strumBaseX:Float = strumLine.x + Strumline.INITIAL_OFFSET + (lane * Strumline.NOTE_SPACING);
+    var strumBaseY:Float = strumLine.y;
+    var strumBaseZ:Float = 0;
+
+    @:privateAccess
+    var strumlineOffsets = strumLine.noteStyle.getStrumlineOffsets();
+    strumBaseX += strumlineOffsets[0];
+    strumBaseY += strumlineOffsets[1];
+
+    var wasHereOriginally:Vector3D = new Vector3D(strumBaseX, strumBaseY, strumBaseZ);
+    return wasHereOriginally;
   }
 
   public static function rotateAround(origin:Vector2, point:Vector2, degrees:Float):Vector2

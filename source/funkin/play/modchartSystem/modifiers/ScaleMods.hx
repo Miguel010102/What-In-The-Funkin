@@ -16,7 +16,7 @@ class MiniModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (currentValue == 0) return;
+    if (currentValue == 0 || data.noteType == "receptor") return;
     data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
     data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
     data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
@@ -41,7 +41,7 @@ class TinyModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
     data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
     data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
@@ -65,7 +65,7 @@ class TinyXModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
   }
 
@@ -85,7 +85,7 @@ class TinyYModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
   }
 
@@ -105,7 +105,7 @@ class TinyZModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
   }
 
@@ -125,7 +125,7 @@ class TinyHoldsModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     if (isHoldNote)
     {
       data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
@@ -202,7 +202,7 @@ class TinyNotesModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
     data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
     data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
@@ -218,7 +218,7 @@ class TinyNotesXModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleX = FlxMath.lerp(data.scaleX, 0.0, currentValue);
   }
 }
@@ -232,7 +232,7 @@ class TinyNotesYModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleY = FlxMath.lerp(data.scaleY, 0.0, currentValue);
   }
 }
@@ -246,7 +246,7 @@ class TinyNotesZModifier extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath || currentValue == 0) return;
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
     data.scaleZ = FlxMath.lerp(data.scaleZ, 0.0, currentValue);
   }
 }

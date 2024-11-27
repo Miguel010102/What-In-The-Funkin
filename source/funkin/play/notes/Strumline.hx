@@ -570,7 +570,7 @@ class Strumline extends FlxSpriteGroup
   {
     note.x = getXPos(note.direction);
     note.x += this.x;
-    note.x += Strumline.INITIAL_OFFSET;
+    note.x += INITIAL_OFFSET;
     note.y = this.y;
     noteStyle.applyStrumlineOffsets(note);
 
