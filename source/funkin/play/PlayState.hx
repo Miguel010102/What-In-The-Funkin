@@ -1046,24 +1046,6 @@ class PlayState extends MusicBeatSubState
     refresh();
   }
 
-  public override function draw():Void
-  {
-    // if (FlxG.renderBlit)
-    // {
-    //  camGame.fill(BACKGROUND_COLOR);
-    // }
-    // else if (FlxG.renderTile)
-    // {
-    //  FlxG.log.warn("PlayState background not displayed properly on tile renderer!");
-    // }
-    // else
-    // {
-    //  FlxG.log.warn("PlayState background not displayed properly, unknown renderer!");
-    // }
-
-    super.draw();
-  }
-
   function assertChartExists():Bool
   {
     // Returns null if the song failed to load or doesn't have the selected difficulty.
@@ -1773,8 +1755,9 @@ class PlayState extends MusicBeatSubState
         }
       }
 
+      // https://github.com/FunkinCrew/Funkin/pull/3735/commits/f9b7d3fc70cccf04debe9b97ac61253f37b831a8
       if (!startingSong
-        && (Math.abs(FlxG.sound.music.time - correctSync) > 5 || Math.abs(playerVoicesError) > 5 || Math.abs(opponentVoicesError) > 5))
+        && (Math.abs(FlxG.sound.music.time - correctSync) > 15 || Math.abs(playerVoicesError) > 15 || Math.abs(opponentVoicesError) > 15))
       {
         trace("VOCALS NEED RESYNC");
         if (vocals != null)
@@ -2188,13 +2171,6 @@ class PlayState extends MusicBeatSubState
             luaArray.push(new HazardModLuaTest(folder + file, folder, file));
             filesPushed.push(file);
           }
-          // Old code from the customPath mod. Will eventually be overhauled!
-          // else if (file.endsWith('path.txt') && customArrowPathModTest == null)
-          // {
-          //  customArrowPathModTest = folder + file;
-          //  trace("Oh shit, we found somethin? " + customArrowPathModTest);
-          //  // var file = sys.io.File.getContent(customArrowPathModTest);
-          // }
         }
       }
     }

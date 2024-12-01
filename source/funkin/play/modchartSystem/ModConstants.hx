@@ -1584,6 +1584,12 @@ class ModConstants
         newMod = new StrumOffsetXMod(tag);
       case "strumoffsetz":
         newMod = new StrumOffsetZMod(tag);
+      case "arrowpathoffsetx":
+        newMod = new ArrowPathOffsetXMod(tag);
+      case "arrowpathoffsety":
+        newMod = new ArrowPathOffsetYMod(tag);
+      case "arrowpathoffsetz":
+        newMod = new ArrowPathOffsetZMod(tag);
 
       case "meshpivotoffsetx":
         newMod = new MeshPivotOffsetX(tag);

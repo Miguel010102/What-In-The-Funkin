@@ -147,6 +147,48 @@ class StrumOffsetZMod extends Modifier
   }
 }
 
+class ArrowPathOffsetXMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority = -670;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isArrowPath) data.x += currentValue;
+  }
+}
+
+class ArrowPathOffsetYMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority = -670;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isArrowPath) data.y += currentValue;
+  }
+}
+
+class ArrowPathOffsetZMod extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority = -670;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isArrowPath) data.z += currentValue;
+  }
+}
+
 class MeshSkewOffsetX extends Modifier
 {
   public function new(name:String)
