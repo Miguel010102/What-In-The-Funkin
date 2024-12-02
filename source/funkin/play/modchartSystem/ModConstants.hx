@@ -338,6 +338,11 @@ class ModConstants
 
     modName = StringTools.replace(modName, "holdgrain", "grain");
 
+    modName = StringTools.replace(modName, "cullholds", "cullsustain");
+    modName = StringTools.replace(modName, "cullhold", "cullsustain");
+    modName = StringTools.replace(modName, "cullarrowpaths", "cullpath");
+    modName = StringTools.replace(modName, "cullarrowpath", "cullpath");
+
     modName = StringTools.replace(modName, "stealthred", "stealthglowred");
     modName = StringTools.replace(modName, "stealthgreen", "stealthglowgreen");
     modName = StringTools.replace(modName, "stealthblue", "stealthglowblue");
@@ -858,6 +863,8 @@ class ModConstants
         newMod = new CullStrumModifier(tag);
       case "cullnote":
         newMod = new CullNotesModifier(tag);
+      case "cullpath":
+        newMod = new CullArrowPathModifier(tag);
 
       case "bangarang":
         newMod = new BangarangMod(tag);
@@ -1087,6 +1094,8 @@ class ModConstants
       case "drunkz":
         newMod = new DrunkZMod(tag);
       case "drunkangle":
+        newMod = new DrunkAngleMod(tag);
+      case "drunkangleZ":
         newMod = new DrunkAngleMod(tag);
       case "drunkscale":
         newMod = new DrunkScaleMod(tag);

@@ -84,6 +84,15 @@ class Strumline extends FlxSpriteGroup
     return asleep;
   }
 
+  public function requestMeshCullUpdateForPaths():Void
+  {
+    if (!createdNoteMeshes) return;
+
+    arrowPaths.forEach(function(note:SustainTrail) {
+      note.cullMode = note.whichStrumNote?.strumExtraModData?.cullModeArrowpath ?? "none";
+    });
+  }
+
   public function requestMeshCullUpdateForNotes(forNotes:Bool = false):Void
   {
     if (!createdNoteMeshes) return;
@@ -503,17 +512,15 @@ class Strumline extends FlxSpriteGroup
       note.alpha = whichStrumNote?.strumExtraModData?.arrowPathAlpha ?? 0;
       // ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
 
-      {
-        note.fullSustainLength = note.sustainLength = whichStrumNote.strumExtraModData.arrowpathLength
-          + whichStrumNote.strumExtraModData.arrowpathBackwardsLength;
+      note.fullSustainLength = note.sustainLength = whichStrumNote.strumExtraModData.arrowpathLength
+        + whichStrumNote.strumExtraModData.arrowpathBackwardsLength;
 
-        // note.fullSustainLength = arrowpathLength[note.noteDirection % KEY_COUNT] + arrowpathBackwardsLength[note.noteDirection % KEY_COUNT];
-        // note.sustainLength = arrowpathLength[note.noteDirection % KEY_COUNT] + arrowpathBackwardsLength[note.noteDirection % KEY_COUNT];
+      // note.fullSustainLength = arrowpathLength[note.noteDirection % KEY_COUNT] + arrowpathBackwardsLength[note.noteDirection % KEY_COUNT];
+      // note.sustainLength = arrowpathLength[note.noteDirection % KEY_COUNT] + arrowpathBackwardsLength[note.noteDirection % KEY_COUNT];
 
-        note.strumTime = Conductor.instance?.songPosition ?? 0;
-        note.strumTime -= whichStrumNote?.strumExtraModData?.arrowpathBackwardsLength ?? 0;
-        note.updateClipping();
-      }
+      note.strumTime = Conductor.instance?.songPosition ?? 0;
+      note.strumTime -= whichStrumNote?.strumExtraModData?.arrowpathBackwardsLength ?? 0;
+      note.updateClipping();
     });
   }
 

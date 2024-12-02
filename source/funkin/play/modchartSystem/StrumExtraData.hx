@@ -59,6 +59,24 @@ class StrumExtraData
     return this.cullModeSustain;
   }
 
+  public var cullModeArrowpath(default, set):String = "none";
+
+  function set_cullModeArrowpath(value:String):String
+  {
+    // if value changed...
+    if (value != this.cullModeArrowpath && whichStrumNote != null)
+    {
+      this.cullModeArrowpath = value;
+      whichStrumNote.weBelongTo.requestMeshCullUpdateForPaths();
+    }
+    else
+    {
+      this.cullModeArrowpath = value;
+    }
+
+    return this.cullModeArrowpath;
+  }
+
   public var noteStyleOffsetX:Float = 0.0;
   public var noteStyleOffsetY:Float = 0.0;
 
@@ -151,6 +169,11 @@ class StrumExtraData
 
   public function reset():Void
   {
+    cullMode = "none";
+    cullModeNotes = "none";
+    cullModeSustain = "none";
+    cullModeArrowpath = "none";
+
     useOldStealthGlowStyle = false;
     suddenModAmount = 0;
     suddenStart = 500;
