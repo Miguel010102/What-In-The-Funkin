@@ -26,22 +26,34 @@ class DebugNotification extends FlxText
     this.text = txtToShow;
     this.color = color;
 
-    alphaTween = FlxTween.tween(this, {alpha: 1}, fadeInSeconds, {ease: FlxEase.linear});
-
+    if (fadeInSeconds == 0)
+    {
+      this.alpha = 1;
+    }
+    else
+    {
+      alphaTween = FlxTween.tween(this, {alpha: 1}, fadeInSeconds, {ease: FlxEase.linear});
+    }
     timer = new FlxTimer().start(howManySeconds + fadeInSeconds, function(tmr) {
       if (alphaTween != null) alphaTween.cancel();
-      // alphaTween = FlxTween.tween(this, {alpha: 0}, 1, {ease: FlxEase.linear});
-
-      alphaTween = FlxTween.tween(this, {alpha: 0}, fadeOutSeconds,
-        {
-          ease: FlxEase.linear,
-          onComplete: function(_) {
-            alphaTween = null;
-            this.kill(); // KILL YOURSELF
-          }
-        });
-
+      this.alpha = 1;
       timer = null;
+      if (fadeOutSeconds <= 0)
+      {
+        alphaTween = null;
+        this.kill(); // KILL YOURSELF
+      }
+      else
+      {
+        alphaTween = FlxTween.tween(this, {alpha: 0}, fadeOutSeconds,
+          {
+            ease: FlxEase.linear,
+            onComplete: function(_) {
+              alphaTween = null;
+              this.kill(); // KILL YOURSELF
+            }
+          });
+      }
     });
   }
 

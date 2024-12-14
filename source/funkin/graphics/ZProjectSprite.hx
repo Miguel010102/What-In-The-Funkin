@@ -212,8 +212,8 @@ class ZProjectSprite extends ZSprite
 
         if (originalWidthHeight != null && autoOffset)
         {
-          point2D.x += (originalWidthHeight.x - spriteGraphic.frameWidth) / 2;
-          point2D.y += (originalWidthHeight.y - spriteGraphic.frameHeight) / 2;
+          point2D.x += (originalWidthHeight.x - spriteGraphic?.frameWidth ?? frameWidth) / 2;
+          point2D.y += (originalWidthHeight.y - spriteGraphic?.frameHeight ?? frameHeight) / 2;
         }
 
         vertices[i * 2] = point2D.x;
@@ -295,6 +295,16 @@ class ZProjectSprite extends ZSprite
       return;
     }
 
+    var graphicToUse:FlxGraphic;
+    if (doUpdateColorTransform)
+    {
+      graphicToUse = processedGraphic;
+    }
+    else
+    {
+      graphicToUse = this.graphic;
+    }
+
     if (spriteGraphic != null) spriteGraphic.updateFramePixels();
 
     for (camera in cameras)
@@ -303,7 +313,11 @@ class ZProjectSprite extends ZSprite
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
 
       getScreenPosition(_point, camera).subtractPoint(offset);
-      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.shader ?? null, c);
+      // camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, spriteGraphic?.shader ?? null, c);
+
+      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, textureRepeat, antialiasing,
+        spriteGraphic?.colorTransform ?? this.colorTransform, spriteGraphic?.shader ?? null, c);
+
       // camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
       // trace("we do be drawin... something?\n verts: \n" + vertices);
     }
@@ -312,6 +326,8 @@ class ZProjectSprite extends ZSprite
     if (FlxG.debugger.drawDebug) drawDebug();
     #end
   }
+
+  public var textureRepeat:Bool = false;
 
   override public function destroy():Void
   {
@@ -324,9 +340,14 @@ class ZProjectSprite extends ZSprite
     super.destroy();
   }
 
+  public var doUpdateColorTransform:Bool = false;
+
+  // DON'T UPDATE THIS SHIT
   override function updateColorTransform():Void
   {
     super.updateColorTransform();
+    if (!doUpdateColorTransform && processedGraphic != null) return;
+
     if (processedGraphic != null) processedGraphic.destroy();
     if (spriteGraphic != null)
     {

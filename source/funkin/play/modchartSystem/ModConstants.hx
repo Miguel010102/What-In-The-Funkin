@@ -57,6 +57,7 @@ import funkin.play.modchartSystem.modifiers.OffsetMods;
 import funkin.play.modchartSystem.modifiers.LinearMods;
 import funkin.play.modchartSystem.modifiers.CircMods;
 import funkin.play.modchartSystem.modifiers.SpiralMods;
+import funkin.play.modchartSystem.modifiers.SpiralCosMods;
 import funkin.play.modchartSystem.modifiers.TipsyMods;
 import funkin.play.modchartSystem.modifiers.TornadoMods;
 import funkin.play.modchartSystem.modifiers.WaveyMods;
@@ -70,11 +71,12 @@ import funkin.play.modchartSystem.modifiers.ExtraMods;
 import funkin.play.modchartSystem.modifiers.CullMods;
 import funkin.play.modchartSystem.modifiers.GridFloorMods;
 import funkin.play.modchartSystem.modifiers.CustomPathModifier;
+import funkin.play.modchartSystem.modifiers.HourGlassMods;
 import funkin.play.modchartSystem.modifiers.*; // if only you worked ;_;
 
 class ModConstants
 {
-  public static var MODCHART_VERSION:String = "v0.7.6a";
+  public static var MODCHART_VERSION:String = "v0.8.0a";
 
   public static var tooCloseToCameraFix:Float = 0.975; // dumb fix for preventing freak out on z math or something
 
@@ -107,6 +109,7 @@ class ModConstants
     "dizzy",
     "zigzag",
     "spiralx",
+    "spiralcosx",
     "tandrunk",
     "square",
     "saw",
@@ -124,6 +127,7 @@ class ModConstants
     "spiralholds",
     "grain",
     "arrowpathgrain",
+    "pathgrain",
     "arrowpathlength",
     "arrowpathbacklength",
     "showlanemods",
@@ -161,6 +165,7 @@ class ModConstants
     "arrowpathbacklength",
     "arrowpathlength",
     "arrowpathgrain",
+    "pathgrain",
     "zsort",
     "invertmodvalues",
     "drawdistance",
@@ -318,6 +323,8 @@ class ModConstants
     modName = StringTools.replace(modName, "rotationy", "rotatey");
     modName = StringTools.replace(modName, "rotationz", "rotatez");
 
+    modName = StringTools.replace(modName, "cosspiral", "spiralcos");
+
     modName = StringTools.replace(modName, "confusionzoffset", "confusionoffset");
 
     modName = StringTools.replace(modName, "tinyholds", "tinyhold");
@@ -337,6 +344,7 @@ class ModConstants
     modName = StringTools.replace(modName, "triz", "zigzagz");
 
     modName = StringTools.replace(modName, "holdgrain", "grain");
+    modName = StringTools.replace(modName, "arrowpathgrain", "pathgrain");
 
     modName = StringTools.replace(modName, "cullholds", "cullsustain");
     modName = StringTools.replace(modName, "cullhold", "cullsustain");
@@ -401,6 +409,7 @@ class ModConstants
     modName = StringTools.replace(modName, "bumpyz", "bumpy");
 
     modName = StringTools.replace(modName, "tornadox", "tornado");
+    modName = StringTools.replace(modName, "hourglassx", "hourglass");
 
     modName = StringTools.replace(modName, "beatx", "beat");
 
@@ -470,6 +479,13 @@ class ModConstants
         return FlxEase.sineOut;
       case "sineInOut":
         return FlxEase.sineInOut;
+
+      case "circOut":
+        return FlxEase.circOut;
+      case "circIn":
+        return FlxEase.circIn;
+      case "circInOut":
+        return FlxEase.circInOut;
 
       case "quadInOut":
         return FlxEase.quadInOut;
@@ -1095,8 +1111,6 @@ class ModConstants
         newMod = new DrunkZMod(tag);
       case "drunkangle":
         newMod = new DrunkAngleMod(tag);
-      case "drunkangleZ":
-        newMod = new DrunkAngleMod(tag);
       case "drunkscale":
         newMod = new DrunkScaleMod(tag);
       case "drunkscalex":
@@ -1204,6 +1218,19 @@ class ModConstants
       case "spiralscale":
         newMod = new SpiralScaleMod(tag);
 
+      case "spiralcosx":
+        newMod = new SpiralCosXMod(tag);
+      case "spiralcosy":
+        newMod = new SpiralCosYMod(tag);
+      case "spiralcosz":
+        newMod = new SpiralCosZMod(tag);
+      case "spiralcosangle":
+        newMod = new SpiralCosAngleZMod(tag);
+      case "spiralcosspeed":
+        newMod = new SpiralCosSpeedMod(tag);
+      case "spiralcosscale":
+        newMod = new SpiralCosScaleMod(tag);
+
       // tornado mods
       case "tornado":
         newMod = new TornadoXMod(tag);
@@ -1234,6 +1261,29 @@ class ModConstants
         newMod = new TanTornadoAngleMod(tag);
       case "tantornadoscale":
         newMod = new TanTornadoScaleMod(tag);
+
+      case "hourglass":
+        newMod = new HourGlassX(tag);
+      case "hourglassy":
+        newMod = new HourGlassY(tag);
+      case "hourglassz":
+        newMod = new HourGlassZ(tag);
+      case "hourglassanglex":
+        newMod = new HourGlassAngleX(tag);
+      case "hourglassangley":
+        newMod = new HourGlassAngleY(tag);
+      case "hourglassanglez":
+        newMod = new HourGlassAngleZ(tag);
+      case "hourglassskewx":
+        newMod = new HourGlassSkewX(tag);
+      case "hourglassskewy":
+        newMod = new HourGlassSkewY(tag);
+      case "hourglassscalex":
+        newMod = new HourGlassScaleX(tag);
+      case "hourglassscaley":
+        newMod = new HourGlassScaleY(tag);
+      case "hourglassscale":
+        newMod = new HourGlassScale(tag);
 
       // saw mods
       case "saw":
@@ -1623,7 +1673,7 @@ class ModConstants
         newMod = new ArrowpathWidthMod(tag);
       case "arrowpathstraighthold":
         newMod = new ArrowpathStraightHoldMod(tag);
-      case "arrowpathgrain":
+      case "pathgrain":
         newMod = new ArrowpathGrainMod(tag);
       case "arrowpathlength":
         newMod = new ArrowpathFrontLengthMod(tag);

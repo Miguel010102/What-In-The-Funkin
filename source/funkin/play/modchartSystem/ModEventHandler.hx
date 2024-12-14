@@ -29,6 +29,8 @@ import funkin.play.modchartSystem.modifiers.BaseModifier;
 import funkin.modding.events.ScriptEvent;
 import funkin.play.modchartSystem.HazardEase;
 import funkin.play.notes.StrumlineNote;
+// for testing
+import funkin.audio.FunkinSound;
 
 class ModEventHandler
 {
@@ -179,6 +181,7 @@ class ModEventHandler
 
       // check if sub first to avoid adding a subvalue as a mod!
       if (ModConstants.isTagSub(timeEventTest.modName)) continue;
+
       if (!timeEventTest.target.modifiers.exists(timeEventTest.modName))
       {
         timeEventTest.target.addMod(timeEventTest.modName, 0.0, 0.0);
@@ -211,9 +214,38 @@ class ModEventHandler
 
   var bullshitCounter:Int = 0;
 
+  function figureOutMod(target:ModHandler, modName:String):Modifier
+  {
+    var mod:Modifier = null;
+
+    var _tag:String = modName.toLowerCase();
+    var realTag:String = ModConstants.modTag(modName.toLowerCase(), target);
+    var isSub:Bool = false;
+    var subModArr = null;
+
+    if (ModConstants.isTagSub(_tag))
+    {
+      isSub = true;
+      subModArr = _tag.split('__');
+      // _tag = subModArr[1];
+    }
+
+    if (isSub)
+    {
+      mod = target.modifiers.get(subModArr[0]);
+    }
+    else
+    {
+      mod = target.modifiers.get(_tag);
+    }
+
+    return mod;
+  }
+
   // HERE BE MAGIC
   // Tween a mod from one value to another.
-  function tweenMod(target:ModHandler, modName:String, newValue:Float, time:Float, easeToUse:Null<Float->Float>, type:String = "tween"):FlxTween
+  function tweenMod(target:ModHandler, modName:String, newValue:Float, time:Float, easeToUse:Null<Float->Float>, type:String = "tween",
+      startingValue:Float = 0):FlxTween
   {
     // FunkinSound.playOnce(Paths.sound("pauseEnable"), 1.0);
 
@@ -226,11 +258,6 @@ class ModEventHandler
     // trace("-------------------------");
 
     bullshitCounter++;
-    var isAdd:Bool = type == "add";
-    if (!isAdd)
-    {
-      modchartTweenCancel(realTag);
-    }
 
     var mmm = ModConstants.invertValueCheck(_tag, target.invertValues);
     newValue *= mmm;
@@ -245,30 +272,19 @@ class ModEventHandler
       // _tag = subModArr[1];
     }
 
-    if (isAdd)
-    {
-      if (isSub)
-      {
-        realTag += "#suba" + bullshitCounter;
-      }
-      else
-      {
-        // so every add tween has it's own unique tag so they don't fight over each other. Though is kinda pointless for now until I figure out additive tweens properly lmfao
-        realTag += "#a" + bullshitCounter;
-      }
-    }
-
     if (isSub)
     {
       var mod:Modifier = target.modifiers.get(subModArr[0]);
       if (mod != null)
       {
-        var tween:FlxTween = tweenManager.num(mod.getSubVal(subModArr[1]), newValue, time,
+        var startPoint:Float = (type == "value" ? startingValue : mod.getSubVal(subModArr[1]));
+        var finishPoint:Float = startPoint + ((newValue - startPoint) * easeToUse(1.0));
+        var tween:FlxTween = tweenManager.num(startPoint, newValue, time,
           {
             ease: easeToUse,
             onComplete: function(twn:FlxTween) {
               modchartTweens.remove(realTag);
-              mod.setSubVal(subModArr[1], newValue * easeToUse(1));
+              mod.setSubVal(subModArr[1], finishPoint);
             }
           }, function(v) {
             mod.setSubVal(subModArr[1], v);
@@ -286,12 +302,14 @@ class ModEventHandler
     var mod:Modifier = target.modifiers.get(_tag);
     if (mod != null)
     {
-      var tween:FlxTween = tweenManager.num(mod.currentValue, newValue, time,
+      var startPoint:Float = (type == "value" ? startingValue : mod.currentValue);
+      var finishPoint:Float = startPoint + ((newValue - startPoint) * easeToUse(1.0));
+      var tween:FlxTween = tweenManager.num(startPoint, newValue, time,
         {
           ease: easeToUse,
           onComplete: function(twn:FlxTween) {
             modchartTweens.remove(realTag);
-            mod.currentValue = newValue * easeToUse(1); // UPDATE V0.6 -> FOR EASES LIKE BOUNCE AND POP TO WORK!
+            mod.currentValue = finishPoint;
           }
         }, function(v) {
           mod.currentValue = v;
@@ -334,7 +352,7 @@ class ModEventHandler
     }
     else
     {
-      // so every add tween has it's own unique tag so they don't fight over each other. Though is kinda pointless for now until I figure out additive tweens properly lmfao
+      // so every add tween has it's own unique tag so they don't fight over each other.
       realTag += "+m" + bullshitCounter;
     }
 
@@ -479,16 +497,17 @@ class ModEventHandler
               continue; // next event please
             }
 
-            modEvent.target.setModVal(modEvent.modName,
-              modToTween.currentValue + (modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 1))); // get mod and add to it lol
+            modEvent.target.setModVal(modEvent.modName, modToTween.currentValue + (modEvent.gotoValue * (modEvent?.easeToUse(1)))); // get mod and add to it lol
+
           case "func_tween":
             if (modEvent.modName != null)
             {
               modchartTweenCancel(modEvent.modName.toLowerCase());
             }
+            var finishPoint:Float = modEvent.startValue + ((modEvent.gotoValue - modEvent.startValue) * modEvent.easeToUse(1.0));
             try
             {
-              modEvent.tweenFunky(modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 1));
+              modEvent.tweenFunky(finishPoint);
             }
             catch (e)
             {
@@ -497,13 +516,32 @@ class ModEventHandler
             continue;
 
           case "set":
-            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue ?? 0.0);
+            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
+            continue;
+          case "value":
+            // grab current mod value
+            var finishPoint:Float = modEvent.startValue + ((modEvent.gotoValue - modEvent.startValue) * modEvent.easeToUse(1.0));
+            modEvent.target.setModVal(modEvent.modName, finishPoint);
+
             continue;
           case "tween":
-            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 0.0));
+            // grab current mod value
+            var mod:Modifier = figureOutMod(modEvent.target, modEvent.modName);
+            if (mod != null)
+            {
+              var finishPoint:Float = mod.currentValue + ((modEvent.gotoValue - mod.currentValue) * modEvent.easeToUse(1.0));
+              modEvent.target.setModVal(modEvent.modName, finishPoint);
+            }
+            else
+            {
+              PlayState.instance.modDebugNotif("Tween set error! \n" + modEvent.modName, 0xFFFF7300);
+
+              modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
+            }
             continue;
           default:
-            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue ?? 0.0);
+            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
+            PlayState.instance.modDebugNotif("Unknown event type!", 0xFFFF7300);
             continue;
         }
       }
@@ -518,11 +556,15 @@ class ModEventHandler
             resetMods_ForTarget(modEvent.target);
             continue;
           case "set":
-            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue ?? 0.0);
+            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
             continue;
           case "tween":
             // FunkinSound.playOnce(Paths.sound("pauseDisable"), 1.0);
             tween = tweenMod(modEvent.target, modEvent.modName, modEvent.gotoValue, timeBetweenBeats * modEvent.timeInBeats, modEvent.easeToUse, "tween");
+
+          case "value":
+            tween = tweenMod(modEvent.target, modEvent.modName, modEvent.gotoValue, timeBetweenBeats * modEvent.timeInBeats, modEvent.easeToUse, "value",
+              modEvent.startValue);
 
           case "add":
             // FunkinSound.playOnce(Paths.sound("pauseEnable"), 1.0);
@@ -561,12 +603,14 @@ class ModEventHandler
               tweenTagged = true;
               modchartTweenCancel(modEvent.modName.toLowerCase());
             }
+
+            var finishPoint:Float = modEvent.startValue + ((modEvent.gotoValue - modEvent.startValue) * modEvent.easeToUse(1.0));
             tween = tweenManager.num(modEvent.startValue, modEvent.gotoValue, timeBetweenBeats * modEvent.timeInBeats,
               {
                 ease: modEvent.easeToUse,
                 onComplete: function(twn:FlxTween) {
                   if (tweenTagged) modchartTweens.remove(modEvent.modName.toLowerCase());
-                  modEvent.tweenFunky(modEvent.gotoValue * (modEvent?.easeToUse(1) ?? 1));
+                  modEvent.tweenFunky(finishPoint);
                 }
               }, function(v) {
                 try
@@ -654,6 +698,42 @@ class ModEventHandler
     addModEventToTimeline(target, startTime, 1, ModConstants.getEaseFromString("linear"), 0, tweenName, "func", persist, funky);
   }
 
+  //  V0.7.7a -> New valueTween which acts like a func_tween but for mods!
+  public function valueTweenModEvent(target:ModHandler, startTime:Float, length:Float, ease:Null<Float->Float>, startValue:Float, endValue:Float,
+      modName:String):Void
+  {
+    // default to target BF for now
+    if (target == null)
+    {
+      target = PlayState.instance.playerStrumline.mods;
+      PlayState.instance.modDebugNotif("null target for valueTween,\ndefaulting to player.", FlxColor.ORANGE);
+    }
+
+    var timeEventTest:ModTimeEvent = new ModTimeEvent();
+
+    if (modName != null) timeEventTest.modName = modName.toLowerCase();
+    else
+    {
+      PlayState.instance.modDebugNotif("No mod name for value tween?", FlxColor.ORANGE);
+      timeEventTest.modName = "";
+    }
+    timeEventTest.target = target;
+    timeEventTest.startValue = startValue;
+    timeEventTest.gotoValue = endValue;
+    timeEventTest.startingBeat = startTime;
+    timeEventTest.timeInBeats = length;
+    timeEventTest.persist = true;
+
+    if (ease == null)
+    {
+      ease = FlxEase.linear;
+      PlayState.instance.modDebugNotif("no ease defined.\nDefaulting to linear.", FlxColor.ORANGE);
+    }
+    timeEventTest.easeToUse = ease;
+    timeEventTest.style = "value";
+    modEvents.push(timeEventTest);
+  }
+
   // Event to trigger a function at this beatTime!
   public function funcTweenModEvent(target:ModHandler, startTime:Float, length:Float, ease:Null<Float->Float>, startValue:Float, endValue:Float, funky,
       ?tweenName:String = null, ?persist:Bool = true):Void
@@ -668,15 +748,19 @@ class ModEventHandler
     if (target == null)
     {
       target = PlayState.instance.playerStrumline.mods;
-      // trace("null target when trying to add mod, defaulting to player!");
       PlayState.instance.modDebugNotif("null target for funcTween,\ndefaulting to player.", FlxColor.ORANGE);
     }
-
+    timeEventTest.target = target;
     timeEventTest.startingBeat = startTime;
     timeEventTest.timeInBeats = length;
     timeEventTest.startValue = startValue;
     timeEventTest.gotoValue = endValue;
-    if (ease == null) ease = FlxEase.linear;
+    if (ease == null)
+    {
+      ease = FlxEase.linear;
+      PlayState.instance.modDebugNotif("no ease defined.\nDefaulting to linear.", FlxColor.ORANGE);
+    }
+    timeEventTest.easeToUse = ease;
     timeEventTest.persist = persist;
     timeEventTest.easeToUse = ease;
     timeEventTest.style = "func_tween";
@@ -720,27 +804,8 @@ class ModEventHandler
     }
     timeEventTest.style = type;
 
-    // if (funky != null)
-    // {
     timeEventTest.funcToCall = funky;
-    // }
 
     modEvents.push(timeEventTest);
-
-    /* Unused now lol
-
-      // check if sub first to avoid adding a subvalue as a mod!
-      if (isTagSub(timeEventTest.modName)) return;
-
-      // And if the mod doesn't exist, add it!
-      // Eventually will do this on beat 0 or countdown start to scan for all mods used in the song and added them automatically instead of mid-song
-      if (!modifiers.exists(timeEventTest.modName))
-      {
-        // FunkinSound.playOnce(Paths.sound("pauseDisable"), 1.0);
-        addMod(timeEventTest.modName, timeEventTest.gotoValue, 0.0); // try and add the mod lol
-        var mmm = invertValueCheck(timeEventTest.modName);
-        modifiers.get(timeEventTest.modName).setVal(timeEventTest.gotoValue * mmm);
-      }
-     */
   }
 }

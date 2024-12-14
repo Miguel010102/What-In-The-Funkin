@@ -19,7 +19,7 @@ class ModTimeEvent
   public var style:String = "tween"; // tween, add, set, func, func_tween, perframe, reset
 
   // perframe not added yet!
-  public var startValue:Float = 0.0; // only used for func_tweens
+  public var startValue:Float = 0.0; // only used for func_tweens.   v0.7.7a -> Now also used for value tweens
   public var gotoValue:Float = 1.0; // val to tween or set val to!
 
   // Ease to use for tweens

@@ -168,6 +168,30 @@ class HazardModLuaTest
         }
       });
 
+    Lua_helper.add_callback(lua, "value",
+      function(startBeat:Float, lengthInBeats:Float, easeToUse:String, startingValue:Float, endingValue:Float, modName:String, playerTarget:String = "all") {
+        // trace("WOW! WE NEED TWEEN: " + modName);
+        modName = ModConstants.modAliasCheck(modName);
+
+        // trace("ease name : " + easeToUse);
+        // trace("ease to use : " + ModConstants.getEaseFromString(easeToUse));
+        if (playerTarget == "both" || playerTarget == "all")
+        {
+          for (customStrummer in PlayState.instance.allStrumLines)
+          {
+            PlayState.instance.modchartEventHandler.valueTweenModEvent(customStrummer.mods, startBeat, lengthInBeats,
+              ModConstants.getEaseFromString(easeToUse), startingValue, endingValue, modName);
+          }
+        }
+        else
+        {
+          var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+          PlayState.instance.modchartEventHandler.valueTweenModEvent(modsTarget, startBeat, lengthInBeats, ModConstants.getEaseFromString(easeToUse),
+            startingValue, endingValue, modName);
+        }
+      });
+
     Lua_helper.add_callback(lua, "setasleep", function(time:Float, playerTarget:String, newSleepState:Bool = false) {
       if (playerTarget == "bf" || playerTarget == "boyfriend" || playerTarget == "0" || playerTarget == "1")
       {

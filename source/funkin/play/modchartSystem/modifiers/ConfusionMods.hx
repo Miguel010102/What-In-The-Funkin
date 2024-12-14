@@ -133,7 +133,7 @@ class ConfusionXOffsetMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath) return;
+    if (isArrowPath || data.noteType == "receptor") return;
     data.angleX += currentValue;
   }
 
@@ -153,7 +153,7 @@ class ConfusionYOffsetMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    if (isArrowPath) return;
+    if (isArrowPath || data.noteType == "receptor") return;
     data.angleY += currentValue;
   }
 

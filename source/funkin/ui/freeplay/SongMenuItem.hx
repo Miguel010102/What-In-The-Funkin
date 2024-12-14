@@ -437,7 +437,13 @@ class SongMenuItem extends FlxSpriteGroup
     else
     {
       songText.text = freeplayData.fullSongName;
-      if (freeplayData.songCharacter != null) pixelIcon.setCharacter(freeplayData.songCharacter);
+      if (freeplayData.songCharacter != null)
+      {
+        // UPDATE V0.7.7a, SINCE IF A CHARACTER HAS A '/' IN THE NAME CUZ OF FOLDER ORGANISATION, THEN IT'S IMPOSSIBLE FOR THAT VOICES FILE TO BE NAMED WITH THAT
+        // var c:String = StringTools.replace(freeplayData.songCharacter, "/", "%");
+        // pixelIcon.setCharacter(c);
+        pixelIcon.setCharacter(freeplayData.songCharacter);
+      }
       pixelIcon.visible = true;
       updateBPM(Std.int(freeplayData.songStartingBpm) ?? 0);
       updateDifficultyRating(freeplayData.difficultyRating ?? 0);
