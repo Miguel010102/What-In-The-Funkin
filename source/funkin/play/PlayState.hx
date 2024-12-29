@@ -672,21 +672,40 @@ class PlayState extends MusicBeatSubState
     return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
   }
 
+  public var zSortMod_SustainOffset:Float = -1.33333;
+  public var zSortMod_StrumNoteOffset:Float = -0.4;
+
   function compareZSprites_playfields(order:Int, a:ZSprite, b:ZSprite):Int
   {
-    // return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+    var a_value:Float = a.z;
+    var b_value:Float = b.z;
 
+    // push the sustain and strumlinenotes back a bit to try and keep their correct layering. Note they can still layer over each other with a big enough z difference.
+    // Set the offset variables to extremely high values to prevent this from ever occuring (also keep the sustains at the far back for example)
     if (Std.isOfType(a, SustainTrail))
     {
-      // sustain always goes behind!
-      // return -1;
-      return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01) - 1, b?.z + ((b?.zIndex ?? 0) * 0.01));
+      a_value += zSortMod_SustainOffset;
     }
-    else
+    if (Std.isOfType(b, SustainTrail))
     {
-      // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
-      return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+      b_value += zSortMod_SustainOffset;
     }
+    if (Std.isOfType(a, StrumlineNote))
+    {
+      a_value += zSortMod_StrumNoteOffset;
+    }
+    if (Std.isOfType(b, StrumlineNote))
+    {
+      b_value += zSortMod_StrumNoteOffset;
+    }
+
+    if (a_value == b_value) // If they are equal, try and use zIndex to break the tie.
+    {
+      a_value = a.zIndex;
+      b_value = b.zIndex;
+    }
+
+    return FlxSort.byValues(order, a_value, b_value);
   }
 
   /*
