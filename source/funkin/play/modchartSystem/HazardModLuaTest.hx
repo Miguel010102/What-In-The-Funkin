@@ -298,6 +298,22 @@ class HazardModLuaTest
       }
     });
 
+    Lua_helper.add_callback(lua, "resort", function(startBeat:Float, playerTarget:String = "all") {
+      PlayState.instance.modchartEventHandler.modChartHasResort = true;
+      if (playerTarget == "both" || playerTarget == "all")
+      {
+        for (customStrummer in PlayState.instance.allStrumLines)
+        {
+          PlayState.instance.modchartEventHandler.resortModEvent(customStrummer.mods, startBeat);
+        }
+      }
+      else
+      {
+        var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+        PlayState.instance.modchartEventHandler.resortModEvent(modsTarget, startBeat);
+      }
+    });
+
     Lua_helper.add_callback(lua, "percentageMode", function(newval:Bool = false) {
       trace("set percentage mode to: " + newval);
       PlayState.instance.modchartEventHandler.percentageMods = newval;

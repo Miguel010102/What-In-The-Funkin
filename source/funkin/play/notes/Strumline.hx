@@ -774,6 +774,11 @@ class Strumline extends FlxSpriteGroup
       newString += mod.tag + ": " + Std.string(modVal);
       if (!hideSubMods || debugShowALL)
       {
+        if (mod.modPriority_additive != 0)
+        {
+          newString += "\n-";
+          newString += "priority" + ": " + Std.string(mod.modPriority_additive);
+        }
         for (key in mod.subValues.keys())
         {
           newString += "\n-";

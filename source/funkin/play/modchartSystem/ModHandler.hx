@@ -111,6 +111,12 @@ class ModHandler
     // updateArrowPaths();
   }
 
+  public function resortMods():Void
+  {
+    sortMods(true);
+    strum.debugNeedsUpdate = true;
+  }
+
   public function resetModValues():Void
   {
     // trace("Reset mod values lol");
@@ -501,43 +507,43 @@ class ModHandler
     // mods_arrowpath = mods_all;
 
     mods_all.sort(function(a, b) {
-      if (a.modPriority < b.modPriority) return 1;
-      else if (a.modPriority > b.modPriority) return -1;
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
       else
         return 0;
     });
 
     mods_strums.sort(function(a, b) {
-      if (a.modPriority < b.modPriority) return 1;
-      else if (a.modPriority > b.modPriority) return -1;
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
       else
         return 0;
     });
 
     mods_notes.sort(function(a, b) {
-      if (a.modPriority < b.modPriority) return 1;
-      else if (a.modPriority > b.modPriority) return -1;
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
       else
         return 0;
     });
 
     mods_speed.sort(function(a, b) {
-      if (a.modPriority < b.modPriority) return 1;
-      else if (a.modPriority > b.modPriority) return -1;
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
       else
         return 0;
     });
 
     mods_arrowpath.sort(function(a, b) {
-      if (a.modPriority < b.modPriority) return 1;
-      else if (a.modPriority > b.modPriority) return -1;
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
       else
         return 0;
     });
 
     mods_special.sort(function(a, b) {
-      if (a.modPriority < b.modPriority) return 1;
-      else if (a.modPriority > b.modPriority) return -1;
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
       else
         return 0;
     });

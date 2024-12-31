@@ -431,6 +431,8 @@ class ModEventHandler
     }
   }
 
+  public var modChartHasResort:Bool = false;
+
   // Call this function to resetEvents!
   public function resetMods():Void
   {
@@ -457,6 +459,14 @@ class ModEventHandler
     {
       strum.asleep = false;
       strum.mods.resetModValues();
+      if (modChartHasResort)
+      {
+        for (m in strum.mods.mods_all)
+        {
+          m.modPriority_additive = 0;
+        }
+        resortMods_ForTarget(strum.mods);
+      }
 
       strum.strumlineNotes.forEach(function(note:StrumlineNote) {
         note.resetStealthGlow();
@@ -476,7 +486,8 @@ class ModEventHandler
       // If beat time is PAST the event!
       if (beatTime >= modEvent.startingBeat + modEvent.timeInBeats
         && !(modEvent.style == "func" && modEvent.persist)
-        && modEvent.style != "reset")
+        && modEvent.style != "reset"
+        && modEvent.style != "resort")
       {
         modEvent.hasTriggered = true;
         if (!modEvent.persist) continue; // lol
@@ -540,7 +551,7 @@ class ModEventHandler
             }
             continue;
           default:
-            modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
+            // modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
             PlayState.instance.modDebugNotif("Unknown event type!", 0xFFFF7300);
             continue;
         }
@@ -554,6 +565,9 @@ class ModEventHandler
         {
           case "reset":
             resetMods_ForTarget(modEvent.target);
+            continue;
+          case "resort":
+            resortMods_ForTarget(modEvent.target);
             continue;
           case "set":
             modEvent.target.setModVal(modEvent.modName, modEvent.gotoValue);
@@ -659,6 +673,12 @@ class ModEventHandler
     target.resetModValues();
   }
 
+  // Call this to reset all mod values and cancel any existing tweens for this player!
+  public function resortMods_ForTarget(target:ModHandler):Void
+  {
+    target.resortMods();
+  }
+
   // Use these funcs to manage events timeline!
   // Event to reset all mods to default at this beatTime!
   public function resetModEvent(target:ModHandler, startTime:Float):Void
@@ -666,6 +686,17 @@ class ModEventHandler
     var timeEventTest:ModTimeEvent = new ModTimeEvent();
     timeEventTest.startingBeat = startTime;
     timeEventTest.style = "reset";
+    if (target == null) target = PlayState.instance.playerStrumline.mods;
+
+    timeEventTest.target = target;
+    modEvents.push(timeEventTest);
+  }
+
+  public function resortModEvent(target:ModHandler, startTime:Float):Void
+  {
+    var timeEventTest:ModTimeEvent = new ModTimeEvent();
+    timeEventTest.startingBeat = startTime;
+    timeEventTest.style = "resort";
     if (target == null) target = PlayState.instance.playerStrumline.mods;
 
     timeEventTest.target = target;

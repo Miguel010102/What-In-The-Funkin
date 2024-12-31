@@ -1224,7 +1224,9 @@ class PlayState extends MusicBeatSubState
         Conductor.instance.formatOffset = 0.0;
       }
 
-      Conductor.instance.update(); // Normal conductor update.
+      // https://github.com/FunkinCrew/Funkin/pull/3955/commits/9c75961b7db36c6d46a63fd1c9b177a1ed80e559
+      // Conductor.instance.update(); // Normal conductor update.
+      Conductor.instance.update(Conductor.instance.songPosition + elapsed * 1000, false); // Normal conductor update.
     }
 
     var androidPause:Bool = false;
@@ -1775,8 +1777,9 @@ class PlayState extends MusicBeatSubState
       }
 
       // https://github.com/FunkinCrew/Funkin/pull/3735/commits/f9b7d3fc70cccf04debe9b97ac61253f37b831a8
+      // https://github.com/FunkinCrew/Funkin/pull/3955/commits/9c75961b7db36c6d46a63fd1c9b177a1ed80e559
       if (!startingSong
-        && (Math.abs(FlxG.sound.music.time - correctSync) > 15 || Math.abs(playerVoicesError) > 15 || Math.abs(opponentVoicesError) > 15))
+        && (Math.abs(FlxG.sound.music.time - correctSync) > 80 || Math.abs(playerVoicesError) > 80 || Math.abs(opponentVoicesError) > 80))
       {
         trace("VOCALS NEED RESYNC");
         if (vocals != null)

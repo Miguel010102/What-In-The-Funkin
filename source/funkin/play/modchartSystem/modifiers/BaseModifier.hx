@@ -194,6 +194,8 @@ class Modifier
   public var targetLane:Int = -1;
   public var modPriority:Float = 100; // 100 is default. higher priority = done first
 
+  public var modPriority_additive:Float = 0; // gets added onto the priority so the modchart creator can control mod priority midsong. Done this way to avoid overiding the original priority.
+
   // who owns this mod?
   public var strumOwner:Strumline = null;
 
@@ -212,6 +214,7 @@ class Modifier
   public function reset():Void // for the editor
   {
     currentValue = baseValue;
+    modPriority_additive = 0;
     for (subMod in subValues)
       subMod.value = subMod.baseValue;
   }
@@ -229,16 +232,23 @@ class Modifier
 
   public function setSubVal(name, newval):Void
   {
-    var sub = subValues.get(name);
-    if (sub != null)
+    if (name == "priority")
     {
-      sub.value = newval;
-      if (strumOwner != null) strumOwner.debugNeedsUpdate = true;
+      this.modPriority_additive = newval;
     }
     else
     {
-      // trace(name + " is not a valid subname!");
-      PlayState.instance.modDebugNotif(name + " is not a valid subname!");
+      var sub = subValues.get(name);
+      if (sub != null)
+      {
+        sub.value = newval;
+        if (strumOwner != null) strumOwner.debugNeedsUpdate = true;
+      }
+      else
+      {
+        // trace(name + " is not a valid subname!");
+        PlayState.instance.modDebugNotif(name + " is not a valid subname!");
+      }
     }
   }
 

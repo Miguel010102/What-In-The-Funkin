@@ -3030,6 +3030,17 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     };
     menuBarItemThemeDark.selected = currentTheme == ChartEditorTheme.Dark;
 
+    // QUANT
+    menuBarItemThemeLightQuant.onChange = function(event:UIEvent) {
+      if (event.target.value) currentTheme = ChartEditorTheme.LightQuant;
+    };
+    menuBarItemThemeLightQuant.selected = currentTheme == ChartEditorTheme.LightQuant;
+
+    menuBarItemThemeDarkQuant.onChange = function(event:UIEvent) {
+      if (event.target.value) currentTheme = ChartEditorTheme.DarkQuant;
+    };
+    menuBarItemThemeDarkQuant.selected = currentTheme == ChartEditorTheme.DarkQuant;
+
     menubarItemPlayPause.onClick = _ -> toggleAudioPlayback();
 
     menubarItemLoadInstrumental.onClick = _ -> {
@@ -6589,4 +6600,11 @@ enum abstract ChartEditorTheme(String)
    * A theme which introduces darker colors.
    */
   var Dark;
+
+  /**
+   * A theme which introduces coloured grid squares based on Quantisation. -INTRODUCED IN WITF V0.8.0a, PORTED FROM INHUMAN
+   */
+  var DarkQuant;
+
+  var LightQuant;
 }
