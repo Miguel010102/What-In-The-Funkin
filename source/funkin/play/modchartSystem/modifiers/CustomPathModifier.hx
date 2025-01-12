@@ -32,10 +32,17 @@ class TimeVector extends Vector4
 class CustomPathMod extends Modifier
 {
   // The file this modifier looks for to load when first created
-  public var pathToLoad:String = "path.txt";
+  public var pathToLoad(default, set):String = "path.txt";
+
+  function set_pathToLoad(value:String):String
+  {
+    this.pathToLoad = value;
+    loadPath();
+    return this.pathToLoad;
+  }
 
   // The filepath of the loaded arrowpath.
-  public var customArrowPathModTest:String = null;
+  var customArrowPathModTest:String = null;
 
   function calculatePathDistances(path:List<TimeVector>):Float
   {
@@ -141,19 +148,8 @@ class CustomPathMod extends Modifier
   var _path:List<TimeVector> = null;
   var _pathDistance:Float = 0;
 
-  public function new(name:String)
+  public function loadPath()
   {
-    super(name, 0);
-    // modPriority = 119;
-    modPriority = 119;
-    unknown = false;
-    notesMod = true;
-    holdsMod = true;
-    strumsMod = true;
-    pathMod = true;
-
-    createSubMod("blend", 1.0);
-
     // scan for the path.txt file
     var songna:String = (PlayState.instance?.currentSong?.id ?? '').toLowerCase();
     var firstCheckTest:String = 'assets/data/modchart/' + PlayState.instance?.currentChart.songName.toLowerCase() + "/";
@@ -233,6 +229,21 @@ class CustomPathMod extends Modifier
         }
       }
     }
+  }
+
+  public function new(name:String)
+  {
+    super(name, 0);
+    // modPriority = 119;
+    modPriority = 119;
+    unknown = false;
+    notesMod = true;
+    holdsMod = true;
+    strumsMod = true;
+    pathMod = true;
+
+    createSubMod("blend", 1.0);
+    loadPath();
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void

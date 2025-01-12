@@ -6,6 +6,197 @@ import funkin.play.modchartSystem.modifiers.BaseModifier;
 import flixel.math.FlxMath;
 
 // Contains all the mods related to scale!
+class ScaleModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleX += currentValue;
+    data.scaleY += currentValue;
+    data.scaleZ += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleX += currentValue;
+    data.scaleY += currentValue;
+    data.scaleZ += currentValue;
+  }
+}
+
+class ScaleXModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleX += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleX += currentValue;
+  }
+}
+
+class ScaleYModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleY += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleY += currentValue;
+  }
+}
+
+class ScaleZModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleZ += currentValue;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleZ += currentValue;
+  }
+}
+
+class ScaleStrumsModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleX += currentValue;
+    data.scaleY += currentValue;
+    data.scaleZ += currentValue;
+  }
+}
+
+class ScaleXStrumsModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleX += currentValue;
+  }
+}
+
+class ScaleYStrumsModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return;
+    data.scaleY += currentValue;
+  }
+}
+
+class ScaleNotesModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleX += currentValue;
+    data.scaleY += currentValue;
+    data.scaleZ += currentValue;
+  }
+}
+
+class ScaleXNotesModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleX += currentValue;
+  }
+}
+
+class ScaleYNotesModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0 || data.noteType == "receptor") return;
+    data.scaleY += currentValue;
+  }
+}
+
+class ScaleHoldsModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (isArrowPath || currentValue == 0 || data.noteType == "receptor") return;
+    if (isHoldNote)
+    {
+      data.scaleX += currentValue;
+      data.scaleY += currentValue;
+      data.scaleZ += currentValue;
+    }
+  }
+}
+
 // Not finished
 class MiniModifier extends Modifier
 {

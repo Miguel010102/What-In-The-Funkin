@@ -361,22 +361,20 @@ class ModEventHandler
       var mod:Modifier = target.modifiers.get(subModArr[0]);
       if (mod != null)
       {
-        var totalAdded:Float = 0;
-        // var initialValue:Float = mod.getSubVal(subModArr[1]);
         var lastReportedChange:Float = 0;
         var tween:FlxTween = tweenManager.num(0, 1, time,
           {
             ease: FlxEase.linear,
             onComplete: function(twn:FlxTween) {
               modchartTweens.remove(realTag);
-              // mod.setSubVal(subModArr[1], initialValue + (addValue * easeToUse(1)));
+              var v:Float = addValue * easeToUse(1.0);
+              mod.setSubVal(subModArr[1], mod.getSubVal(subModArr[1]) + (v - lastReportedChange));
+              lastReportedChange = v;
             }
           }, function(t) {
             var v:Float = addValue * easeToUse(t); // ???, cuz for some silly reason tweenValue was being set incorrectly by the tween function / manager? I don't know lmfao
-            // mod.currentValue = mod.currentValue + (v - lastReportedChange);
             mod.setSubVal(subModArr[1], mod.getSubVal(subModArr[1]) + (v - lastReportedChange));
             lastReportedChange = v;
-            totalAdded = v;
           });
 
         modchartTweens.set(realTag, tween);
@@ -398,6 +396,9 @@ class ModEventHandler
           ease: FlxEase.linear,
           onComplete: function(twn:FlxTween) {
             modchartTweens.remove(realTag);
+            var v:Float = addValue * easeToUse(1.0);
+            mod.currentValue = mod.currentValue + (v - lastReportedChange);
+            lastReportedChange = v;
           }
         }, function(t) {
           var v:Float = addValue * easeToUse(t); // ???, cuz for some silly reason tweenValue was being set incorrectly by the tween function / manager? I don't know lmfao

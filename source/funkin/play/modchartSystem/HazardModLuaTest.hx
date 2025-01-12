@@ -926,6 +926,16 @@ class HScript
       return newSpr;
     });
 
+    interp.variables.set('createCloneMod', function(modName:String) {
+      if (PlayState.instance.modchartEventHandler == null)
+      {
+        HazardModLuaTest.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
+        return null;
+      }
+
+      return ModConstants.createNewMod(modName);
+    });
+
     interp.variables.set('createCustomMod', function(modName:String, defaultBaseValue:Float = 0) {
       if (PlayState.instance.modchartEventHandler == null)
       {

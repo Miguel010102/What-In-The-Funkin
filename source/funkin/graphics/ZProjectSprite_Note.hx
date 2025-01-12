@@ -26,6 +26,10 @@ class ZProjectSprite_Note extends FlxSprite
   // Makes the mesh all wobbly!
   public var vibrateEffect:Float = 0.0;
 
+  public var vertOffsetX:Array<Float> = [];
+  public var vertOffsetY:Array<Float> = [];
+  public var vertOffsetZ:Array<Float> = [];
+
   public var z:Float = 0.0;
 
   // If set, will reference this sprites graphic! Very useful for animations!
@@ -181,6 +185,10 @@ class ZProjectSprite_Note extends FlxSprite
     {
       for (y in 0...subdivisions + 2) // y
       {
+        vertOffsetX.push(0);
+        vertOffsetY.push(0);
+        vertOffsetZ.push(0);
+
         var xPercent:Float = x / (subdivisions + 1);
         var yPercent:Float = y / (subdivisions + 1);
         uvtData[i * 2] = xPercent;
@@ -190,6 +198,10 @@ class ZProjectSprite_Note extends FlxSprite
     }
     updateTris(true);
   }
+
+  private var old_vertOffsetX:Array<Float> = [];
+  private var old_vertOffsetY:Array<Float> = [];
+  private var old_vertOffsetZ:Array<Float> = [];
 
   private var oldX:Float = 0;
   private var oldY:Float = 0;
@@ -219,6 +231,10 @@ class ZProjectSprite_Note extends FlxSprite
 
   public function updateOldVars()
   {
+    old_vertOffsetX = this.vertOffsetX.copy();
+    old_vertOffsetY = this.vertOffsetY.copy();
+    old_vertOffsetZ = this.vertOffsetZ.copy();
+
     oldOffset = this.offset;
     oldX = this.x;
     oldY = this.y;
@@ -249,6 +265,8 @@ class ZProjectSprite_Note extends FlxSprite
     }
   }
 
+  public var alwaysUpdate:Bool = false;
+
   public function trisNeedUpdate():Bool
   {
     @:privateAccess
@@ -257,7 +275,7 @@ class ZProjectSprite_Note extends FlxSprite
       return false; // Never update if paused!
     }
 
-    if (vibrateEffect != 0)
+    if (vibrateEffect != 0 || alwaysUpdate)
     {
       return true; // Since this effect needs to be updated constantly!
     }
@@ -300,6 +318,10 @@ class ZProjectSprite_Note extends FlxSprite
     if (oldMoveX != this.moveX) return true;
     if (oldMoveY != this.moveY) return true;
     if (oldMoveZ != this.moveZ) return true;
+
+    if (old_vertOffsetX != vertOffsetX) return true;
+    if (old_vertOffsetY != vertOffsetY) return true;
+    if (old_vertOffsetZ != vertOffsetZ) return true;
 
     // All the variables are the same, return false as we don't need to update!
     return false;
@@ -351,6 +373,27 @@ class ZProjectSprite_Note extends FlxSprite
           point3D.y += FlxG.random.float(-1, 1) * vibrateEffect;
           point3D.z += FlxG.random.float(-1, 1) * vibrateEffect;
         }
+
+        var curVertOffsetX:Float = 0;
+        var curVertOffsetY:Float = 0;
+        var curVertOffsetZ:Float = 0;
+
+        if (i < vertOffsetX.length)
+        {
+          curVertOffsetX = vertOffsetX[i];
+        }
+        if (i < vertOffsetY.length)
+        {
+          curVertOffsetY = vertOffsetY[i];
+        }
+        if (i < vertOffsetZ.length)
+        {
+          curVertOffsetZ = vertOffsetZ[i];
+        }
+
+        point3D.x += curVertOffsetX;
+        point3D.y += curVertOffsetY;
+        point3D.z += curVertOffsetZ;
 
         // scale
         var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);

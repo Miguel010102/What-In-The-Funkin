@@ -126,6 +126,7 @@ class MoveZMod_true extends Modifier
     super(name, 0);
     unknown = false;
     strumsMod = true;
+    modPriority = -9999;
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void

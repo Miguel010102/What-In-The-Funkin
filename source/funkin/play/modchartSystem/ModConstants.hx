@@ -327,6 +327,34 @@ class ModConstants
 
     modName = StringTools.replace(modName, "confusionzoffset", "confusionoffset");
 
+    if (modName == "anglez")
+    {
+      modName = "angle";
+    }
+    else if (modName == "noteangle")
+    {
+      modName = "notesangle";
+    }
+    else if (modName == "notesanglez")
+    {
+      modName = "notesangle";
+    }
+    else if (modName == "noteanglez")
+    {
+      modName = "notesangle";
+    }
+    else if (modName == "noteangley")
+    {
+      modName = "notesangley";
+    }
+    else if (modName == "noteanglex")
+    {
+      modName = "notesanglex";
+    }
+    modName = StringTools.replace(modName, "scaleholds", "scalehold");
+    modName = StringTools.replace(modName, "scalestrums", "scalestrum");
+    modName = StringTools.replace(modName, "scalenotes", "scalenote");
+
     modName = StringTools.replace(modName, "tinyholds", "tinyhold");
 
     modName = StringTools.replace(modName, "sawx", "saw");
@@ -985,6 +1013,31 @@ class ModConstants
         newMod = new StrumSkewYMod(tag);
 
       // scale mods
+      case "scale":
+        newMod = new ScaleModifier(tag);
+      case "scalex":
+        newMod = new ScaleXModifier(tag);
+      case "scaley":
+        newMod = new ScaleYModifier(tag);
+      case "scalez":
+        newMod = new ScaleZModifier(tag);
+
+      case "scalestrum":
+        newMod = new ScaleStrumsModifier(tag);
+      case "scalestrumx":
+        newMod = new ScaleXStrumsModifier(tag);
+      case "scalestrumy":
+        newMod = new ScaleYStrumsModifier(tag);
+
+      case "scalenote":
+        newMod = new ScaleNotesModifier(tag);
+      case "scalenotex":
+        newMod = new ScaleXNotesModifier(tag);
+      case "scalenotey":
+        newMod = new ScaleYNotesModifier(tag);
+      case "scalehold":
+        newMod = new ScaleHoldsModifier(tag);
+
       case "tiny":
         newMod = new TinyModifier(tag);
       case "tinyhold":
@@ -1027,6 +1080,20 @@ class ModConstants
       case "notesconfusionyoffset":
         newMod = new NotesConfusionYOffsetMod(tag);
       case "notesconfusionxoffset":
+        newMod = new NotesConfusionXOffsetMod(tag);
+
+      case "angle":
+        newMod = new ConfusionZOffsetMod(tag);
+      case "angley":
+        newMod = new ConfusionYOffsetMod(tag);
+      case "anglex":
+        newMod = new ConfusionXOffsetMod(tag);
+
+      case "notesangle":
+        newMod = new NotesConfusionZOffsetMod(tag);
+      case "notesangley":
+        newMod = new NotesConfusionYOffsetMod(tag);
+      case "notesanglex":
         newMod = new NotesConfusionXOffsetMod(tag);
 
       case "dizzy":
@@ -1731,8 +1798,7 @@ class ModConstants
         if (notif)
         {
           if (PlayState.instance != null) PlayState.instance.modDebugNotif(tag + " mod is unknown", FlxColor.ORANGE);
-          else
-            trace(tag + " mod is unknown");
+          trace(tag + " mod is unknown");
         }
     }
 
