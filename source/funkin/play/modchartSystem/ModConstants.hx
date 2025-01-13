@@ -72,6 +72,7 @@ import funkin.play.modchartSystem.modifiers.CullMods;
 import funkin.play.modchartSystem.modifiers.GridFloorMods;
 import funkin.play.modchartSystem.modifiers.CustomPathModifier;
 import funkin.play.modchartSystem.modifiers.HourGlassMods;
+import funkin.play.modchartSystem.modifiers.AngleMods;
 import funkin.play.modchartSystem.modifiers.*; // if only you worked ;_;
 
 class ModConstants
@@ -1083,18 +1084,18 @@ class ModConstants
         newMod = new NotesConfusionXOffsetMod(tag);
 
       case "angle":
-        newMod = new ConfusionZOffsetMod(tag);
+        newMod = new AngleZOffsetMod(tag);
       case "angley":
-        newMod = new ConfusionYOffsetMod(tag);
+        newMod = new AngleYOffsetMod(tag);
       case "anglex":
-        newMod = new ConfusionXOffsetMod(tag);
+        newMod = new AngleXOffsetMod(tag);
 
       case "notesangle":
-        newMod = new NotesConfusionZOffsetMod(tag);
+        newMod = new NotesAngleZOffsetMod(tag);
       case "notesangley":
-        newMod = new NotesConfusionYOffsetMod(tag);
+        newMod = new NotesAngleYOffsetMod(tag);
       case "notesanglex":
-        newMod = new NotesConfusionXOffsetMod(tag);
+        newMod = new NotesAngleXOffsetMod(tag);
 
       case "dizzy":
         newMod = new DizzyMod(tag);

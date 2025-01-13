@@ -12,9 +12,7 @@ import openfl.geom.ColorTransform;
 import openfl.geom.Point;
 import flixel.FlxCamera;
 import flixel.util.FlxColor;
-import flixel.FlxCamera;
 
-// import funkin.graphics.FunkinCamera;
 class HazardAFT
 {
   // Set to true if you want it to not clear out the old bitmap data
@@ -25,13 +23,13 @@ class HazardAFT
   public var targetCAM:FlxCamera = null;
 
   // Multiply the bitmap data by this amount ! Useful for limiting the effects of recursive
+  // BUT IT DON'T WORK CUZ FUCK YOU DISPOSEIMAGE
   public var alpha:Float = 1.0;
 
   // The actual bitmap data
   public var bitmap:BitmapData;
 
   // For limiting the AFT update rate. Useful to make it less framerate dependent.
-  // TODO -> Make a public function called limitAFT() which takes a target FPS (like the mirin template plugin)
   public var updateTimer:Float = 0.0;
   public var updateRate:Float = 0.25;
 
@@ -43,17 +41,15 @@ class HazardAFT
 
   var previousBitmapData:BitmapData = null;
 
-  public var trueAFT:Bool = false;
-
-  var framesSinceStarted:Int = 0;
+  public var trueAFT:Bool = false; // best to just leave this false
 
   public var copyFilters:Bool = false;
-  public var testTEST:Bool = false;
 
   public function updateAFT():Void
   {
     bitmap.lock();
 
+    // TrueAFT has some very weird properties and kills performance. Just don't use it :(
     if (trueAFT && recursive && alpha > 0.0)
     {
       if (!recursive || alpha == 0)
@@ -63,52 +59,12 @@ class HazardAFT
       }
       else
       {
-        if (framesSinceStarted < 5)
-        {
-          // bitmap.draw(targetCAM.canvas, null, null, blendMode);
-        }
-        else
-        {
-          trace("spicy take!");
-          // bitmap.draw(targetCAM.grabScreen(false, false));
-          bitmap.draw(targetCAM.canvas, null, null, blendMode);
-          var alphaMod:Int = Std.int(alpha * 255);
-          var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
+        trace("spicy take!");
+        bitmap.draw(targetCAM.canvas, null, null, blendMode);
+        var alphaMod:Int = Std.int(alpha * 255);
+        var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
 
-          bitmap.colorTransform(rec, cTransform);
-        }
-
-        framesSinceStarted++;
-
-        // clearAFT();
-        // var alphaMod:Int = Std.int(alpha * 255);
-        // var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
-        // bitmap.draw(targetCAM.canvas);
-        // bitmap.colorTransform(rec, cTransform);
-
-        /*
-          clearAFT();
-
-          if (previousBitmapData != null)
-          {
-            bitmap = previousBitmapData.clone();
-            var alphaMod:Int = Std.int(alpha * 255);
-            var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
-            bitmap.colorTransform(rec, cTransform);
-          }
-          else
-          {
-            previousBitmapData = new BitmapData(w, h, true, 0);
-            // trace("created previous data!\n" + previousBitmapData);
-          }
-          // bitmap = previousBitmapData.clone();
-          // var alphaMod:Int = Std.int(alpha * 255);
-          // var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
-          // bitmap.colorTransform(rec, cTransform);
-          // bitmap.draw(targetCAM.canvas, null, cTransform, blendMode);
-          bitmap.draw(targetCAM.canvas, null, null, blendMode);
-          previousBitmapData = bitmap.clone();
-         */
+        bitmap.colorTransform(rec, cTransform);
       }
     }
     else
@@ -118,54 +74,12 @@ class HazardAFT
       {
         clearAFT();
       }
-      if (testTEST)
-      {
-        var wasX:Float = targetCAM.flashSprite.x;
-        var wasY:Float = targetCAM.flashSprite.y;
-        targetCAM.flashSprite.x = 0;
-        targetCAM.flashSprite.y = 0;
-        bitmap.draw(targetCAM.flashSprite);
-        targetCAM.flashSprite.x = wasX;
-        targetCAM.flashSprite.y = wasY;
-      }
-      else
-      {
-        bitmap.draw(targetCAM.canvas);
-      }
+      bitmap.draw(targetCAM.canvas);
     }
 
-    /*
-      if (!recursive || alpha == 0) // clear out the old bitmap data before drawing
-      {
-
-        bitmap.draw(targetCAM.canvas);
-      }
-      else
-      {
-
-        if (previousBitmapData != null)
-        {
-          bitmap = previousBitmapData.clone();
-          var alphaMod:Int = Std.int(alpha * 255);
-          var cTransform:ColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0 - alphaMod);
-          bitmap.colorTransform(rec, cTransform);
-          // trace("Bitmap data copied from previous!\n" + bitmap);
-        }
-        else
-        {
-          previousBitmapData = new BitmapData(w, h, true, 0);
-          // trace("created previous data!\n" + previousBitmapData);
-        }
-        // bitmap.draw(targetCAM.canvas, null, colTransf, blendMode);
-
-        previousBitmapData = bitmap.clone();
-        // trace("end.bitmapdata-previous: \n" + previousBitmapData);
-      }
-     */
-
+    // Don't work, probably cuz of that DAMN DISPOSEIMAGE!
     if (copyFilters && targetCAM.filtersEnabled)
     {
-      // for each(i in iterable) x 1000
       for (f in targetCAM.filters)
       {
         bitmap.applyFilter(bitmap, rec, null, f);
@@ -183,7 +97,14 @@ class HazardAFT
 
   public function targetFps(fps:Float = 60)
   {
-    updateRate = 1 / fps;
+    if (fps >= 0)
+    {
+      updateRate = 0;
+    }
+    else
+    {
+      updateRate = 1 / fps;
+    }
   }
 
   public function update(elapsed:Float = 0.0):Void

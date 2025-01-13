@@ -2,6 +2,7 @@ package funkin.play.modchartSystem.modifiers;
 
 import funkin.play.modchartSystem.modifiers.BaseModifier;
 import funkin.play.notes.Strumline;
+import flixel.math.FlxAngle;
 import funkin.play.modchartSystem.NoteData;
 
 // Contains all the mods related to rotating the nots / strums!
@@ -103,6 +104,7 @@ class ConfusionMod extends Modifier
     super(name, 0);
   }
 
+  // eeeee nawh, I won't bother making this rad just to fuck with you lol
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     data.angleZ += beatTime * currentValue; // lol, nobody uses this mod XD
@@ -119,7 +121,7 @@ class ConfusionZOffsetMod extends Modifier
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
-    data.angleZ += currentValue;
+    data.angleZ += currentValue * FlxAngle.TO_DEG;
   }
 }
 
@@ -134,12 +136,12 @@ class ConfusionXOffsetMod extends Modifier
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     if (isArrowPath || data.noteType == "receptor") return;
-    data.angleX += currentValue;
+    data.angleX += currentValue * FlxAngle.TO_DEG;
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
-    data.angleX += currentValue;
+    data.angleX += currentValue * FlxAngle.TO_DEG;
   }
 }
 
@@ -154,12 +156,12 @@ class ConfusionYOffsetMod extends Modifier
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     if (isArrowPath || data.noteType == "receptor") return;
-    data.angleY += currentValue;
+    data.angleY += currentValue * FlxAngle.TO_DEG;
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
-    data.angleY += currentValue;
+    data.angleY += currentValue * FlxAngle.TO_DEG;
   }
 }
 
@@ -173,7 +175,7 @@ class NotesConfusionZOffsetMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    data.angleZ += currentValue;
+    data.angleZ += currentValue * FlxAngle.TO_DEG;
   }
 }
 
@@ -187,7 +189,7 @@ class NotesConfusionXOffsetMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    data.angleX += currentValue;
+    data.angleX += currentValue * FlxAngle.TO_DEG;
   }
 }
 
@@ -201,6 +203,6 @@ class NotesConfusionYOffsetMod extends Modifier
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
-    data.angleY += currentValue;
+    data.angleY += currentValue * FlxAngle.TO_DEG;
   }
 }

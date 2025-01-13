@@ -37,7 +37,7 @@ class RotateXModifier extends Modifier
 
     // grab strum x
     var whichStrumNote = strumLine.getByIndex(data.direction % Strumline.KEY_COUNT);
-    var yyyy:Float = whichStrumNote.y - whichStrumNote.strumExtraModData.noteStyleOffsetY;
+    var strumY:Float = whichStrumNote.y - whichStrumNote.strumExtraModData.noteStyleOffsetY;
     var strumZ:Float = whichStrumNote.z;
 
     if (data.noteType != "receptor")
@@ -46,38 +46,38 @@ class RotateXModifier extends Modifier
       {
         if (Preferences.downscroll)
         {
-          yyyy += (Strumline.STRUMLINE_SIZE / 2);
+          strumY += (Strumline.STRUMLINE_SIZE / 2);
         }
         else
         {
-          yyyy += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
+          strumY += (Strumline.STRUMLINE_SIZE / 2) - Strumline.INITIAL_OFFSET;
         }
       }
       else
       {
-        yyyy += strumLine.getNoteYOffset();
+        strumY += strumLine.getNoteYOffset();
       }
     }
     else
     {
-      yyyy = data.strumPosWasHere.y;
+      strumY = data.strumPosWasHere.y;
       strumZ = data.strumPosWasHere.z;
     }
 
     // figure out difference
-    var lolx:Float = beforeShit_y - yyyy;
+    var lolx:Float = beforeShit_y - strumY;
     var lolz:Float = beforeShit_z - strumZ;
 
     var lolx_2:Float = lolz;
     var lolz_2:Float = lolx;
 
-    lolx_2 *= xrot;
+    lolx_2 *= xrot; // 0
     lolz_2 *= xrot;
 
-    lolx *= yrot;
+    lolx *= yrot; // 1
     lolz *= yrot;
 
-    data.y = yyyy + lolx - lolx_2;
+    data.y = strumY + lolx + lolx_2;
     data.z = strumZ + lolz - lolz_2;
   }
 
@@ -430,7 +430,7 @@ class NotesRotateXModifier extends Modifier
     lolx *= yrot;
     lolz *= yrot;
 
-    data.y = yyyy + lolx - lolx_2;
+    data.y = yyyy + lolx + lolx_2;
     data.z = strumZ + lolz - lolz_2;
   }
 }
