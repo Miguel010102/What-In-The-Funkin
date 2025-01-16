@@ -442,15 +442,18 @@ class HazardModLuaTest
     });
 
     Lua_helper.add_callback(lua, "aftCaptureAlpha", function(startBeat:Float, v:Float) {
-      if (PlayState.instance.luaAFT_Capture == null)
-      {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
-        return;
-      }
-      PlayState.instance.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function() {
-        PlayState.instance.luaAFT_Capture.alpha = v;
-        trace("oh hey, we alpha cap", v);
-      });
+      luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
+      /*
+        if (PlayState.instance.luaAFT_Capture == null)
+        {
+          luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+          return;
+        }
+        PlayState.instance.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function() {
+          PlayState.instance.luaAFT_Capture.alpha = v;
+          trace("oh hey, we alpha cap", v);
+        });
+       */
     });
 
     Lua_helper.add_callback(lua, "aftSpriteAlpha", function(startBeat:Float, v:Float) {
@@ -530,17 +533,20 @@ class HazardModLuaTest
     });
 
     Lua_helper.add_callback(lua, "aftTweenAlpha", function(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float) {
-      if (PlayState.instance.luaAFT_Capture == null)
-      {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
-        return;
-      }
-      PlayState.instance.modchartEventHandler.funcTweenModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, lengthInBeats,
-        ModConstants.getEaseFromString(easeToUse), PlayState.instance.luaAFT_Capture.alpha, modValue, function(v) {
-          // PlayState.instance.luaAFT_Capture.alpha = v;
-          PlayState.instance.luaAFT_sprite.alpha = v;
-          return v;
-      }, "luaAFT_alpha");
+      luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
+      /*
+        if (PlayState.instance.luaAFT_Capture == null)
+        {
+          luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+          return;
+        }
+        PlayState.instance.modchartEventHandler.funcTweenModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, lengthInBeats,
+          ModConstants.getEaseFromString(easeToUse), PlayState.instance.luaAFT_Capture.alpha, modValue, function(v) {
+            // PlayState.instance.luaAFT_Capture.alpha = v;
+            PlayState.instance.luaAFT_sprite.alpha = v;
+            return v;
+        }, "luaAFT_alpha");
+       */
     });
 
     Lua_helper.add_callback(lua, "aftTweenSize", function(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float) {
