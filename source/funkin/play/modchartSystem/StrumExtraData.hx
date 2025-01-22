@@ -142,6 +142,10 @@ class StrumExtraData
   // Enable this to re-enable the old 3D math for sustains! This basically just makes them scale on the x axis instead of applying true 3D math for each vert.
   public var old3Dholds:Bool = false;
 
+  // For centered modifier? Also just useful info
+  public var reverseMod:Float = 0;
+  public var reverseModLane:Float = 0;
+
   // For hold hidden / sudden shader to work
   public var suddenModAmount:Float = 0;
   public var suddenStart:Float = 500;
@@ -206,6 +210,9 @@ class StrumExtraData
 
     alphaHoldCoverMod = 0;
     alphaSplashMod = 0;
+
+    reverseMod = 0;
+    reverseModLane = 0;
   }
 
   // THIS CLASS ALSO CONTAINS THE LOGIC AND FUNCTIONS REQUIRED FOR CUSTOM PATH MOD TO WORK!

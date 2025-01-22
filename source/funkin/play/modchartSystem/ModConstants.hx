@@ -432,6 +432,7 @@ class ModConstants
 
     modName = StringTools.replace(modName, "centered", "center");
     modName = StringTools.replace(modName, "centere", "center");
+    modName = StringTools.replace(modName, "alwayscenter", "center2");
 
     modName = StringTools.replace(modName, "circanglez", "circangle");
 
@@ -992,6 +993,8 @@ class ModConstants
 
       case "centerx":
         newMod = new CenteredXMod(tag);
+      case "center2":
+        newMod = new AlwaysCenterMod(tag);
       case "center":
         newMod = new CenteredMod(tag);
       case "centernotes":

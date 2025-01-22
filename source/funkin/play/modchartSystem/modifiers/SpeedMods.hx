@@ -47,6 +47,15 @@ class ReverseMod extends Modifier
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
+    if (targetLane == -1)
+    {
+      data.whichStrumNote.strumExtraModData.reverseMod = currentValue;
+    }
+    else
+    {
+      data.whichStrumNote.strumExtraModData.reverseModLane = currentValue;
+    }
+
     if (currentValue == 0) return; // skip math if mod is 0
     // close enough XD
     var height:Float = 112.0;

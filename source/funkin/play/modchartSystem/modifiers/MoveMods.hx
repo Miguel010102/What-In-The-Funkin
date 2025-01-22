@@ -8,6 +8,7 @@ import funkin.play.modchartSystem.ModConstants;
 import funkin.play.notes.StrumlineNote;
 import funkin.play.modchartSystem.modifiers.BaseModifier;
 import funkin.play.modchartSystem.NoteData;
+import flixel.math.FlxMath;
 
 // Contains all the mods related to manual movement!
 // move based on arrowsize like NotITG (so 1.0 movex means move right by 1 arrowsize)
@@ -171,6 +172,40 @@ class CenteredXMod extends Modifier
 
 class CenteredMod extends Modifier
 {
+  var distanceToMove:Float = 0;
+  var heightOffset:Float = 162; // SAME AS PLAYSTATE PLEASE!!
+
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority = 200;
+    unknown = false;
+    strumsMod = true;
+  }
+
+  var lastBeat = 0;
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 0) return; // skip math if mod is 0
+    // close enough XD
+    var height:Float = 112.0;
+    height -= 2.4; // magic number ~
+
+    var mult:Float = Preferences.downscroll ? -1 : 1;
+
+    // multiply by the reverse amount for this movement?
+    var reverseModAmount:Float = data.whichStrumNote.strumExtraModData.reverseMod + data.whichStrumNote.strumExtraModData.reverseModLane; // 0 to 1
+    // var reverseMult:Float = (-2 * reverseModAmount) + 1; // 1 to -1
+    var reverseMult:Float = FlxMath.remapToRange(reverseModAmount, 0, 1, 1, -1);
+    mult *= reverseMult;
+
+    data.y += (currentValue * 0.5) * ((FlxG.height - height) - (Constants.STRUMLINE_Y_OFFSET * 4)) * mult;
+  }
+}
+
+class AlwaysCenterMod extends Modifier
+{
   var caluclated:Bool = false;
   var distanceToMove:Float = 0;
 
@@ -179,7 +214,7 @@ class CenteredMod extends Modifier
     super(name, 0);
     modPriority = 51;
     createSubMod("oldmath", 0.0);
-    createSubMod("always_calculate", 0.0);
+    createSubMod("always_calculate", 1.0);
     unknown = false;
     strumsMod = true;
   }
