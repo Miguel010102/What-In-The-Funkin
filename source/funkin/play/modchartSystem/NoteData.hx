@@ -98,7 +98,7 @@ class NoteData
   public var stealthGlowBlue:Float = 1;
 
   // Used for orient mod, but could be useful to use?
-  public var lastKnownPosition:Vector2;
+  public var lastKnownPosition:Vector3D;
 
   // Sometimes orient mod just has a heart attack and dies. This should make the notes spazz out less in the event that happens. just a bandaid fix for the NaN problem from orient.
   public var lastKnownOrientAngle:Float = 0;
@@ -117,7 +117,7 @@ class NoteData
 
   public function new()
   {
-    lastKnownPosition = new Vector2(x, y);
+    lastKnownPosition = new Vector3D(x, y);
     strumPosOffsetThingy = new Vector3D(0, 0, 0);
     strumPosWasHere = new Vector3D(0, 0, 0);
     defaultValues();
@@ -240,6 +240,7 @@ class NoteData
   {
     lastKnownPosition.x = x;
     lastKnownPosition.y = y;
+    lastKnownPosition.z = z;
   }
 
   // Used in sampling a mod to figure out what it does if unknown

@@ -2,7 +2,8 @@ package funkin.graphics;
 
 import flixel.addons.effects.FlxSkewedSprite;
 import flixel.FlxSprite;
-import lime.math.Vector2;
+// import lime.math.Vector2;
+import openfl.geom.Vector3D;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 import funkin.play.notes.Strumline;
 import funkin.play.modchartSystem.NoteData;
@@ -19,7 +20,8 @@ class ZSprite extends FlxSkewedSprite // class ZSprite extends FlxSprite
   public var x2:Float = 0.0;
 
   // Used for orient mod, but could be useful to use?
-  public var lastKnownPosition:Vector2;
+  // public var lastKnownPosition:Vector2;
+  public var lastKnownPosition:Vector3D;
 
   // Sometimes orient mod just has a heart attack and dies. This should make the notes spazz out less in the event that happens. just a bandaid fix for the NaN problem from orient.
   public var lastKnownOrientAngle:Float;
@@ -42,7 +44,7 @@ class ZSprite extends FlxSkewedSprite // class ZSprite extends FlxSprite
   public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset)
   {
     super(x, y, simpleGraphic);
-    lastKnownPosition = new Vector2(x, y);
+    lastKnownPosition = new Vector3D(x, y, z);
     stealthGlow = 0.0;
     stealthGlowRed = 1.0;
     stealthGlowGreen = 1.0;
@@ -91,11 +93,12 @@ class ZSprite extends FlxSkewedSprite // class ZSprite extends FlxSprite
   // Call this to update last known position... lol?
   public function updateLastKnownPos():Void
   {
-    if (lastKnownPosition == null) lastKnownPosition = new Vector2(this.x, this.y);
+    if (lastKnownPosition == null) lastKnownPosition = new Vector3D(this.x, this.y, this.z);
     else
     {
       lastKnownPosition.x = this.x;
       lastKnownPosition.y = this.y;
+      lastKnownPosition.z = this.z;
     }
   }
 }
