@@ -1917,11 +1917,11 @@ class PlayState extends MusicBeatSubState
     healthBar.scrollFactor.set();
     healthBar.createFilledBar(Constants.COLOR_HEALTH_BAR_RED, Constants.COLOR_HEALTH_BAR_GREEN);
     healthBar.zIndex = 801;
+    healthBar.numDivisions = Std.int(healthBarBG.width - 8); // https://github.com/FunkinCrew/Funkin/pull/4031
     add(healthBar);
 
     // The score text below the health bar.
     scoreText = new FlxText(healthBarBG.x + healthBarBG.width - 190, healthBarBG.y + 30, 0, '', 20);
-    // scoreText.setFormat(Paths.font('vcr.ttf'), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     scoreText.setFormat(Paths.font('vcr.ttf'), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE_FAST, FlxColor.BLACK);
     scoreText.scrollFactor.set();
     scoreText.zIndex = 802;

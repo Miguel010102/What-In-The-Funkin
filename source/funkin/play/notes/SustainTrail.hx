@@ -1214,15 +1214,38 @@ class SustainTrail extends ZSprite
     this.vertices = new DrawData<Float>(vertices.length - 0, true, vertices);
     this.indices = new DrawData<Int>(noteIndices.length - 0, true, noteIndices);
     this.colors = new DrawData<Int>(testCol.length - 0, true, testCol);
+
     if (uvSetup)
     {
-      this.uvtData = new DrawData<Float>(uvtData.length - 0, true, uvtData);
+      // V0.8.0a -> Can now modify hold UV's!
+      for (k in 0...uvtData.length)
+      {
+        if (k % 2 == 1)
+        { // all y verts
+          uvtData[k] -= 0.5;
+          uvtData[k] *= uvScale.y;
+          uvtData[k] += 0.5;
+          uvtData[k] += uvOffset.y;
+        }
+        else
+        {
+          uvtData[k] -= 0.5; // try to scale from center
+          uvtData[k] *= uvScale.x;
+          uvtData[k] += 0.5;
+          uvtData[k] += uvOffset.x / 4;
+        }
+      }
+
+      this.uvtData = new DrawData<Float>(uvtData.length, true, uvtData);
       uvtData = null;
     }
     testCol = null;
     noteIndices = null;
     vertices = null;
   }
+
+  public var uvScale:Vector2 = new Vector2(1.0, 1.0);
+  public var uvOffset:Vector2 = new Vector2(0.0, 0.0);
 
   /**
    * Sets up new vertex and UV data to clip the trail.

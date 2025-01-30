@@ -666,7 +666,7 @@ class FlxCamera extends FlxBasic
 
   @:noCompletion
   public function startTrianglesBatch(graphic:FlxGraphic, smoothing:Bool = false, isColored:Bool = false, ?blend:BlendMode, ?hasColorOffsets:Bool,
-      ?shader:FlxShader, ?cullMode:TriangleCulling):FlxDrawTrianglesItem
+      ?shader:FlxShader, ?cullMode:TriangleCulling, repeat:Bool = true):FlxDrawTrianglesItem
   {
     var blendInt:Int = FlxDrawBaseItem.blendToInt(blend);
 
@@ -684,12 +684,12 @@ class FlxCamera extends FlxBasic
       return _headTriangles;
     }
 
-    return getNewDrawTrianglesItem(graphic, smoothing, isColored, blend, hasColorOffsets, shader, cullMode);
+    return getNewDrawTrianglesItem(graphic, smoothing, isColored, blend, hasColorOffsets, shader, cullMode, repeat);
   }
 
   @:noCompletion
   public function getNewDrawTrianglesItem(graphic:FlxGraphic, smoothing:Bool = false, isColored:Bool = false, ?blend:BlendMode, ?hasColorOffsets:Bool,
-      ?shader:FlxShader, ?cullMode:TriangleCulling):FlxDrawTrianglesItem
+      ?shader:FlxShader, ?cullMode:TriangleCulling, repeat:Bool = true):FlxDrawTrianglesItem
   {
     var itemToReturn:FlxDrawTrianglesItem = null;
     var blendInt:Int = FlxDrawBaseItem.blendToInt(blend);
@@ -709,6 +709,7 @@ class FlxCamera extends FlxBasic
     itemToReturn.graphics = graphic;
     itemToReturn.antialiasing = smoothing;
     itemToReturn.cullMode = cullMode;
+    itemToReturn.repeat = repeat;
     itemToReturn.colored = isColored;
     itemToReturn.blending = blendInt;
     #if !flash
@@ -937,10 +938,10 @@ class FlxCamera extends FlxBasic
       #if !flash
       var hasColorOffsets:Bool = (transform != null && transform.hasRGBAOffsets());
       isColored = isColored || (transform != null && transform.hasRGBMultipliers());
-      var drawItem:FlxDrawTrianglesItem = startTrianglesBatch(graphic, smoothing, isColored, blend, hasColorOffsets, shader, cullMode);
+      var drawItem:FlxDrawTrianglesItem = startTrianglesBatch(graphic, smoothing, isColored, blend, hasColorOffsets, shader, cullMode, repeat);
       drawItem.addTriangles(vertices, indices, uvtData, colors, position, _bounds, transform);
       #else
-      var drawItem:FlxDrawTrianglesItem = startTrianglesBatch(graphic, smoothing, isColored, blend, cullMode);
+      var drawItem:FlxDrawTrianglesItem = startTrianglesBatch(graphic, smoothing, isColored, blend, cullMode, repeat);
       drawItem.addTriangles(vertices, indices, uvtData, colors, position, _bounds);
       #end
     }

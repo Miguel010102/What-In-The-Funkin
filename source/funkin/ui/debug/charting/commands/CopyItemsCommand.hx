@@ -132,6 +132,9 @@ class CopyItemsCommand implements ChartEditorCommand
         if (copiedEvents > 1) copiedString += 's';
       }
 
+      // https://github.com/FunkinCrew/Funkin/pull/4029/commits/c4ebfbe8e2bd29decc77e2d4a23223bcd9f1470b
+      FlxTween.globalManager.cancelTweensOf(state.txtCopyNotif);
+
       state.txtCopyNotif.visible = true;
       state.txtCopyNotif.text = 'Copied ${copiedString} to clipboard';
       state.txtCopyNotif.x = FlxG.mouse.x - (state.txtCopyNotif.width / 2);

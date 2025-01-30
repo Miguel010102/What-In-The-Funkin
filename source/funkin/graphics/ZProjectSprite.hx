@@ -148,21 +148,51 @@ class ZProjectSprite extends ZSprite
     }
     indices = new DrawData<Int>(noteIndices.length, true, noteIndices);
 
+    updateUV();
+    updateTris();
+  }
+
+  // V0.8.0a -> Can now modify UV's!
+  public function updateUV():Void
+  {
     // UV coordinates are normalized, so they range from 0 to 1.
     var i:Int = 0;
     for (x in 0...subdivisions + 2) // x
     {
       for (y in 0...subdivisions + 2) // y
       {
+        // the %
         var xPercent:Float = x / (subdivisions + 1);
         var yPercent:Float = y / (subdivisions + 1);
-        uvtData[i * 2] = xPercent;
-        uvtData[i * 2 + 1] = yPercent;
+
+        var uvX:Float = xPercent;
+        var uvY:Float = yPercent;
+
+        // uv scale
+        uvX -= uvScaleOffset.x;
+        uvY -= uvScaleOffset.y;
+
+        uvX *= uvScale.x;
+        uvY *= uvScale.y;
+
+        uvX += uvScaleOffset.x;
+        uvY += uvScaleOffset.y;
+
+        // uv offset
+        uvX += uvOffset.x;
+        uvY += uvOffset.y;
+
+        // map it
+        uvtData[i * 2] = uvX;
+        uvtData[i * 2 + 1] = uvY;
         i++;
       }
     }
-    updateTris();
   }
+
+  public var uvScale:Vector2 = new Vector2(1.0, 1.0);
+  public var uvScaleOffset:Vector2 = new Vector2(0.5, 0.5); // scale from center
+  public var uvOffset:Vector2 = new Vector2(0.0, 0.0);
 
   public function updateTris(debugTrace:Bool = false):Void
   {

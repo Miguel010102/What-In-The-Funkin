@@ -44,6 +44,8 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 
   public var cullMode = TriangleCulling.NONE;
 
+  public var repeat:Bool = true;
+
   public function new()
   {
     super();
@@ -63,7 +65,7 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
     var shader = shader != null ? shader : graphics.shader;
     shader.bitmap.input = graphics.bitmap;
     shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
-    shader.bitmap.wrap = REPEAT; // in order to prevent breaking tiling behaviour in classes that use drawTriangles
+    shader.bitmap.wrap = repeat ? REPEAT : CLAMP; // in order to prevent breaking tiling behaviour in classes that use drawTriangles
     shader.alpha.value = alphas;
 
     if (colored || hasColorOffsets)
@@ -81,7 +83,7 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 
     camera.canvas.graphics.beginShaderFill(shader);
     #else
-    camera.canvas.graphics.beginBitmapFill(graphics.bitmap, null, true, (camera.antialiasing || antialiasing));
+    camera.canvas.graphics.beginBitmapFill(graphics.bitmap, null, repeat, (camera.antialiasing || antialiasing));
     #end
 
     camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, cullMode);

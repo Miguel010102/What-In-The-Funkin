@@ -16,10 +16,13 @@ import funkin.graphics.ZSprite;
 import funkin.play.modchartSystem.ModConstants;
 import lime.math.Vector4;
 import funkin.play.modchartSystem.NoteData;
+import flixel.util.FlxColor;
 
 class CustomModifier extends Modifier
 {
-  public var speedMathFunc:Float->Float;
+  // public var speedMathFunc:NoteData->Float;
+  public var speedMathFunc = (curPos:Float, lane:Int) -> (1.0 : Float);
+
   public var noteMathFunc:NoteData->Void;
   public var strumMathFunc:NoteData->Void;
   public var specialMathFunc:Void->Void;
@@ -81,7 +84,7 @@ class CustomModifier extends Modifier
       }
       catch (e:Dynamic)
       {
-        PlayState.instance.modDebugNotif(tag + " strum math error - " + e);
+        PlayState.instance.modDebugNotif(tag + " strum math error - " + e, FlxColor.RED);
         strumMathBroke = true;
       }
     }
@@ -97,7 +100,7 @@ class CustomModifier extends Modifier
       }
       catch (e:Dynamic)
       {
-        PlayState.instance.modDebugNotif(tag + " note math error - " + e);
+        PlayState.instance.modDebugNotif(tag + " note math error - " + e, FlxColor.RED);
         noteMathBroke = true;
       }
     }
@@ -110,11 +113,11 @@ class CustomModifier extends Modifier
     var r:Float = 1;
     try
     {
-      r = speedMathFunc(curPos);
+      r = speedMathFunc(curPos, lane);
     }
     catch (e:Dynamic)
     {
-      PlayState.instance.modDebugNotif(tag + " speed math error - " + e);
+      PlayState.instance.modDebugNotif(tag + " speed math error - " + e, FlxColor.RED);
       speedMathBroke = true;
     }
     return r;
@@ -130,7 +133,7 @@ class CustomModifier extends Modifier
       }
       catch (e:Dynamic)
       {
-        PlayState.instance.modDebugNotif(tag + " special math error - " + e);
+        PlayState.instance.modDebugNotif(tag + " special math error - " + e, FlxColor.RED);
         specialMathBroke = true;
       }
     }
