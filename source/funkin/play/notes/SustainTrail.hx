@@ -20,6 +20,7 @@ import funkin.play.modchartSystem.NoteData;
 import funkin.play.notes.StrumlineNote;
 import openfl.display.TriangleCulling;
 import openfl.geom.Vector3D;
+import flixel.math.FlxAngle;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -269,9 +270,8 @@ class SustainTrail extends ZSprite
   function triggerRedraw():Void
   {
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
-
-    updateClipping();
     updateHitbox();
+    updateClipping(); // Commenting this out = holds don't render for 1 frame when being hit. Keeping this means the hold renders incorrectly... what?
   }
 
   public override function updateHitbox():Void
@@ -308,6 +308,7 @@ class SustainTrail extends ZSprite
     {
       // trace("AW FUCK, THERE IS NO WAY TO SAMPLE MOD DATA!");
       updateClipping_Legacy(songTime);
+      usingHazModHolds = false;
       return;
     }
 
@@ -628,14 +629,36 @@ class SustainTrail extends ZSprite
   {
     if (!is3D || old3Dholds)
     {
-      return new Vector2(pos.x, pos.y);
+      var rp = new Vector2(pos.x, pos.y);
+      // apply skew
+      var xPercent_SkewOffset:Float = rp.x - fakeNote.x - (graphicWidth / 2);
+      if (fakeNote.skew.y != 0) rp.y += xPercent_SkewOffset * Math.tan(fakeNote.skew.y * FlxAngle.TO_RAD);
+
+      return rp;
     }
     else
     {
       var pos_modified:Vector3D = new Vector3D(pos.x, pos.y, pos.z);
 
+      // FIX GAP?!
+      // apply skew
+      var xPercent_SkewOffset:Float = pos_modified.x - fakeNote.x;
+      // var xPercent_SkewOffset:Float = (xPercent - 0.5)*graphic_width;
+      if (fakeNote.skew.y != 0) pos_modified.y += xPercent_SkewOffset * Math.tan(fakeNote.skew.y * FlxAngle.TO_RAD);
+
+      // v0.8.0a -> playfield skewing
+      var playfieldSkewOffset_Y:Float = pos.x - (whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2);
+      var playfieldSkewOffset_X:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
+
+      if (noteModData.skewX_playfield != 0) pos_modified.x += playfieldSkewOffset_X * Math.tan(noteModData.skewX_playfield * FlxAngle.TO_RAD);
+      if (noteModData.skewY_playfield != 0) pos_modified.y += playfieldSkewOffset_Y * Math.tan(noteModData.skewY_playfield * FlxAngle.TO_RAD);
+
+      var playfieldSkewOffset_Z:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
+      if (noteModData.skewZ_playfield != 0) pos_modified.z += playfieldSkewOffset_Z * Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD);
+
+      // Rotate
       var angleY:Float = noteModData.angleY;
-      var angleX:Float = 0;
+      // var angleX:Float = 0;
 
       // Already done with spiral holds lol
       // var rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, rotatePivot.y);
@@ -650,13 +673,15 @@ class SustainTrail extends ZSprite
       // pos_modified.x += thing.x - pos_modified.x;
       // pos_modified.z += thing.y - pos_modified.y;
 
-      if (angleX == 0 && false)
-      {
-        var rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, rotatePivot.y);
-        var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
-        pos_modified.z = thing.x;
-        pos_modified.y = thing.y;
-      }
+      /*
+        if (angleX == 0 && false)
+        {
+          var rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, rotatePivot.y);
+          var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(pos_modified.z, pos_modified.y), angleX);
+          pos_modified.z = thing.x;
+          pos_modified.y = thing.y;
+        }
+       */
 
       // pos_modified.x -= offset.x;
       // pos_modified.y -= offset.y;

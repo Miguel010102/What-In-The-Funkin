@@ -145,6 +145,9 @@ class StrumExtraData
   // For centered modifier? Also just useful info
   public var reverseMod:Float = 0;
   public var reverseModLane:Float = 0;
+  public var playfieldX:Float = 0;
+  public var playfieldY:Float = 0;
+  public var playfieldZ:Float = 0;
 
   // For hold hidden / sudden shader to work
   public var suddenModAmount:Float = 0;
@@ -213,6 +216,10 @@ class StrumExtraData
 
     reverseMod = 0;
     reverseModLane = 0;
+
+    playfieldX = FlxG.width / 2;
+    playfieldY = FlxG.height / 2;
+    playfieldZ = 0;
   }
 
   // THIS CLASS ALSO CONTAINS THE LOGIC AND FUNCTIONS REQUIRED FOR CUSTOM PATH MOD TO WORK!

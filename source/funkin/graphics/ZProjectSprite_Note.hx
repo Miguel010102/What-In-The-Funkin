@@ -99,6 +99,16 @@ class ZProjectSprite_Note extends FlxSprite
   public var skewY_offset:Float = 0.5;
   public var skewZ_offset:Float = 0.5;
 
+  // Playfield Skewing
+  public var skewX_playfield:Float = 0;
+  public var skewY_playfield:Float = 0;
+  public var skewZ_playfield:Float = 0;
+
+  // in pixels
+  public var playfieldSkewCenterX:Float = FlxG.width / 2;
+  public var playfieldSkewCenterY:Float = FlxG.height / 2;
+  public var playfieldSkewCenterZ:Float = 0;
+
   public var moveX:Float = 0;
   public var moveY:Float = 0;
   public var moveZ:Float = 0;
@@ -253,6 +263,9 @@ class ZProjectSprite_Note extends FlxSprite
   private var oldSkewX:Float = 0;
   private var oldSkewY:Float = 0;
   private var oldSkewZ:Float = 0;
+  private var oldSkewX_playfield:Float = 0;
+  private var oldSkewY_playfield:Float = 0;
+  private var oldSkewZ_playfield:Float = 0;
   private var oldSkewX_offset:Float = 0;
   private var oldSkewY_offset:Float = 0;
   private var oldSkewZ_offset:Float = 0;
@@ -294,6 +307,9 @@ class ZProjectSprite_Note extends FlxSprite
     oldSkewX = this.skewX;
     oldSkewY = this.skewY;
     oldSkewZ = this.skewZ;
+    oldSkewX_playfield = this.skewX_playfield;
+    oldSkewY_playfield = this.skewY_playfield;
+    oldSkewZ_playfield = this.skewZ_playfield;
     if (spriteGraphic != null)
     {
       oldFrameName = spriteGraphic.animation.frameName;
@@ -304,10 +320,13 @@ class ZProjectSprite_Note extends FlxSprite
 
   public function trisNeedUpdate():Bool
   {
-    @:privateAccess
-    if (PlayState.instance.isGamePaused)
+    if (PlayState.instance != null)
     {
-      return false; // Never update if paused!
+      @:privateAccess
+      if (PlayState.instance.isGamePaused)
+      {
+        return false; // Never update if paused!
+      }
     }
 
     if (vibrateEffect != 0 || alwaysUpdate)
@@ -343,6 +362,10 @@ class ZProjectSprite_Note extends FlxSprite
     if (oldSkewY_offset != this.skewY_offset) return true;
     if (oldSkewZ_offset != this.skewZ_offset) return true;
 
+    if (oldSkewX_playfield != this.skewX_playfield) return true;
+    if (oldSkewY_playfield != this.skewY_playfield) return true;
+    if (oldSkewZ_playfield != this.skewZ_playfield) return true;
+
     if (oldFovOffsetX != this.fovOffsetX) return true;
     if (oldFovOffsetY != this.fovOffsetY) return true;
 
@@ -361,6 +384,9 @@ class ZProjectSprite_Note extends FlxSprite
     // All the variables are the same, return false as we don't need to update!
     return false;
   }
+
+  public var skewOffsetFix:Float = 0.5;
+  public var skew3D:Bool = false; // Doesn't work with angle :(
 
   public function updateTris(forceUpdate:Bool = false, debugTrace:Bool = false):Void
   {
@@ -388,19 +414,56 @@ class ZProjectSprite_Note extends FlxSprite
         point3D.x = (w / (subdivisions + 1)) * x;
         point3D.y = (h / (subdivisions + 1)) * y;
 
-        // skew funny
         var xPercent:Float = x / (subdivisions + 1);
         var yPercent:Float = y / (subdivisions + 1);
-        // For some reason, we need a 0.5 offset for this???????????????????
-        var xPercent_SkewOffset:Float = xPercent - skewY_offset - 0.5;
-        var yPercent_SkewOffset:Float = yPercent - skewX_offset - 0.5;
-        // Keep math the same as skewedsprite for parity reasons.
-        if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
-          point3D.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h;
-        if (skewY != 0) //
-          point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w;
-        if (skewZ != 0) //
-          point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h;
+
+        var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);
+        var newHeight:Float = (scaleY - 1) * (yPercent - 0.5);
+
+        // skew funny
+
+        // v0.8.0a -> playfield skewing
+        if (skew3D)
+        {
+          // For some reason, we need a 0.5 offset for this???????????????????
+          var xPercent_SkewOffset:Float = xPercent - skewY_offset - skewOffsetFix;
+          var yPercent_SkewOffset:Float = yPercent - skewX_offset - skewOffsetFix;
+          // Keep math the same as skewedsprite for parity reasons.
+          if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
+            point3D.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h * scaleY;
+          if (skewY != 0) //
+            point3D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w * scaleX;
+          if (skewZ != 0) //
+            point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h * scaleY;
+
+          var skewPosX:Float = this.x + moveX - offset.x;
+          var skewPosY:Float = this.y + moveY - offset.y;
+          var skewPosZ:Float = this.z + moveZ;
+
+          skewPosX += (w) / 2;
+          skewPosY += (h) / 2;
+
+          // the %, followed by the position moved to the center of the sprite, then moved based off screen center (playfield center in future)
+          var playfieldSkewOffset_Y:Float = ((xPercent - 0.5) * (h * scaleY)) + skewPosX - (playfieldSkewCenterX);
+          var playfieldSkewOffset_X:Float = ((yPercent - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
+          var playfieldSkewOffset_Z:Float = ((yPercent - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
+
+          if (skewX_playfield != 0) point3D.x += playfieldSkewOffset_X * Math.tan(skewX_playfield * FlxAngle.TO_RAD);
+          if (skewY_playfield != 0) point3D.y += playfieldSkewOffset_Y * Math.tan(skewY_playfield * FlxAngle.TO_RAD);
+          if (skewZ_playfield != 0) point3D.z += playfieldSkewOffset_Z * Math.tan(skewZ_playfield * FlxAngle.TO_RAD);
+        }
+        else
+        {
+          var xPercent_SkewOffset:Float = xPercent - skewY_offset - skewOffsetFix;
+          var yPercent_SkewOffset:Float = yPercent - skewX_offset - skewOffsetFix;
+          if (skewZ != 0) //
+            point3D.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h * scaleY;
+
+          var skewPosY:Float = this.y + moveY - offset.y;
+          skewPosY += (h) / 2;
+          var playfieldSkewOffset_Z:Float = ((yPercent - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
+          if (skewZ_playfield != 0) point3D.z += playfieldSkewOffset_Z * Math.tan(skewZ_playfield * FlxAngle.TO_RAD);
+        }
 
         if (vibrateEffect != 0)
         {
@@ -431,12 +494,41 @@ class ZProjectSprite_Note extends FlxSprite
         point3D.z += curVertOffsetZ;
 
         // scale
-        var newWidth:Float = (scaleX - 1) * (xPercent - 0.5);
         point3D.x += (newWidth) * w;
-        newWidth = (scaleY - 1) * (yPercent - 0.5);
-        point3D.y += (newWidth) * h;
+        point3D.y += (newHeight) * h;
 
         point2D = applyPerspective(point3D, xPercent, yPercent);
+
+        if (!skew3D)
+        {
+          var skewPosX:Float = this.x + moveX - offset.x;
+          var skewPosY:Float = this.y + moveY - offset.y;
+
+          skewPosX += (w) / 2;
+          skewPosY += (h) / 2;
+
+          // var rotateModPivotPoint:Vector2 = new Vector2(w / 2, h / 2);
+          // rotateModPivotPoint.x += pivotOffsetX;
+          // rotateModPivotPoint.y += pivotOffsetY;
+          var rotateModPivotPoint:Vector2 = new Vector2(0.5, 0.5);
+          var thing:Vector2 = ModConstants.rotateAround(rotateModPivotPoint, new Vector2(xPercent, yPercent), angleZ);
+
+          // For some reason, we need a 0.5 offset for this???????????????????
+          var xPercent_SkewOffset:Float = thing.x - skewY_offset - skewOffsetFix;
+          var yPercent_SkewOffset:Float = thing.y - skewX_offset - skewOffsetFix;
+          // Keep math the same as skewedsprite for parity reasons.
+          if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
+            point2D.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h * scaleY;
+          if (skewY != 0) //
+            point2D.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w * scaleX;
+
+          // the %, followed by the position moved to the center of the sprite, then moved based off screen center (playfield center in future)
+          var playfieldSkewOffset_Y:Float = ((thing.x - 0.5) * (h * scaleY)) + skewPosX - (playfieldSkewCenterX);
+          var playfieldSkewOffset_X:Float = ((thing.y - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
+
+          if (skewX_playfield != 0) point2D.x += playfieldSkewOffset_X * Math.tan(skewX_playfield * FlxAngle.TO_RAD);
+          if (skewY_playfield != 0) point2D.y += playfieldSkewOffset_Y * Math.tan(skewY_playfield * FlxAngle.TO_RAD);
+        }
 
         /* Commented out for now cuz... it don't work / is worse then the current cull method
           if (i > 0)

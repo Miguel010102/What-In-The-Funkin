@@ -194,6 +194,14 @@ class NoteSprite extends ZSprite
 
         mesh.skewX = noteModData.skewX;
         mesh.skewY = noteModData.skewY;
+        mesh.skewZ = noteModData.skewZ;
+        mesh.skewX_playfield = noteModData.skewX_playfield;
+        mesh.skewY_playfield = noteModData.skewY_playfield;
+        mesh.skewZ_playfield = noteModData.skewZ_playfield;
+
+        mesh.playfieldSkewCenterX = (noteModData?.whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2);
+        mesh.playfieldSkewCenterY = (noteModData?.whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
+        mesh.playfieldSkewCenterZ = (noteModData?.whichStrumNote?.strumExtraModData?.playfieldZ ?? 0);
 
         mesh.offset = this.offset;
         mesh.cameras = this.cameras;

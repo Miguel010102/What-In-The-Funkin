@@ -596,6 +596,11 @@ class Strumline extends FlxSpriteGroup
     var ohgod:Float = note.strumExtraModData.strumPos; // mods.strumPos[note.direction];
     note.strumDistance = ohgod;
     note.noteModData.strumPosition = ohgod;
+
+    note.strumExtraModData.playfieldX = this.x + (2 * Strumline.NOTE_SPACING);
+    // note.strumExtraModData.playfieldY = this.y + (this.height / 2);
+    note.strumExtraModData.playfieldY = FlxG.height / 2;
+    note.strumExtraModData.playfieldZ = 0;
   }
 
   // public var orientExtraMath:Array<Float> = [0, 0, 0, 0];

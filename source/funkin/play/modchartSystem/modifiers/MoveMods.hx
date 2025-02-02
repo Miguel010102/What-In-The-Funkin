@@ -72,6 +72,7 @@ class MoveZMod extends Modifier
   }
 }
 
+// Move in pixels as opposed to arrow size. Also applied AFTER most over mods like rotation.
 class MoveXMod_true extends Modifier
 {
   public function new(name:String)
@@ -85,6 +86,7 @@ class MoveXMod_true extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     data.x += currentValue;
+    data.whichStrumNote.strumExtraModData.playfieldX += currentValue;
   }
 }
 
@@ -101,6 +103,7 @@ class MoveYMod_true extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     data.y += currentValue;
+    data.whichStrumNote.strumExtraModData.playfieldY += currentValue;
   }
 }
 
@@ -117,6 +120,7 @@ class MoveYDMod_true extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     data.y += currentValue * (Preferences.downscroll ? -1 : 1);
+    data.whichStrumNote.strumExtraModData.playfieldY += currentValue * (Preferences.downscroll ? -1 : 1);
   }
 }
 
@@ -133,6 +137,7 @@ class MoveZMod_true extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     data.z += currentValue;
+    data.whichStrumNote.strumExtraModData.playfieldZ += currentValue;
   }
 }
 
@@ -167,6 +172,7 @@ class CenteredXMod extends Modifier
 
     // preculated distance so a value of 100% will center both the player and strum
     data.x += distanceToMove * currentValue;
+    data.whichStrumNote.strumExtraModData.playfieldX += distanceToMove * currentValue;
   }
 }
 

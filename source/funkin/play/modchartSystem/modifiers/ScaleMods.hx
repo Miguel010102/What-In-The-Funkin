@@ -11,6 +11,7 @@ class ScaleModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -35,6 +36,7 @@ class ScaleXModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -55,6 +57,7 @@ class ScaleYModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -75,6 +78,7 @@ class ScaleZModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -95,6 +99,7 @@ class ScaleStrumsModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
@@ -111,6 +116,7 @@ class ScaleXStrumsModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
@@ -125,6 +131,7 @@ class ScaleYStrumsModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
@@ -139,6 +146,7 @@ class ScaleNotesModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -155,6 +163,7 @@ class ScaleXNotesModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -169,6 +178,7 @@ class ScaleYNotesModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -183,6 +193,7 @@ class ScaleHoldsModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 3; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -203,6 +214,7 @@ class MiniModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 2; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
@@ -228,6 +240,7 @@ class TinyModifier extends Modifier
   public function new(name:String)
   {
     super(name, 0);
+    modPriority += 1; // apply before tiny
   }
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void

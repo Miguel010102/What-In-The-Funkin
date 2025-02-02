@@ -114,7 +114,8 @@ class ModConstants
     "tandrunk",
     "square",
     "saw",
-    "noteskewx"
+    "noteskewx",
+    "skewx"
   ];
 
   public static var hideSomeDebugBois:Array<String> = [
@@ -1007,14 +1008,26 @@ class ModConstants
         newMod = new JumpMod(tag);
 
       // skew mods
+      case "skewx":
+        newMod = new PlayFieldSkewXMod(tag);
+      case "skewy":
+        newMod = new PlayFieldSkewYMod(tag);
+      case "skewz":
+        newMod = new PlayFieldSkewZMod(tag);
       case "noteskewx":
         newMod = new NotesSkewXMod(tag);
       case "noteskewy":
         newMod = new NotesSkewYMod(tag);
+      case "noteskewz":
+        newMod = new NotesSkewZMod(tag);
       case "strumskewx":
         newMod = new StrumSkewXMod(tag);
       case "strumskewy":
         newMod = new StrumSkewYMod(tag);
+      case "strumskewz":
+        newMod = new StrumSkewZMod(tag);
+      case "holdskewy":
+        newMod = new HoldsSkewYMod(tag);
 
       // scale mods
       case "scale":

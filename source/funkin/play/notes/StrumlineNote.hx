@@ -11,6 +11,7 @@ import funkin.play.modchartSystem.StrumExtraData;
 import funkin.graphics.ZProjectSprite_Note;
 import flixel.graphics.frames.FlxFrame;
 import flixel.FlxBasic;
+import lime.math.Vector2;
 
 /**
  * The actual receptor that you see on screen.
@@ -144,6 +145,14 @@ class StrumlineNote extends ZSprite
 
       mesh.skewX = noteModData.skewX;
       mesh.skewY = noteModData.skewY;
+      mesh.skewZ = noteModData.skewZ;
+      mesh.skewX_playfield = noteModData.skewX_playfield;
+      mesh.skewY_playfield = noteModData.skewY_playfield;
+      mesh.skewZ_playfield = noteModData.skewZ_playfield;
+
+      mesh.playfieldSkewCenterX = strumExtraModData.playfieldX;
+      mesh.playfieldSkewCenterY = strumExtraModData.playfieldY;
+      mesh.playfieldSkewCenterZ = strumExtraModData.playfieldZ;
 
       mesh.offset = this.offset;
       mesh.cameras = this.cameras;

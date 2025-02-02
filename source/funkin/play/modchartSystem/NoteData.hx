@@ -75,6 +75,15 @@ class NoteData
   // The amount to skew on the z axis
   public var skewZ:Float = 0;
 
+  // The amount to skew on the x axis
+  public var skewX_playfield:Float = 0;
+
+  // The amount to skew on the y axis
+  public var skewY_playfield:Float = 0;
+
+  // The amount to skew on the z axis
+  public var skewZ_playfield:Float = 0;
+
   // offsets for 3D rendering mode:
   public var meshOffsets_SkewX:Float = 0;
   public var meshOffsets_SkewY:Float = 0;
@@ -201,6 +210,9 @@ class NoteData
     skewX = 0;
     skewY = 0;
     skewZ = 0;
+    skewX_playfield = 0;
+    skewY_playfield = 0;
+    skewZ_playfield = 0;
 
     red = 1;
     green = 1;
@@ -263,6 +275,7 @@ class NoteData
 
     if (skewX != 0) return true;
     if (skewY != 0) return true;
+    if (skewZ != 0) return true;
 
     if (red != 1) return true;
     if (blue != 1) return true;
