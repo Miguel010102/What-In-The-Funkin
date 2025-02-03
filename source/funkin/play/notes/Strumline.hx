@@ -27,6 +27,7 @@ import funkin.graphics.ZSprite;
 import funkin.play.modchartSystem.HazardArrowpath;
 import funkin.Paths;
 import funkin.play.modchartSystem.NoteData;
+import flixel.math.FlxAngle;
 
 /**
  * A group of sprites which handles the receptor, the note splashes, and the notes (with sustains) for a given player.
@@ -1643,6 +1644,19 @@ class Strumline extends FlxSpriteGroup
     splash.alpha = ay;
     splash.skew.x = whichStrumNote.skew.x;
     splash.skew.y = whichStrumNote.skew.y;
+
+    // attempt to position to playfield skew mods
+    if (whichStrumNote.strumExtraModData.threeD)
+    {
+      var playfieldSkewOffset_Y:Float = (splash.x + (splash.frameWidth * 0.3)) - (whichStrumNote.strumExtraModData.playfieldX);
+      var playfieldSkewOffset_X:Float = (splash.y + (splash.frameHeight * 0.3)) - (whichStrumNote.strumExtraModData.playfieldY);
+
+      splash.x += playfieldSkewOffset_X * Math.tan(whichStrumNote.noteModData.skewX_playfield * FlxAngle.TO_RAD);
+      splash.y += playfieldSkewOffset_Y * Math.tan(whichStrumNote.noteModData.skewY_playfield * FlxAngle.TO_RAD);
+
+      splash.skew.x += whichStrumNote.noteModData.skewX_playfield;
+      splash.skew.y += whichStrumNote.noteModData.skewY_playfield;
+    }
   }
 
   public function playNoteHoldCover(holdNote:SustainTrail):Void

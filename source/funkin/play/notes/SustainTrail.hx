@@ -640,21 +640,10 @@ class SustainTrail extends ZSprite
     {
       var pos_modified:Vector3D = new Vector3D(pos.x, pos.y, pos.z);
 
-      // FIX GAP?!
       // apply skew
-      var xPercent_SkewOffset:Float = pos_modified.x - fakeNote.x;
+      var xPercent_SkewOffset:Float = pos_modified.x - fakeNote.x - (graphicWidth / 2);
       // var xPercent_SkewOffset:Float = (xPercent - 0.5)*graphic_width;
       if (fakeNote.skew.y != 0) pos_modified.y += xPercent_SkewOffset * Math.tan(fakeNote.skew.y * FlxAngle.TO_RAD);
-
-      // v0.8.0a -> playfield skewing
-      var playfieldSkewOffset_Y:Float = pos.x - (whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2);
-      var playfieldSkewOffset_X:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
-
-      if (noteModData.skewX_playfield != 0) pos_modified.x += playfieldSkewOffset_X * Math.tan(noteModData.skewX_playfield * FlxAngle.TO_RAD);
-      if (noteModData.skewY_playfield != 0) pos_modified.y += playfieldSkewOffset_Y * Math.tan(noteModData.skewY_playfield * FlxAngle.TO_RAD);
-
-      var playfieldSkewOffset_Z:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
-      if (noteModData.skewZ_playfield != 0) pos_modified.z += playfieldSkewOffset_Z * Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD);
 
       // Rotate
       var angleY:Float = noteModData.angleY;
@@ -685,6 +674,16 @@ class SustainTrail extends ZSprite
 
       // pos_modified.x -= offset.x;
       // pos_modified.y -= offset.y;
+
+      // v0.8.0a -> playfield skewing
+      var playfieldSkewOffset_Y:Float = pos.x - (whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2);
+      var playfieldSkewOffset_X:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
+
+      if (noteModData.skewX_playfield != 0) pos_modified.x += playfieldSkewOffset_X * Math.tan(noteModData.skewX_playfield * FlxAngle.TO_RAD);
+      if (noteModData.skewY_playfield != 0) pos_modified.y += playfieldSkewOffset_Y * Math.tan(noteModData.skewY_playfield * FlxAngle.TO_RAD);
+
+      var playfieldSkewOffset_Z:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
+      if (noteModData.skewZ_playfield != 0) pos_modified.z += playfieldSkewOffset_Z * Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD);
 
       pos_modified.z *= 0.001;
       var thisNotePos:Vector3D = ModConstants.perspectiveMath_OLD(pos_modified, 0, 0);
