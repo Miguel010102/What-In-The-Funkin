@@ -142,6 +142,10 @@ class StrumExtraData
   // Enable this to re-enable the old 3D math for sustains! This basically just makes them scale on the x axis instead of applying true 3D math for each vert.
   public var old3Dholds:Bool = false;
 
+  // Dumb stupid shit for skew shit
+  public var skewMovedX:Float = 0;
+  public var skewMovedY:Float = 0;
+
   // For centered modifier? Also just useful info
   public var reverseMod:Float = 0;
   public var reverseModLane:Float = 0;

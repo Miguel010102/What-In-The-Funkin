@@ -3,6 +3,7 @@ package funkin.play.modchartSystem.modifiers;
 import funkin.play.notes.Strumline;
 import funkin.play.modchartSystem.NoteData;
 import funkin.play.modchartSystem.modifiers.BaseModifier;
+import flixel.math.FlxAngle;
 
 // Contains all the mods related to skewing!
 
@@ -18,15 +19,46 @@ class PlayFieldSkewXMod extends Modifier
     pathMod = true;
   }
 
+  var strumSkew:Float = 0;
+
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     if (currentValue == 0 || data.noteType == "receptor") return;
-    data.skewX_playfield += currentValue;
+    if (data.whichStrumNote?.strumExtraModData?.threeD ?? false)
+    {
+      data.skewX_playfield += currentValue;
+      return;
+    }
+
+    var skewCenterPoint:Float = data.whichStrumNote.strumExtraModData.playfieldY;
+
+    var offsetY:Float = ModConstants.strumSize / 2;
+    if (data.noteType == "hold" || data.noteType == "path")
+    {
+      offsetY = 0;
+    }
+    var skewMagicX:Float = (data.y + offsetY) - skewCenterPoint;
+    data.x += skewMagicX * Math.tan(currentValue * FlxAngle.TO_RAD);
+    data.x -= strumSkew;
+    data.skewX += currentValue;
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
-    data.skewX_playfield += currentValue;
+    if (currentValue == 0) return;
+    if (data.whichStrumNote?.strumExtraModData?.threeD ?? false)
+    {
+      data.skewX_playfield += currentValue;
+      return;
+    }
+
+    var skewCenterPoint:Float = data.whichStrumNote.strumExtraModData.playfieldY;
+
+    var offsetY:Float = ModConstants.strumSize / 2;
+    var skewMagicX:Float = (data.y + offsetY) - skewCenterPoint;
+    strumSkew = skewMagicX * Math.tan(currentValue * FlxAngle.TO_RAD);
+    data.x += strumSkew;
+    data.skewX += currentValue;
   }
 }
 

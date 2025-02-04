@@ -13,6 +13,7 @@ import funkin.Paths;
 import funkin.play.notes.NoteSprite;
 import funkin.play.notes.StrumlineNote;
 // Math and utils
+import flixel.addons.effects.FlxSkewedSprite;
 import StringTools;
 import flixel.util.FlxStringUtil;
 import flixel.math.FlxMath;
@@ -631,6 +632,20 @@ class ModConstants
     return stringReturn;
   }
 
+  public static function playfieldSkew(spr:FlxSprite, skewX:Float, skewY:Float, playfieldX:Float, playfieldY:Float, offsetX:Float = 0.0,
+      offsetY:Float = 0.0):Void
+  {
+    // attempt to position to playfield skew mods
+    var playfieldSkewOffset_Y:Float = (spr.x + offsetX) - (playfieldX);
+    var playfieldSkewOffset_X:Float = (spr.y + offsetY) - (playfieldY);
+
+    spr.x += playfieldSkewOffset_X * Math.tan(skewX * FlxAngle.TO_RAD);
+    spr.y += playfieldSkewOffset_Y * Math.tan(skewY * FlxAngle.TO_RAD);
+
+    // spr.skew.x += skewX;
+    // spr.skew.y += skewY;
+  }
+
   public static function grabStrumModTarget(playerTarget:String = "bf"):ModHandler
   {
     var modsTarget:ModHandler = PlayState.instance.playerStrumline.mods;
@@ -734,6 +749,34 @@ class ModConstants
     // {
     //  trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: " + e.toString());
     // }
+  }
+
+  // Same as applyPerspective but returns the scale modifier thingy?
+  public static function applyPerspective_returnScale(note:ZSprite, ?noteWidth:Float, ?noteHeight:Float):Float
+  {
+    var r:Float = 1;
+
+    if (noteWidth == null) noteWidth = note.width;
+    if (noteHeight == null) noteHeight = note.height;
+
+    var pos:Vector3D = new Vector3D(note.x + (noteWidth / 2), note.y + (noteHeight / 2), note.z * 0.001);
+
+    var thisNotePos:Vector3D = perspectiveMath_OLD(pos, -(noteWidth * 0.5), -(noteHeight * 0.5));
+
+    note.x = thisNotePos.x;
+    note.y = thisNotePos.y;
+
+    var noteScaleX = note.scale.x;
+    var noteScaleY = note.scale.y;
+    if (thisNotePos.z != 0)
+    {
+      r = (1 / -thisNotePos.z);
+      noteScaleY *= r;
+      noteScaleX *= r;
+    }
+
+    note.scale.set(noteScaleX, noteScaleY);
+    return r;
   }
 
   public static function fastTan(rad:Float):Float
@@ -1030,6 +1073,9 @@ class ModConstants
         newMod = new HoldsSkewYMod(tag);
 
       // scale mods
+      // case "zoom":
+      //  newMod = new ZoomModifier(tag);
+
       case "scale":
         newMod = new ScaleModifier(tag);
       case "scalex":

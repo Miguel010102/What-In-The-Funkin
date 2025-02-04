@@ -323,7 +323,7 @@ class SustainTrail extends ZSprite
   }
 
   var fakeNote:ZSprite;
-  var perspectiveShift:Vector2 = new Vector2(0, 0);
+  var perspectiveShift:Vector3D = new Vector3D(0, 0, 0); // z is scale dif
 
   function resetFakeNote():Void
   {
@@ -511,6 +511,7 @@ class SustainTrail extends ZSprite
     noteModData.direction = noteDirection % Strumline.KEY_COUNT;
     noteModData.curPos_unscaled = notePos;
     noteModData.whichStrumNote = whichStrumNote;
+    noteModData.noteType = isArrowPath ? "path" : "hold";
 
     var straightHoldsModAmount:Float = isArrowPath ? whichStrumNote.strumExtraModData.arrowpathStraightHold : whichStrumNote.strumExtraModData.straightHolds;
 
@@ -566,7 +567,7 @@ class SustainTrail extends ZSprite
 
     var rememberMe:Vector2 = new Vector2(fakeNote.x, fakeNote.y);
 
-    if (old3Dholds || !is3D) ModConstants.applyPerspective(fakeNote, graphicWidth, dumbHeight);
+    if (old3Dholds || !is3D) perspectiveShift.z = ModConstants.applyPerspective_returnScale(fakeNote, graphicWidth, dumbHeight);
 
     // caluclate diff
     perspectiveShift.x = fakeNote.x - rememberMe.x;
@@ -613,6 +614,17 @@ class SustainTrail extends ZSprite
       fakeNote.scale.set(scaleX, scaleY);
     }
 
+    if (!is3D || old3Dholds)
+    {
+      ModConstants.playfieldSkew(fakeNote, noteModData.skewX_playfield, noteModData.skewY_playfield, noteModData.whichStrumNote.strumExtraModData.playfieldX,
+        noteModData.whichStrumNote.strumExtraModData.playfieldY, (graphicWidth / 2), 0);
+      // undo the strum skew
+      fakeNote.x -= noteModData.whichStrumNote.strumExtraModData.skewMovedX;
+      fakeNote.y -= noteModData.whichStrumNote.strumExtraModData.skewMovedY;
+      fakeNote.skew.x += noteModData.skewX_playfield;
+      fakeNote.skew.y += noteModData.skewY_playfield;
+    }
+
     // temp fix for sus notes covering the entire fucking screen
     if (fakeNote.z > 825)
     {
@@ -630,10 +642,13 @@ class SustainTrail extends ZSprite
     if (!is3D || old3Dholds)
     {
       var rp = new Vector2(pos.x, pos.y);
+
       // apply skew
-      var xPercent_SkewOffset:Float = rp.x - fakeNote.x - (graphicWidth / 2);
+      // Currently doesn't work when the sustain moves on the z axis!
+      var xPercent_SkewOffset:Float = rp.x - fakeNote.x - (graphicWidth / 2 * (perspectiveShift.z)); // this is dumb but at least for the time being, it makes the disconnect less bad.
       if (fakeNote.skew.y != 0) rp.y += xPercent_SkewOffset * Math.tan(fakeNote.skew.y * FlxAngle.TO_RAD);
 
+      // if (noteModData.skewY_playfield != 0) rp.y += xPercent_SkewOffset * Math.tan(noteModData.skewY_playfield * FlxAngle.TO_RAD);
       return rp;
     }
     else

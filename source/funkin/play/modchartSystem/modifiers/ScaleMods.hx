@@ -208,6 +208,49 @@ class ScaleHoldsModifier extends Modifier
   }
 }
 
+class ZoomModifier extends Modifier
+{
+  public function new(name:String)
+  {
+    super(name, 0);
+    modPriority -= 10; // apply AFTER tiny
+    this.baseValue = 1;
+    this.currentValue = 1;
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 1 || data.noteType == "receptor") return;
+
+    data.scaleX *= currentValue;
+    data.scaleY *= currentValue;
+    data.scaleZ *= currentValue;
+
+    data.x = data.x = FlxMath.lerp(data.x, data.whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2, 1 - currentValue);
+    data.y = data.y = FlxMath.lerp(data.y, data.whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2, 1 - currentValue);
+    data.x -= strumMathX;
+    data.y -= strumMathY;
+    // data.z = data.z = FlxMath.lerp(data.x, data.whichStrumNote.strumExtraModData.playfieldZ, v);
+  }
+
+  var strumMathX:Float = 0;
+  var strumMathY:Float = 0;
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (currentValue == 1) return;
+    data.scaleX *= currentValue;
+    data.scaleY *= currentValue;
+    data.scaleZ *= currentValue;
+    strumMathX = data.x;
+    strumMathY = data.y;
+    data.x = data.x = FlxMath.lerp(data.x, data.whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2, 1 - currentValue);
+    data.y = data.y = FlxMath.lerp(data.y, data.whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2, 1 - currentValue);
+    strumMathX = data.x - strumMathX;
+    strumMathY = data.y - strumMathY;
+  }
+}
+
 // Not finished
 class MiniModifier extends Modifier
 {

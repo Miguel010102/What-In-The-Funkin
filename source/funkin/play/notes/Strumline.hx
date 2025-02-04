@@ -687,6 +687,18 @@ class Strumline extends FlxSpriteGroup
     note.noteModData.lastKnownPosition = note.lastKnownPosition;
     note.updateStealthGlow();
 
+    if (!(note.strumExtraModData?.threeD ?? false))
+    {
+      var wasX:Float = note.x;
+      var wasY:Float = note.y;
+      ModConstants.playfieldSkew(note, note.noteModData.skewX_playfield, note.noteModData.skewY_playfield, note.strumExtraModData.playfieldX,
+        note.strumExtraModData.playfieldY, note.width / 2, note.height / 2);
+      note.strumExtraModData.skewMovedX = note.x - wasX;
+      note.strumExtraModData.skewMovedY = note.y - wasY;
+      note.skew.x += note.noteModData.skewX_playfield;
+      note.skew.y += note.noteModData.skewY_playfield;
+    }
+
     // for mesh shenaniguns
     if (note.mesh != null)
     {
@@ -1037,6 +1049,18 @@ class Strumline extends FlxSpriteGroup
     note.applyNoteData(note.noteModData);
     note.updateLastKnownPos();
     note.noteModData.lastKnownPosition = note.lastKnownPosition;
+
+    if (!(note.noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false))
+    {
+      ModConstants.playfieldSkew(note, note.noteModData.skewX_playfield, note.noteModData.skewY_playfield,
+        note.noteModData.whichStrumNote.strumExtraModData.playfieldX, note.noteModData.whichStrumNote.strumExtraModData.playfieldY, note.width / 2,
+        note.height / 2);
+      // undo the strum skew
+      note.x -= note.noteModData.whichStrumNote.strumExtraModData.skewMovedX;
+      note.y -= note.noteModData.whichStrumNote.strumExtraModData.skewMovedY;
+      note.skew.x += note.noteModData.skewX_playfield;
+      note.skew.y += note.noteModData.skewY_playfield;
+    }
 
     // for mesh shenaniguns
     if (note.mesh != null)
@@ -1567,59 +1591,17 @@ class Strumline extends FlxSpriteGroup
 
       // cover.glow.skew.x = whichStrumNote.skew.x;
       // cover.glow.skew.y = whichStrumNote.skew.y;
+      // attempt to position when skewing in 3D
+      if (whichStrumNote.strumExtraModData.threeD)
+      {
+        ModConstants.playfieldSkew(cover.glow, whichStrumNote.noteModData.skewX_playfield, whichStrumNote.noteModData.skewY_playfield,
+          whichStrumNote.strumExtraModData.playfieldX, whichStrumNote.strumExtraModData.playfieldY, cover.glow.frameWidth * 0.5, cover.glow.frameHeight * 0.5);
+        // cover.glow.skew.y += whichStrumNote.noteModData.skewY_playfield;
+        // cover.glow.skew.x += whichStrumNote.noteModData.skewX_playfield;
+      }
     }
   }
 
-  /*
-    function noteCoverSetPos(cover:NoteHoldCover):Void
-    {
-      var whichStrumNote:StrumlineNote = getByIndex(cover.holdNoteDir % KEY_COUNT);
-
-      cover.x = whichStrumNote.x;
-      cover.x += STRUMLINE_SIZE / 2;
-      cover.x -= cover.width / 2;
-      cover.x += -12; // Manual tweaking because fuck.
-      cover.x += 26; // Manual tweaking because fuck.
-
-      cover.y = whichStrumNote.y;
-      cover.y += INITIAL_OFFSET;
-      cover.y += STRUMLINE_SIZE / 2;
-      cover.y += -96; // Manual tweaking because fuck.
-
-      cover.x -= whichStrumNote.strumExtraModData.noteStyleOffsetX; // undo strum offset
-      cover.y -= whichStrumNote.strumExtraModData.noteStyleOffsetY;
-
-      // cover.z = whichStrumNote.z; // copy Z!
-      cover.scale.set(1.0, 1.0);
-
-      var ay:Float = whichStrumNote.alpha;
-      ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
-      // ay -= alphaHoldCoverMod[cover.holdNoteDir % KEY_COUNT];
-
-      if (cover.glow != null)
-      {
-        cover.glow.x = cover.x;
-        cover.glow.y = cover.y;
-        cover.glow.z = 0;
-        cover.glow.scale.set(1.0, 1.0);
-        cover.glow.z = whichStrumNote.z;
-        cover.glow.alpha = ay;
-        cover.glow.skew.x = whichStrumNote.skew.x;
-        cover.glow.skew.y = whichStrumNote.skew.y;
-      }
-      if (cover.sparks != null)
-      {
-        cover.sparks.x = cover.x;
-        cover.sparks.y = cover.y;
-        cover.sparks.z = 0;
-        cover.sparks.scale.set(1.0, 1.0);
-        cover.sparks.z = whichStrumNote.z;
-        cover.sparks.alpha = ay;
-        cover.sparks.skew.x = whichStrumNote.skew.x;
-        cover.sparks.skew.y = whichStrumNote.skew.y;
-      }
-    }
-   */
   function noteSplashSetPos(splash:NoteSplash, direction:Int):Void
   {
     // var funny:Float = (FlxMath.fastSin(conductorInUse.songPosition / 1000) + 1) * 0.5;
@@ -1645,14 +1627,11 @@ class Strumline extends FlxSpriteGroup
     splash.skew.x = whichStrumNote.skew.x;
     splash.skew.y = whichStrumNote.skew.y;
 
-    // attempt to position to playfield skew mods
+    // attempt to position when skewing in 3D
     if (whichStrumNote.strumExtraModData.threeD)
     {
-      var playfieldSkewOffset_Y:Float = (splash.x + (splash.frameWidth * 0.3)) - (whichStrumNote.strumExtraModData.playfieldX);
-      var playfieldSkewOffset_X:Float = (splash.y + (splash.frameHeight * 0.3)) - (whichStrumNote.strumExtraModData.playfieldY);
-
-      splash.x += playfieldSkewOffset_X * Math.tan(whichStrumNote.noteModData.skewX_playfield * FlxAngle.TO_RAD);
-      splash.y += playfieldSkewOffset_Y * Math.tan(whichStrumNote.noteModData.skewY_playfield * FlxAngle.TO_RAD);
+      ModConstants.playfieldSkew(splash, whichStrumNote.noteModData.skewX_playfield, whichStrumNote.noteModData.skewY_playfield,
+        whichStrumNote.strumExtraModData.playfieldX, whichStrumNote.strumExtraModData.playfieldY, splash.frameWidth * 0.3, splash.frameHeight * 0.3);
 
       splash.skew.x += whichStrumNote.noteModData.skewX_playfield;
       splash.skew.y += whichStrumNote.noteModData.skewY_playfield;

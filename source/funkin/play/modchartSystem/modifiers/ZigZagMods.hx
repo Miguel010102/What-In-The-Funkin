@@ -21,7 +21,15 @@ class ZigZagBaseMod extends Modifier
   {
     var mult:Float = ModConstants.strumSize * getSubVal("mult");
     var mm:Float = mult * 2;
-    var ppp:Float = Math.abs(curPos) + (mult / 2);
+
+    var p:Float = curPos;
+    if (p < 0)
+    {
+      p *= -1;
+      p += mult;
+    }
+
+    var ppp:Float = p + (mult / 2);
     var funny:Float = (ppp + mult) % mm;
     var result:Float = funny - mult;
     if (ppp % mm * 2 >= mm)
