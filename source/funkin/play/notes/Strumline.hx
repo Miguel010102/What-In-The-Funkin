@@ -523,7 +523,9 @@ class Strumline extends FlxSpriteGroup
     }
 
     strumlineNotes.forEach(function(note:StrumlineNote) {
-      if (!(note.noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false)) ModConstants.applyPerspective(note);
+      // if (!(note.noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false)) ModConstants.applyPerspective(note);
+      // we still need to apply the perspective for the hold covers to be positioned correctly.
+      ModConstants.applyPerspective(note);
     });
 
     for (note in notes)
@@ -1598,6 +1600,9 @@ class Strumline extends FlxSpriteGroup
           whichStrumNote.strumExtraModData.playfieldX, whichStrumNote.strumExtraModData.playfieldY, cover.glow.frameWidth * 0.5, cover.glow.frameHeight * 0.5);
         // cover.glow.skew.y += whichStrumNote.noteModData.skewY_playfield;
         // cover.glow.skew.x += whichStrumNote.noteModData.skewX_playfield;
+
+        // Apply perspective... in the end we have to do this anyway for 3D mode :pensive:
+        // ModConstants.applyPerspective(cover.glow, cover.glow.width / 2, cover.glow.height / 2);
       }
     }
   }

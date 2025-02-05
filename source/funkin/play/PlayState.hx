@@ -660,6 +660,7 @@ class PlayState extends MusicBeatSubState
     return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
   }
 
+  public var zSortMod_PathOffset:Float = -10000; // paths should always try and render below the notes!
   public var zSortMod_SustainOffset:Float = -1.33333;
   public var zSortMod_StrumNoteOffset:Float = -0.4;
 
@@ -672,11 +673,13 @@ class PlayState extends MusicBeatSubState
     // Set the offset variables to extremely high values to prevent this from ever occuring (also keep the sustains at the far back for example)
     if (Std.isOfType(a, SustainTrail))
     {
-      a_value += zSortMod_SustainOffset;
+      var pcheck:SustainTrail = cast(a, SustainTrail);
+      a_value += pcheck.isArrowPath ? zSortMod_PathOffset : zSortMod_SustainOffset;
     }
     if (Std.isOfType(b, SustainTrail))
     {
-      b_value += zSortMod_SustainOffset;
+      var pcheck:SustainTrail = cast(b, SustainTrail);
+      b_value += pcheck.isArrowPath ? zSortMod_PathOffset : zSortMod_SustainOffset;
     }
     if (Std.isOfType(a, StrumlineNote))
     {

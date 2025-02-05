@@ -110,6 +110,7 @@ class SustainTrail extends ZSprite
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
 
+  // if true, then this will have the arrowpath logic applied to this sustain!
   public var isArrowPath:Bool = false;
 
   // for identifying what noteStyle this notesprite is using in hxScript or even lua
