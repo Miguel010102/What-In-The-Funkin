@@ -40,11 +40,14 @@ class ZProjectSprite_Note extends FlxSprite
   function set_spriteGraphic(value:FlxSprite):FlxSprite
   {
     spriteGraphic = value;
-    this.antialiasing = spriteGraphic.antialiasing;
-    // SCAN THROUGH ALL THE ANIMATIONS OF THIS GRAPHIC AND CACHE EVERY ANIMATION FRAME!
-    if (precacheSpriteGraphic)
+    if (value != null)
     {
-      ZProjectSprite_Note.precacheSpriteAnims(spriteGraphic, graphicCacheSuffix);
+      this.antialiasing = spriteGraphic.antialiasing;
+      // SCAN THROUGH ALL THE ANIMATIONS OF THIS GRAPHIC AND CACHE EVERY ANIMATION FRAME!
+      if (precacheSpriteGraphic)
+      {
+        ZProjectSprite_Note.precacheSpriteAnims(spriteGraphic, graphicCacheSuffix);
+      }
     }
     return spriteGraphic;
   }

@@ -44,7 +44,7 @@ class DrunkModBase extends Modifier
     time *= getSubVal("speed");
     time += getSubVal("time_add");
 
-    var useSin:Bool = (getSubVal("speed") >= 0.5);
+    var useSin:Bool = (getSubVal("sine") >= 0.5);
     var screenHeight:Float = FlxG.height;
     var drunk_desync:Float = getSubVal("desync");
     var returnValue:Float = 0.0;
