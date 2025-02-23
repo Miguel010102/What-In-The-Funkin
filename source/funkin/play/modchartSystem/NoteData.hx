@@ -112,6 +112,8 @@ class NoteData
   // Sometimes orient mod just has a heart attack and dies. This should make the notes spazz out less in the event that happens. just a bandaid fix for the NaN problem from orient.
   public var lastKnownOrientAngle:Float = 0;
 
+  public var orient2:Float = 0;
+
   // An array of mods which should be done to this note!
   // public var noteMods:Array<String> = [];
   public var noteMods:Array<Modifier> = [];

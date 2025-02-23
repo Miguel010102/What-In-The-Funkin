@@ -996,17 +996,21 @@ class Strumline extends FlxSpriteGroup
     return -INITIAL_OFFSET;
   }
 
-  function setNotePos(note:NoteSprite, vwoosh:Bool = false):Void
+  function setNotePos(note:NoteSprite, vwoosh:Bool = false, orientPass:Bool = false):Void
   {
+    if (!orientPass && note.noteModData.orient2 != 0)
+    {
+      setNotePos(note, vwoosh, true);
+    }
+
     note.noteModData.defaultValues();
-    note.noteModData.strumTime = note.strumTime;
+    note.noteModData.strumTime = note.strumTime + (orientPass ? 5 : 0);
     note.noteModData.noteType = note.kind;
     note.noteModData.direction = note.direction;
     note.color = FlxColor.WHITE;
-    note.noteModData.strumTime = note.strumTime;
     note.noteModData.direction = note.direction % KEY_COUNT;
     note.noteModData.whichStrumNote = getByIndex(note.noteModData.direction);
-    var timmy:Float = note.strumTime - note.noteModData.whichStrumNote.strumExtraModData.strumPos;
+    var timmy:Float = note.noteModData.strumTime - note.noteModData.whichStrumNote.strumExtraModData.strumPos;
 
     note.noteModData.curPos_unscaled = calculateNoteYPos(timmy, vwoosh);
     for (mod in mods.mods_speed)

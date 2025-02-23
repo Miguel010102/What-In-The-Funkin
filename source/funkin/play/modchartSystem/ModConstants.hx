@@ -677,6 +677,7 @@ class ModConstants
   }
 
   // from Modcharting-Tools lol
+  // TO DO: FIX FOR DECIMALS MAYBE?
   public static function getTimeFromBeat(beat:Float, conductor:Conductor = null):Float
   {
     if (conductor == null) conductor = Conductor.instance;
@@ -941,6 +942,8 @@ class ModConstants
         newMod = new CustomPathMod(tag);
       case "orient":
         newMod = new OrientMod(tag);
+      case "orient2":
+        newMod = new Orient2Mod(tag);
       case "zsort":
         newMod = new ZSortMod(tag);
       case "3d":
