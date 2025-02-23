@@ -14,7 +14,7 @@ class AngleZOffsetMod extends Modifier
     super(name, 0);
   }
 
-  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  override function strumMath(data:NoteData):Void
   {
     data.angleZ += currentValue;
   }
@@ -28,13 +28,13 @@ class AngleXOffsetMod extends Modifier
     super(name, 0);
   }
 
-  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  override function noteMath(data:NoteData, ?isArrowPath:Bool = false):Void
   {
     if (isArrowPath || data.noteType == "receptor") return;
     data.angleX += currentValue;
   }
 
-  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  override function strumMath(data:NoteData):Void
   {
     data.angleX += currentValue;
   }
@@ -48,13 +48,13 @@ class AngleYOffsetMod extends Modifier
     super(name, 0);
   }
 
-  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  override function noteMath(data:NoteData, ?isArrowPath:Bool = false):Void
   {
     if (isArrowPath || data.noteType == "receptor") return;
     data.angleY += currentValue;
   }
 
-  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  override function strumMath(data:NoteData):Void
   {
     data.angleY += currentValue;
   }
@@ -68,7 +68,7 @@ class NotesAngleZOffsetMod extends Modifier
     super(name, 0);
   }
 
-  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  override function noteMath(data:NoteData, ?isArrowPath:Bool = false):Void
   {
     data.angleZ += currentValue;
   }
@@ -82,7 +82,7 @@ class NotesAngleXOffsetMod extends Modifier
     super(name, 0);
   }
 
-  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  override function noteMath(data:NoteData, ?isArrowPath:Bool = false):Void
   {
     data.angleX += currentValue;
   }
@@ -96,7 +96,7 @@ class NotesAngleYOffsetMod extends Modifier
     super(name, 0);
   }
 
-  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  override function noteMath(data:NoteData, ?isArrowPath:Bool = false):Void
   {
     data.angleY += currentValue;
   }
